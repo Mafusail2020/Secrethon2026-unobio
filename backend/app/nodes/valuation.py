@@ -2,6 +2,7 @@ from typing import Any
 
 from app.contracts import NodeSpec
 from app.graph.state import GraphState
+from app.nodes._fixture import fixture_report, nap
 from app.nodes.base import NodeContext
 
 SPEC = NodeSpec(
@@ -17,4 +18,9 @@ SPEC = NodeSpec(
 
 
 async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
-    return {}
+    ctx.log("estimating capital and time to the next milestone (FIXTURE assumptions)")
+    await nap(ctx.node_id)
+    valuation = fixture_report().valuation
+    assert valuation is not None
+    ctx.log(f"next milestone: {valuation.next_milestone}")
+    return {"valuation": valuation}
