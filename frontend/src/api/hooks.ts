@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { getApi } from "./client";
 
+export const useHealth = () =>
+  useQuery({
+    queryKey: ["health"],
+    queryFn: async () => (await getApi()).health(),
+    retry: false,
+    // poll quickly while the backend is down so the banner clears as soon as it is back
+    refetchInterval: (query) => (query.state.status === "error" ? 3000 : 8000),
+  });
+
 export const useGraph = () =>
   useQuery({ queryKey: ["graph"], queryFn: async () => (await getApi()).graph(), staleTime: Infinity });
 

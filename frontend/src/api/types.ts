@@ -25,6 +25,7 @@ export type ReportDiff = S["ReportDiff"];
 export type ModelInfo = S["ModelInfo"];
 export type GraphSpec = S["GraphSpec"];
 export type ChatMessage = S["ChatMessage"];
+export type HealthStatus = S["HealthStatus"];
 export type LedgerStep = S["LedgerStep"];
 export type EvidenceLedger = S["EvidenceLedger"];
 export type TwinStats = S["TwinStats"];

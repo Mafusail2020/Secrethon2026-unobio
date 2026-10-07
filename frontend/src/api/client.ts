@@ -4,6 +4,7 @@ import type {
   CreateRunRequest,
   EvidenceDetail,
   GraphSpec,
+  HealthStatus,
   ModelInfo,
   NodeExecution,
   ReportDiff,
@@ -17,6 +18,7 @@ import { TERMINAL_EVENTS } from "./types";
 export type StreamState = "connecting" | "open" | "closed";
 
 export interface Api {
+  health(): Promise<HealthStatus>;
   graph(): Promise<GraphSpec>;
   models(): Promise<ModelInfo[]>;
   listRuns(): Promise<RunSummary[]>;
@@ -74,6 +76,7 @@ const post = <T>(path: string, body: unknown) =>
   request<T>(path, { method: "POST", body: JSON.stringify(body) });
 
 export const liveApi: Api = {
+  health: () => request("/health"),
   graph: () => request("/graph"),
   models: () => request("/models"),
   listRuns: () => request("/runs?limit=100"),

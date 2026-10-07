@@ -7,8 +7,10 @@ import { Badge } from "../../../components/ui/Badge";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
 import { DECISION_LABEL, DECISION_STYLE, formatCost, formatTokens, pctRange } from "../../../lib/format";
+import { runElapsed } from "../elapsed";
 import { groupPhases } from "../phases";
 import type { RunStream } from "../reduceEvents";
+import { useNow } from "../useNow";
 import { PhaseBlock } from "./PhaseBlock";
 
 function ProgramMessage({ run }: { run: RunSummary }) {
@@ -95,6 +97,7 @@ export function RunThread({
   decision,
   report,
   onOpenReport,
+  onReconnect,
 }: {
   run: RunSummary;
   spec: GraphSpec;
@@ -102,6 +105,7 @@ export function RunThread({
   decision: Decision | undefined;
   report: UnderwritingReport | undefined;
   onOpenReport: () => void;
+  onReconnect: () => void;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -110,6 +114,9 @@ export function RunThread({
   const finished = phases.reduce((n, p) => n + p.finished, 0);
   const reused = Object.values(stream.nodes).filter((n) => n.status === "reused").length;
   const active = phases.find((p) => p.status === "running");
+  const now = useNow(stream.status === "running" || stream.status === "queued");
+  const elapsed = runElapsed(stream, now);
+  const lost = stream.connection === "closed" && (stream.status === "running" || stream.status === "queued");
 
   const rerun = useMutation({
     mutationFn: async () => (await getApi()).createRun({ program: run.program, options: run.options }),
@@ -135,15 +142,23 @@ export function RunThread({
           {stream.status === "failed" && <span className="text-red-600">✕</span>}
           <span className="min-w-0">
             {stream.status === "queued" && "Waiting for a free slot"}
-            {stream.status === "running" && `${active?.label ?? "Working"} (${finished}/${total} steps)`}
-            {stream.status === "completed" && `Analysis complete (${total} steps)`}
-            {stream.status === "failed" && "The run failed"}
+            {stream.status === "running" && `${active?.label ?? "Working"} (${finished}/${total} steps)${elapsed ? ` · ${elapsed}` : ""}`}
+            {stream.status === "completed" && `Analysis complete (${total} steps)${elapsed ? ` · ${elapsed}` : ""}`}
+            {stream.status === "failed" && `The run failed${elapsed ? ` after ${elapsed}` : ""}`}
           </span>
           {stream.stubData && <Badge className="border-amber-300 bg-amber-50 text-amber-800">stub data</Badge>}
         </div>
         <UsageLine stream={stream} />
         {stream.connection === "connecting" && stream.status === "running" && (
-          <p className="text-xs text-amber-700">Reconnecting to the live stream…</p>
+          <p role="status" className="text-xs text-amber-700">Reconnecting to the live stream…</p>
+        )}
+        {lost && (
+          <p role="alert" className="rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+            Lost the live stream. The run may still be going on the server.{" "}
+            <button type="button" onClick={onReconnect} className="font-medium underline">
+              Reconnect
+            </button>
+          </p>
         )}
         {stream.error && (
           <div className="space-y-2">

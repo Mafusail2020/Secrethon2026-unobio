@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { useGraph, useRunDetail } from "../../api/hooks";
 import type { Decision } from "../../api/types";
 import { ErrorBox } from "../../components/ui/ErrorBox";
-import { Spinner } from "../../components/ui/Spinner";
 import { ArtifactPanel, type TabId } from "./artifact/ArtifactPanel";
 import type { FocusClaim } from "./artifact/report/reportContext";
 import { Composer } from "./chat/Composer";
+import { ConnectionBanner } from "./ConnectionBanner";
 import { ExampleCards } from "./chat/ExampleCards";
 import { FollowUp } from "./chat/FollowUp";
 import { History } from "./chat/History";
@@ -20,7 +20,8 @@ interface Prefill {
 }
 
 export function RunWorkspace({ runId }: { runId: string | undefined }) {
-  const stream = useRunStream(runId);
+  const [attempt, setAttempt] = useState(0);
+  const stream = useRunStream(runId, attempt);
   const graph = useGraph();
   const detail = useRunDetail(runId);
   const [tab, setTab] = useState<TabId | null>(null);
@@ -40,7 +41,9 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
   };
 
   return (
-    <div className="grid h-full grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
+    <div className="flex h-full min-h-0 flex-col">
+      <ConnectionBanner />
+      <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
       <aside className="flex min-h-0 flex-col bg-white">
         <header className="flex items-center justify-between border-b border-line px-4 py-2.5">
           <h1 className="text-base font-semibold">Underwriting</h1>
@@ -63,8 +66,13 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
             </div>
           )}
           {runId && detail.isPending && (
-            <div className="p-4">
-              <Spinner />
+            <div className="space-y-3 p-3" aria-busy="true" aria-label="Loading the run">
+              <div className="ml-8 h-16 animate-pulse rounded-2xl bg-canvas" />
+              <div className="mr-2 space-y-2 rounded-2xl bg-canvas p-3">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-10 animate-pulse rounded-lg bg-white/70" />
+                ))}
+              </div>
             </div>
           )}
           {runId && detail.error && (
@@ -83,6 +91,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
               decision={decision}
               report={report}
               onOpenReport={() => setTab("report")}
+              onReconnect={() => setAttempt((a) => a + 1)}
             />
           )}
         </div>
@@ -93,6 +102,8 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
         onTab={setTab}
         run={run}
         graph={graph.data}
+        graphError={graph.error}
+        onRetryGraph={() => void graph.refetch()}
         stream={stream}
         report={report}
         canCorrect={completed}
@@ -100,6 +111,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
         sourceCounts={sourceCounts}
         onOpenClaim={openClaim}
       />
+      </div>
     </div>
   );
 }

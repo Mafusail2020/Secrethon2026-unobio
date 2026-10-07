@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../../api/types";
+import { ErrorBoundary } from "../../../components/ErrorBoundary";
+import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
 import { Tabs } from "../../../components/ui/Tabs";
 import { affectedSet, runnableNodes } from "../graphUtils";
@@ -10,6 +12,7 @@ import { VersionBar } from "./graph/VersionBar";
 import { LogsTimeline } from "./logs/LogsTimeline";
 import { ReportView } from "./report/ReportView";
 import type { FocusClaim } from "./report/reportContext";
+import { isSyntheticReport } from "./report/synthetic";
 import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
@@ -104,6 +107,8 @@ export function ArtifactPanel({
   onTab,
   run,
   graph,
+  graphError,
+  onRetryGraph,
   stream,
   report,
   canCorrect,
@@ -115,6 +120,8 @@ export function ArtifactPanel({
   onTab: (tab: TabId) => void;
   run: RunSummary | undefined;
   graph: GraphSpec | undefined;
+  graphError?: unknown;
+  onRetryGraph?: () => void;
   stream: RunStream;
   report: UnderwritingReport | undefined;
   canCorrect: boolean;
@@ -123,7 +130,11 @@ export function ArtifactPanel({
   onOpenClaim: (claimId: string) => void;
 }) {
   const active: TabId = tab ?? (report ? "report" : "graph");
-  const waiting = run ? (
+  const stubbed = stream.stubData || (!!report && isSyntheticReport(report));
+  const failed = run?.status === "failed" || stream.status === "failed";
+  const waiting = failed ? (
+    <Empty>This run failed before it produced a report. The Graph tab shows which step failed and why; the chat can run it again.</Empty>
+  ) : run ? (
     <Empty>
       <span className="flex items-center gap-2">
         <Spinner /> The report appears here when the analysis finishes. Watch the Graph tab meanwhile.
@@ -136,23 +147,43 @@ export function ArtifactPanel({
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
       <Tabs tabs={TABS} active={active} onChange={onTab} />
+      {stubbed && active !== "report" && (
+        <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-1 text-xs text-amber-900">
+          Synthetic data: parts of this run come from stub steps and contain placeholder content.
+        </p>
+      )}
       <div className="min-h-0 flex-1 overflow-auto">
-        {active === "report" &&
-          (report && run ? (
-            <ReportView report={report} runId={run.id} graph={graph} canCorrect={canCorrect} focusClaim={focusClaim} />
-          ) : (
-            waiting
-          ))}
-        {active === "graph" &&
-          (graph ? (
-            <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} sourceCounts={sourceCounts} />
-          ) : (
-            <Empty>
-              <Spinner />
-            </Empty>
-          ))}
-        {active === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
-        {active === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
+        <ErrorBoundary resetKey={`${active}:${run?.id ?? ""}`}>
+          {active === "report" &&
+            (report && run ? (
+              <ReportView report={report} runId={run.id} graph={graph} canCorrect={canCorrect} focusClaim={focusClaim} />
+            ) : (
+              waiting
+            ))}
+          {active === "graph" &&
+            (graph ? (
+              <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} sourceCounts={sourceCounts} />
+            ) : graphError ? (
+              <div className="space-y-2 p-4">
+                <ErrorBox error={graphError} title="Could not load the pipeline graph" />
+                <button type="button" onClick={onRetryGraph} className="rounded-full border border-line bg-white px-3 py-1 text-sm">
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 p-4" aria-busy="true" aria-label="Loading the pipeline graph">
+                <div className="mx-auto h-12 w-48 animate-pulse rounded bg-line/50" />
+                <div className="mx-auto h-12 w-48 animate-pulse rounded bg-line/50" />
+                <div className="grid grid-cols-3 gap-3">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-12 animate-pulse rounded bg-line/50" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          {active === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
+          {active === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
+        </ErrorBoundary>
       </div>
     </section>
   );

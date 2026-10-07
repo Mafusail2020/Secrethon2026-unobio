@@ -62,7 +62,7 @@ describe("example cards", () => {
 describe("run thread", () => {
   const thread = (stream = events.reduce(applyEvent, initialStream)) =>
     html(
-      <RunThread run={run} spec={spec} stream={stream} decision="conditional" report={undefined} onOpenReport={() => {}} />,
+      <RunThread run={run} spec={spec} stream={stream} decision="conditional" report={undefined} onOpenReport={() => {}} onReconnect={() => {}} />,
     );
 
   it("groups steps into the eight pipeline phases and shows the verdict and usage", () => {
@@ -78,9 +78,32 @@ describe("run thread", () => {
 
   it("shows a waiting run with every phase pending and no verdict", () => {
     const waiting = html(
-      <RunThread run={run} spec={spec} stream={initialStream} decision={undefined} report={undefined} onOpenReport={() => {}} />,
+      <RunThread run={run} spec={spec} stream={initialStream} decision={undefined} report={undefined} onOpenReport={() => {}} onReconnect={() => {}} />,
     );
     expect(waiting).toContain("Waiting for a free slot");
     expect(waiting).not.toContain("Open report");
+  });
+
+  it("offers a reconnect when the stream drops while the run is still going", () => {
+    const dropped = { ...events.slice(0, 5).reduce(applyEvent, initialStream), connection: "closed" as const };
+    const markup = html(<RunThread run={run} spec={spec} stream={dropped} decision={undefined} report={undefined} onOpenReport={() => {}} onReconnect={() => {}} />);
+    expect(markup).toContain("Lost the live stream");
+    expect(markup).toContain("Reconnect");
+  });
+
+  it("shows the failure, the failing step's reason and a way to run again", () => {
+    const failed = [
+      ...events.slice(0, 3),
+      { seq: 99, run_id: "r", ts: "2026-10-05T12:00:30Z", type: "run.failed", node_id: null, data: { error: "planner could not parse the program" } } as RunEvent,
+    ].reduce(applyEvent, initialStream);
+    const markup = html(<RunThread run={{ ...run, status: "failed" } as RunSummary} spec={spec} stream={failed} decision={undefined} report={undefined} onOpenReport={() => {}} onReconnect={() => {}} />);
+    expect(markup).toContain("The run failed");
+    expect(markup).toContain("planner could not parse the program");
+    expect(markup).toContain("Run again with the same input");
+    expect(markup).not.toContain("Lost the live stream");
+  });
+
+  it("shows how long a finished run took", () => {
+    expect(thread()).toMatch(/Analysis complete \(23 steps\) · \d/);
   });
 });

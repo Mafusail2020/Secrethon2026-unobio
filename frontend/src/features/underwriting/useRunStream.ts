@@ -13,7 +13,7 @@ function reducer(state: RunStream, action: Action): RunStream {
 }
 
 /** Live state of one run. Mount it with key={runId}: a different run is a new component. */
-export function useRunStream(runId: string | undefined): RunStream {
+export function useRunStream(runId: string | undefined, attempt = 0): RunStream {
   const [state, dispatch] = useReducer(reducer, initialStream);
   const queryClient = useQueryClient();
 
@@ -43,7 +43,7 @@ export function useRunStream(runId: string | undefined): RunStream {
       window.clearTimeout(refresh);
       unsubscribe();
     };
-  }, [runId, queryClient]);
+  }, [runId, attempt, queryClient]);
 
   return state;
 }

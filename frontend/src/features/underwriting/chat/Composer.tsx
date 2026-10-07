@@ -301,6 +301,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
             </option>
           ))}
         </select>
+        {models.isError && <p className="mt-1 text-xs text-amber-700">Could not load the model list; the cheapest available model will be used.</p>}
         {chosen && (
           <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted">
             <Badge className="border-line text-muted">{chosen.tier}</Badge>
