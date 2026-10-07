@@ -12,6 +12,11 @@ import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
 
+export interface FocusClaim {
+  id: string;
+  nonce: number;
+}
+
 const TABS: { id: TabId; label: string }[] = [
   { id: "report", label: "Report" },
   { id: "graph", label: "Graph" },
@@ -68,6 +73,7 @@ export function ArtifactPanel({
   stream,
   report,
   canCorrect,
+  focusClaim,
 }: {
   tab: TabId | null;
   onTab: (tab: TabId) => void;
@@ -76,6 +82,7 @@ export function ArtifactPanel({
   stream: RunStream;
   report: UnderwritingReport | undefined;
   canCorrect: boolean;
+  focusClaim?: FocusClaim;
 }) {
   const active: TabId = tab ?? (report ? "report" : "graph");
   const waiting = run ? (
@@ -92,7 +99,7 @@ export function ArtifactPanel({
     <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
       <Tabs tabs={TABS} active={active} onChange={onTab} />
       <div className="min-h-0 flex-1 overflow-auto">
-        {active === "report" && (report ? <ReportView report={report} /> : waiting)}
+        {active === "report" && (report ? <ReportView report={report} focusClaim={focusClaim} /> : waiting)}
         {active === "graph" &&
           (graph ? (
             <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} />

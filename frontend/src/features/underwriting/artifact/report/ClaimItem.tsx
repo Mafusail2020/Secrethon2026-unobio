@@ -38,11 +38,24 @@ export function EvidenceCard({ evidenceId, report }: { evidenceId: string; repor
   );
 }
 
-export function ClaimItem({ claim, report }: { claim: Claim; report: UnderwritingReport }) {
-  const [open, setOpen] = useState(false);
+export function ClaimItem({
+  claim,
+  report,
+  domId,
+  focused = false,
+}: {
+  claim: Claim;
+  report: UnderwritingReport;
+  domId?: string;
+  focused?: boolean;
+}) {
+  const [open, setOpen] = useState(focused);
   const muted = claim.status === "rejected";
   return (
-    <li className={`rounded-md border border-line bg-white p-2 ${muted ? "opacity-70" : ""}`}>
+    <li
+      id={domId}
+      className={`scroll-mt-24 rounded-md border bg-white p-2 ${focused ? "border-brand ring-2 ring-brand/30" : "border-line"} ${muted ? "opacity-70" : ""}`}
+    >
       <div className="flex items-start gap-2">
         <button
           onClick={() => setOpen((o) => !o)}

@@ -263,6 +263,18 @@ export const mockApi: Api = {
     if (!evidence || !source) throw new ApiError(404, "evidence_not_found", `no evidence ${evidenceId}`);
     return wait({ evidence, source });
   },
+  postMessage: (runId, message) => {
+    const report = need(runId).report;
+    if (!report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    // canned: point at the claims behind the verdict, which is what a real answer would cite
+    const cited = report.verdict.reason_codes.flatMap((r) => r.claim_ids).slice(0, 3);
+    return wait({
+      role: "assistant",
+      run_id: runId,
+      content: `Mock reply to "${message.content.slice(0, 80)}". The claims below are the ones the verdict rests on.`,
+      cited_claim_ids: cited,
+    });
+  },
   subscribe(runId, onEvent, onState) {
     const run = need(runId);
     let open = true;

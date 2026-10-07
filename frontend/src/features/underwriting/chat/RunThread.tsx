@@ -1,12 +1,15 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import type { GraphSpec, RunSummary } from "../../../api/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getApi } from "../../../api/client";
+import type { Decision, GraphSpec, RunSummary, UnderwritingReport } from "../../../api/types";
 import { Badge } from "../../../components/ui/Badge";
+import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
-import { DECISION_LABEL, DECISION_STYLE, humanize } from "../../../lib/format";
-import { runnableNodes } from "../graphUtils";
+import { DECISION_LABEL, DECISION_STYLE, formatCost, formatTokens, pctRange } from "../../../lib/format";
+import { groupPhases } from "../phases";
 import type { RunStream } from "../reduceEvents";
-import { STATUS_ICON, STATUS_TEXT } from "../status";
+import { PhaseBlock } from "./PhaseBlock";
 
 function ProgramMessage({ run }: { run: RunSummary }) {
   const p = run.program;
@@ -14,7 +17,7 @@ function ProgramMessage({ run }: { run: RunSummary }) {
     .filter(Boolean)
     .join(" · ");
   return (
-    <div className="ml-8 rounded-lg bg-navy p-3 text-sm text-white">
+    <div className="ml-8 rounded-2xl rounded-tr-sm bg-navy p-3 text-sm text-white">
       <div className="font-medium">{p.indication}</div>
       <div>{p.mechanism}</div>
       {extras && <div className="mt-1 text-xs opacity-80">{extras}</div>}
@@ -26,41 +29,62 @@ function ProgramMessage({ run }: { run: RunSummary }) {
   );
 }
 
-function Step({ id, label, stream }: { id: string; label: string; stream: RunStream }) {
-  const [open, setOpen] = useState(false);
-  const node = stream.nodes[id];
-  const status = node?.status ?? "pending";
-  const last = node?.logs.at(-1)?.message;
+function UsageLine({ stream }: { stream: RunStream }) {
+  const u = stream.usage;
+  if (u.calls === 0) return null;
+  const tokens = u.tokensIn + u.tokensOut;
   return (
-    <li className="rounded-md border border-line bg-white">
-      <button
-        className="flex w-full items-start gap-2 px-2 py-1.5 text-left text-sm"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-      >
-        <span className={`mt-0.5 w-4 text-center ${STATUS_TEXT[status]}`}>
-          {status === "running" ? <Spinner className="h-3 w-3" /> : STATUS_ICON[status]}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="font-medium">{label}</span>
-          {node?.llmCalls ? <Badge className="ml-2 border-slate-300 text-slate-600">{node.llmCalls} llm</Badge> : null}
-          {last && status !== "done" && <span className="block truncate text-xs text-muted">{last}</span>}
-          {status === "reused" && <span className="block text-xs text-violet-600">reused from the parent run</span>}
-          {node?.error && <span className="block text-xs text-red-600">{node.error}</span>}
-        </span>
-        {node?.durationMs ? <span className="text-xs text-muted">{(node.durationMs / 1000).toFixed(1)}s</span> : null}
-      </button>
-      {open && node && (
-        <ul className="border-t border-line bg-canvas px-3 py-1.5 text-xs text-muted">
-          {node.logs.length === 0 && <li>no log lines</li>}
-          {node.logs.map((l) => (
-            <li key={l.seq} className={l.level === "error" ? "text-red-600" : l.level === "warn" ? "text-amber-600" : ""}>
-              {l.message}
+    <p className="text-xs text-muted" aria-live="off">
+      {u.calls} model call{u.calls === 1 ? "" : "s"}
+      {u.cached > 0 ? ` (${u.cached} cached)` : ""} · {formatTokens(tokens)} tokens ·{" "}
+      {u.mock ? "mock model, no spend" : formatCost(u.costUsd)}
+    </p>
+  );
+}
+
+function VerdictCard({
+  decision,
+  report,
+  onOpenReport,
+}: {
+  decision: Decision;
+  report: UnderwritingReport | undefined;
+  onOpenReport: () => void;
+}) {
+  const reasons = report?.verdict.reason_codes.slice(0, 3) ?? [];
+  return (
+    <div className="rounded-lg border border-line bg-white p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge className={`px-3 py-1 text-sm ${DECISION_STYLE[decision]}`}>{DECISION_LABEL[decision]}</Badge>
+        {report && (
+          <span className="text-sm text-muted">
+            Probability of success <strong className="text-ink">{pctRange(report.pos)}</strong>
+          </span>
+        )}
+      </div>
+      {reasons.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {reasons.map((r) => (
+            <li key={r.code} className="flex items-start gap-2 text-sm">
+              <span className={r.direction === "positive" ? "text-emerald-600" : "text-red-600"} aria-hidden="true">
+                {r.direction === "positive" ? "▲" : "▼"}
+              </span>
+              <span>
+                <span className="sr-only">{r.direction}: </span>
+                {r.text}
+              </span>
             </li>
           ))}
         </ul>
       )}
-    </li>
+      <button
+        type="button"
+        onClick={onOpenReport}
+        className="mt-3 rounded-full border border-line px-3 py-1 text-sm font-medium text-brand hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+      >
+        Open report
+      </button>
+    </div>
   );
 }
 
@@ -69,61 +93,81 @@ export function RunThread({
   spec,
   stream,
   decision,
+  report,
   onOpenReport,
 }: {
   run: RunSummary;
   spec: GraphSpec;
   stream: RunStream;
-  decision: keyof typeof DECISION_LABEL | undefined;
+  decision: Decision | undefined;
+  report: UnderwritingReport | undefined;
   onOpenReport: () => void;
 }) {
-  const nodes = runnableNodes(spec);
-  const started = nodes.filter((n) => stream.nodes[n.id]);
-  const finished = nodes.filter((n) => ["done", "reused", "skipped", "failed"].includes(stream.nodes[n.id]?.status ?? ""));
-  const reused = nodes.filter((n) => stream.nodes[n.id]?.status === "reused").length;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const phases = useMemo(() => groupPhases(spec, stream.nodes), [spec, stream.nodes]);
+  const total = phases.reduce((n, p) => n + p.nodes.length, 0);
+  const finished = phases.reduce((n, p) => n + p.finished, 0);
+  const reused = Object.values(stream.nodes).filter((n) => n.status === "reused").length;
+  const active = phases.find((p) => p.status === "running");
+
+  const rerun = useMutation({
+    mutationFn: async () => (await getApi()).createRun({ program: run.program, options: run.options }),
+    onSuccess: (next) => {
+      void queryClient.invalidateQueries({ queryKey: ["runs"] });
+      navigate(`/underwriting/runs/${next.id}`);
+    },
+  });
 
   return (
     <div className="space-y-3 p-3">
       <ProgramMessage run={run} />
-      <div className="mr-4 space-y-2 rounded-lg border border-line bg-canvas p-3">
+      <div className="mr-2 space-y-2 rounded-2xl rounded-tl-sm bg-canvas p-3">
         {run.parent_run_id && (
-          <div className="rounded-md bg-violet-50 p-2 text-xs text-violet-800">
-            Re-run of <Link className="underline" to={`/underwriting/runs/${run.parent_run_id}`}>the previous version</Link> after a
-            correction{stream.status !== "queued" ? `: ${reused} nodes reused, the rest recompute` : ""}.
-          </div>
+          <p className="rounded-md bg-violet-50 p-2 text-xs text-violet-800">
+            Re-run of <Link className="underline" to={`/underwriting/runs/${run.parent_run_id}`}>the previous version</Link>{" "}
+            after a correction{stream.status !== "queued" ? `: ${reused} steps reused, the rest recompute` : ""}.
+          </p>
         )}
-        <div className="flex items-center gap-2 text-sm font-medium">
-          {stream.status === "running" || stream.status === "queued" ? <Spinner /> : null}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" role="status">
+          {(stream.status === "running" || stream.status === "queued") && <Spinner />}
           {stream.status === "completed" && <span className="text-emerald-600">✓</span>}
           {stream.status === "failed" && <span className="text-red-600">✕</span>}
-          <span>
+          <span className="min-w-0">
             {stream.status === "queued" && "Waiting for a free slot"}
-            {stream.status === "running" && `Researching and analysing (${finished.length}/${nodes.length})`}
-            {stream.status === "completed" && `Analysis complete (${finished.length}/${nodes.length} steps)`}
-            {stream.status === "failed" && "Run failed"}
+            {stream.status === "running" && `${active?.label ?? "Working"} (${finished}/${total} steps)`}
+            {stream.status === "completed" && `Analysis complete (${total} steps)`}
+            {stream.status === "failed" && "The run failed"}
           </span>
+          {stream.stubData && <Badge className="border-amber-300 bg-amber-50 text-amber-800">stub data</Badge>}
         </div>
-        {stream.error && <div className="text-sm text-red-700">{stream.error}</div>}
+        <UsageLine stream={stream} />
         {stream.connection === "connecting" && stream.status === "running" && (
-          <div className="text-xs text-amber-600">Reconnecting to the live stream…</div>
+          <p className="text-xs text-amber-700">Reconnecting to the live stream…</p>
         )}
-        <ul className="space-y-1">
-          {started.map((n) => (
-            <Step key={n.id} id={n.id} label={n.label} stream={stream} />
-          ))}
-        </ul>
-        {started.length < nodes.length && stream.status === "running" && (
-          <div className="text-xs text-muted">{nodes.length - started.length} steps pending</div>
-        )}
-        {decision && (
-          <div className="flex items-center justify-between rounded-md border border-line bg-white p-2">
-            <Badge className={DECISION_STYLE[decision]}>{DECISION_LABEL[decision]}</Badge>
-            <button className="text-sm font-medium text-brand hover:underline" onClick={onOpenReport}>
-              Open report
+        {stream.error && (
+          <div className="space-y-2">
+            <ErrorBox error={new Error(stream.error)} title="The run failed" />
+            <button
+              type="button"
+              onClick={() => rerun.mutate()}
+              disabled={rerun.isPending}
+              className="rounded-full border border-line bg-white px-3 py-1 text-sm font-medium text-brand hover:border-brand disabled:opacity-60"
+            >
+              Run again with the same input
             </button>
+            {rerun.error && <ErrorBox error={rerun.error} title="Could not restart" />}
           </div>
         )}
-        {run.status === "failed" && !stream.error && run.error && <div className="text-sm text-red-700">{humanize(run.error)}</div>}
+        <ol className="space-y-1.5">
+          {phases.map((phase) => (
+            <PhaseBlock key={phase.id} phase={phase} live={stream.nodes} />
+          ))}
+        </ol>
+        {decision && <VerdictCard decision={decision} report={report} onOpenReport={onOpenReport} />}
+        {run.status === "failed" && !stream.error && run.error && (
+          <ErrorBox error={new Error(run.error)} title="The run failed" />
+        )}
       </div>
     </div>
   );

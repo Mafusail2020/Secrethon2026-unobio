@@ -1,4 +1,5 @@
 import type {
+  ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
   EvidenceDetail,
@@ -26,6 +27,8 @@ export interface Api {
   createCorrection(runId: string, nodeId: string, body: CorrectionRequest): Promise<RunSummary>;
   getDiff(fromRun: string, toRun: string): Promise<ReportDiff>;
   getEvidence(evidenceId: string): Promise<EvidenceDetail>;
+  /** Follow-up question about a run. The backend answers 501 until Stage 3U. */
+  postMessage(runId: string, message: ChatMessage): Promise<ChatMessage>;
   /** Replays the full history, then streams live. Returns an unsubscribe function. */
   subscribe(
     runId: string,
@@ -81,6 +84,7 @@ export const liveApi: Api = {
   createCorrection: (id, nodeId, body) => post(`/runs/${id}/nodes/${nodeId}/corrections`, body),
   getDiff: (from, to) => request(`/runs/${from}/diff/${to}`),
   getEvidence: (id) => request(`/evidence/${id}`),
+  postMessage: (id, message) => post(`/runs/${id}/messages`, message),
   subscribe(runId, onEvent, onState) {
     // EventSource reconnects by itself and sends Last-Event-ID; the server resumes after it
     const source = new EventSource(`/api/runs/${runId}/events`);

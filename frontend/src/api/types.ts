@@ -24,6 +24,7 @@ export type Verdict = S["Verdict"];
 export type ReportDiff = S["ReportDiff"];
 export type ModelInfo = S["ModelInfo"];
 export type GraphSpec = S["GraphSpec"];
+export type ChatMessage = S["ChatMessage"];
 export type NodeSpec = S["NodeSpec"];
 export type NodeKind = NodeSpec["kind"];
 export type Decision = Verdict["decision"];

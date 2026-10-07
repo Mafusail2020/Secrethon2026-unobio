@@ -8,7 +8,7 @@ export default defineConfig({
   envDir: "..",
   server: {
     port: 5173,
-    proxy: { "/api": "http://localhost:8000" },
+    proxy: { "/api": process.env.API_PROXY_TARGET ?? "http://localhost:8000" },
     // mock mode imports fixtures from ../contracts
     fs: { allow: [".."] },
   },

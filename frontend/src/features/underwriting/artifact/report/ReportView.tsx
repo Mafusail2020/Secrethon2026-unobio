@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import type { SectionId, SectionResult, UnderwritingReport } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
 import { DECISION_LABEL, DECISION_STYLE, humanize, pctRange } from "../../../../lib/format";
+import type { FocusClaim } from "../ArtifactPanel";
 import { ClaimItem } from "./ClaimItem";
 import { LedgerPanel, TwinPanel, ValuationPanel } from "./QuantPanels";
 
@@ -28,7 +30,15 @@ const LINK_STATUS: Record<string, string> = {
   contradicted: "bg-red-100 text-red-800",
 };
 
-function Section({ result, report }: { result: SectionResult; report: UnderwritingReport }) {
+function Section({
+  result,
+  report,
+  focusClaim,
+}: {
+  result: SectionResult;
+  report: UnderwritingReport;
+  focusClaim?: FocusClaim;
+}) {
   return (
     <section className="rounded-lg border border-line bg-white p-3">
       <div className="flex items-center justify-between">
@@ -50,7 +60,17 @@ function Section({ result, report }: { result: SectionResult; report: Underwriti
               <ul className="mt-1 space-y-1">
                 {kp.claim_ids.map((id) => {
                   const claim = report.claims[id];
-                  return claim ? <ClaimItem key={id} claim={claim} report={report} /> : null;
+                  if (!claim) return null;
+                  const focused = focusClaim?.id === id;
+                  return (
+                    <ClaimItem
+                      key={focused ? `${id}-${focusClaim.nonce}` : id}
+                      claim={claim}
+                      report={report}
+                      domId={`claim-${id}`}
+                      focused={focused}
+                    />
+                  );
                 })}
               </ul>
             </li>
@@ -66,9 +86,19 @@ function Section({ result, report }: { result: SectionResult; report: Underwriti
   );
 }
 
-export function ReportView({ report }: { report: UnderwritingReport }) {
+export function ReportView({ report, focusClaim }: { report: UnderwritingReport; focusClaim?: FocusClaim }) {
   const { verdict, meta } = report;
   const claims = Object.values(report.claims);
+  const inSection = (id: string) =>
+    Object.values(report.sections).some((s) => s.key_points.some((kp) => kp.claim_ids.includes(id)));
+  const focusInAll = !!focusClaim && !inSection(focusClaim.id);
+
+  useEffect(() => {
+    if (!focusClaim) return;
+    const el = document.getElementById(`claim-${focusClaim.id}`) ?? document.getElementById(`all-claim-${focusClaim.id}`);
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el?.scrollIntoView({ block: "center", behavior: calm ? "auto" : "smooth" });
+  }, [focusClaim]);
   return (
     <div className="space-y-4 p-4">
       <header className="rounded-lg border border-line bg-white p-4">
@@ -134,7 +164,7 @@ export function ReportView({ report }: { report: UnderwritingReport }) {
 
       {SECTION_ORDER.flatMap((id) => {
         const result = report.sections[id];
-        return result ? [<Section key={id} result={result} report={report} />] : [];
+        return result ? [<Section key={id} result={result} report={report} focusClaim={focusClaim} />] : [];
       })}
 
       {report.key_risks.length > 0 && (
@@ -174,12 +204,13 @@ export function ReportView({ report }: { report: UnderwritingReport }) {
         </section>
       )}
 
-      <details className="rounded-lg border border-line bg-white p-3">
+      <details key={focusInAll ? focusClaim.nonce : "all"} open={focusInAll || undefined} className="rounded-lg border border-line bg-white p-3">
         <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
         <ul className="mt-2 space-y-1">
-          {claims.map((claim) => (
-            <ClaimItem key={claim.id} claim={claim} report={report} />
-          ))}
+          {claims.map((claim) => {
+            const focused = focusInAll && focusClaim.id === claim.id;
+            return <ClaimItem key={claim.id} claim={claim} report={report} domId={`all-claim-${claim.id}`} focused={focused} />;
+          })}
         </ul>
       </details>
 
