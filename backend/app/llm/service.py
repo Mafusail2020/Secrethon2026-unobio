@@ -77,7 +77,7 @@ class LLMService:
                 {"text": raw.text, "tokens_in": raw.tokens_in, "tokens_out": raw.tokens_out},
             )
         return LLMResult(
-            model=model,
+            model=f"mock/{model}" if self.backend.is_mock else model,
             text=raw.text,
             parsed=raw.parsed,
             tokens_in=raw.tokens_in,
