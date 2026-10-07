@@ -1,0 +1,582 @@
+{
+  "nodes": [
+    {
+      "id": "input_resolver",
+      "label": "Input resolver",
+      "kind": "processing",
+      "description": "Resolves free-text indication, mechanism and drug into disease, target and drug ids plus therapeutic areas.",
+      "reads": [
+        "program"
+      ],
+      "writes": [
+        "entities"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": true
+    },
+    {
+      "id": "question_planner",
+      "label": "Question planner",
+      "kind": "analysis",
+      "description": "Decides which diligence questions matter for this specific program.",
+      "reads": [
+        "program",
+        "entities"
+      ],
+      "writes": [
+        "questions"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "fetch_opentargets",
+      "label": "Open Targets",
+      "kind": "data",
+      "description": "Fetches target-disease associations by datatype, known drugs, safety liabilities and tractability.",
+      "reads": [
+        "program",
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "fetch_trials",
+      "label": "ClinicalTrials.gov",
+      "kind": "data",
+      "description": "Fetches trials for the same target, drug or indication with status and stop reasons.",
+      "reads": [
+        "program",
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "fetch_literature",
+      "label": "Europe PMC",
+      "kind": "data",
+      "description": "Fetches literature, including preprints, relevant to the program.",
+      "reads": [
+        "program",
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "fetch_regulatory",
+      "label": "openFDA",
+      "kind": "data",
+      "description": "Fetches labels and approvals for standard of care and competitors.",
+      "reads": [
+        "program",
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "ingest_user_input",
+      "label": "User input",
+      "kind": "data",
+      "description": "Turns user notes, links and preclinical data into user-provided evidence.",
+      "reads": [
+        "program",
+        "entities"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "twin_stats",
+      "label": "Twin stats",
+      "kind": "quant",
+      "description": "Finds historical programs like this one and derives stage reached, stop reasons and a prior success range.",
+      "reads": [
+        "program",
+        "entities"
+      ],
+      "writes": [
+        "twin_stats",
+        "source_ids",
+        "evidence_ids"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "evidence_normalizer",
+      "label": "Evidence normalizer",
+      "kind": "processing",
+      "description": "Dedupes and chunks fetched material into canonical evidence and source records.",
+      "reads": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids"
+      ],
+      "parent": null,
+      "correctable": false,
+      "critical": false
+    },
+    {
+      "id": "knowledge_indexer",
+      "label": "Knowledge indexer",
+      "kind": "knowledge",
+      "description": "Builds the vector index and knowledge-graph edges over the frozen evidence set.",
+      "reads": [
+        "entities",
+        "evidence_ids"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": false,
+      "critical": false
+    },
+    {
+      "id": "bull_case",
+      "label": "Bull case",
+      "kind": "bull",
+      "description": "Finds the strongest supported reasons to invest.",
+      "reads": [
+        "entities",
+        "questions",
+        "evidence_ids",
+        "twin_stats"
+      ],
+      "writes": [
+        "claims",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bull_query_planner",
+      "label": "Bull query planner",
+      "kind": "analysis",
+      "description": "Turns the open questions into bull-leaning retrieval queries.",
+      "reads": [
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "bull_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bull_retriever",
+      "label": "Bull retriever",
+      "kind": "knowledge",
+      "description": "Pulls the frozen evidence that matches the bull queries.",
+      "reads": [
+        "entities",
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "bull_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bull_claim_writer",
+      "label": "Bull claim writer",
+      "kind": "analysis",
+      "description": "Drafts claims for the strongest supported reasons to invest, each citing evidence ids.",
+      "reads": [
+        "entities",
+        "scratch"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "bull_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bull_claim_gate",
+      "label": "Bull claim gate",
+      "kind": "processing",
+      "description": "Rejects or downgrades drafted claims whose evidence ids are not valid.",
+      "reads": [
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "claims"
+      ],
+      "parent": "bull_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bear_case",
+      "label": "Bear case",
+      "kind": "bear",
+      "description": "Finds the strongest supported reasons not to invest, including terminated trials, stop reasons, safety liabilities and null results.",
+      "reads": [
+        "entities",
+        "questions",
+        "evidence_ids",
+        "twin_stats"
+      ],
+      "writes": [
+        "claims",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bear_query_planner",
+      "label": "Bear query planner",
+      "kind": "analysis",
+      "description": "Turns the open questions into bear-leaning retrieval queries.",
+      "reads": [
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "bear_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bear_retriever",
+      "label": "Bear retriever",
+      "kind": "knowledge",
+      "description": "Pulls the frozen evidence that matches the bear queries.",
+      "reads": [
+        "entities",
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "bear_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bear_claim_writer",
+      "label": "Bear claim writer",
+      "kind": "analysis",
+      "description": "Drafts claims for the strongest supported reasons not to invest, including terminated trials, stop reasons, safety liabilities and null results, each citing evidence ids.",
+      "reads": [
+        "entities",
+        "scratch"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "bear_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "bear_claim_gate",
+      "label": "Bear claim gate",
+      "kind": "processing",
+      "description": "Rejects or downgrades drafted claims whose evidence ids are not valid.",
+      "reads": [
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "claims"
+      ],
+      "parent": "bear_case",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "section_analysts",
+      "label": "Section analysts",
+      "kind": "analysis",
+      "description": "Writes each report section plus the translation chain, risks, unknowns and diligence questions.",
+      "reads": [
+        "program",
+        "entities",
+        "questions",
+        "claims",
+        "twin_stats",
+        "evidence_ids"
+      ],
+      "writes": [
+        "sections",
+        "claims",
+        "translation_chain",
+        "key_risks",
+        "critical_unknowns",
+        "diligence_questions"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "evidence_ledger",
+      "label": "Evidence ledger",
+      "kind": "quant",
+      "description": "Combines the twin prior with likelihood ratios from evidence into a posterior range.",
+      "reads": [
+        "twin_stats",
+        "claims",
+        "sections",
+        "evidence_ids"
+      ],
+      "writes": [
+        "ledger"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "valuation",
+      "label": "Valuation",
+      "kind": "quant",
+      "description": "Estimates capital and time to the next milestone and an rNPV range.",
+      "reads": [
+        "program",
+        "entities",
+        "twin_stats",
+        "ledger",
+        "claims"
+      ],
+      "writes": [
+        "valuation"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "verdict",
+      "label": "Verdict",
+      "kind": "quant",
+      "description": "Applies thresholds and reason codes to decide invest, conditional or do not invest.",
+      "reads": [
+        "ledger",
+        "valuation",
+        "claims",
+        "key_risks",
+        "twin_stats"
+      ],
+      "writes": [
+        "verdict"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": true
+    },
+    {
+      "id": "report_assembler",
+      "label": "Report assembler",
+      "kind": "output",
+      "description": "Assembles the underwriting report with its claims, evidence and sources.",
+      "reads": [
+        "program",
+        "entities",
+        "sections",
+        "claims",
+        "twin_stats",
+        "translation_chain",
+        "key_risks",
+        "critical_unknowns",
+        "diligence_questions",
+        "ledger",
+        "valuation",
+        "verdict",
+        "evidence_ids",
+        "source_ids"
+      ],
+      "writes": [
+        "report"
+      ],
+      "parent": null,
+      "correctable": false,
+      "critical": true
+    }
+  ],
+  "edges": [
+    {
+      "source": "input_resolver",
+      "target": "question_planner"
+    },
+    {
+      "source": "question_planner",
+      "target": "fetch_opentargets"
+    },
+    {
+      "source": "fetch_opentargets",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "question_planner",
+      "target": "fetch_trials"
+    },
+    {
+      "source": "fetch_trials",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "question_planner",
+      "target": "fetch_literature"
+    },
+    {
+      "source": "fetch_literature",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "question_planner",
+      "target": "fetch_regulatory"
+    },
+    {
+      "source": "fetch_regulatory",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "question_planner",
+      "target": "ingest_user_input"
+    },
+    {
+      "source": "ingest_user_input",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "question_planner",
+      "target": "twin_stats"
+    },
+    {
+      "source": "twin_stats",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "evidence_normalizer",
+      "target": "knowledge_indexer"
+    },
+    {
+      "source": "knowledge_indexer",
+      "target": "bull_query_planner"
+    },
+    {
+      "source": "bull_query_planner",
+      "target": "bull_retriever"
+    },
+    {
+      "source": "bull_retriever",
+      "target": "bull_claim_writer"
+    },
+    {
+      "source": "bull_claim_writer",
+      "target": "bull_claim_gate"
+    },
+    {
+      "source": "bull_claim_gate",
+      "target": "section_analysts"
+    },
+    {
+      "source": "knowledge_indexer",
+      "target": "bear_query_planner"
+    },
+    {
+      "source": "bear_query_planner",
+      "target": "bear_retriever"
+    },
+    {
+      "source": "bear_retriever",
+      "target": "bear_claim_writer"
+    },
+    {
+      "source": "bear_claim_writer",
+      "target": "bear_claim_gate"
+    },
+    {
+      "source": "bear_claim_gate",
+      "target": "section_analysts"
+    },
+    {
+      "source": "section_analysts",
+      "target": "evidence_ledger"
+    },
+    {
+      "source": "evidence_ledger",
+      "target": "valuation"
+    },
+    {
+      "source": "valuation",
+      "target": "verdict"
+    },
+    {
+      "source": "verdict",
+      "target": "report_assembler"
+    }
+  ],
+  "kind_colors": {
+    "data": "#2563eb",
+    "processing": "#64748b",
+    "knowledge": "#0d9488",
+    "quant": "#7c3aed",
+    "bull": "#16a34a",
+    "bear": "#dc2626",
+    "analysis": "#d97706",
+    "output": "#0f172a"
+  }
+}
