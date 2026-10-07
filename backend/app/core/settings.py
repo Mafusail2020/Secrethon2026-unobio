@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     cache_ttl_days: int = 7
     sec_user_agent: str = ""
     data_dir: Path = Path("backend/data")
+    max_concurrent_runs: int = 2
+    # scales the sleeps in stub nodes; tests set 0
+    stub_delay_scale: float = 1.0
+
+    @property
+    def config_dir(self) -> Path:
+        return ROOT / "backend" / "config"
 
     @property
     def data_path(self) -> Path:

@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/evidence/{evidence_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Evidence */
+        get: operations["get_evidence_api_evidence__evidence_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/graph": {
         parameters: {
             query?: never;
@@ -38,6 +55,180 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Models */
+        get: operations["list_models_api_models_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Runs */
+        get: operations["list_runs_api_runs_get"];
+        put?: never;
+        /** Post Run */
+        post: operations["post_run_api_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Run */
+        get: operations["get_run_api_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/diff/{other_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Diff
+         * @description Changes going from run_id to other_id.
+         */
+        get: operations["get_diff_api_runs__run_id__diff__other_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run Events */
+        get: operations["run_events_api_runs__run_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Message */
+        post: operations["post_message_api_runs__run_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/nodes/{node_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Node */
+        get: operations["get_node_api_runs__run_id__nodes__node_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/nodes/{node_id}/corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Correction */
+        post: operations["post_correction_api_runs__run_id__nodes__node_id__corrections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_runs__run_id__report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/trace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Trace */
+        get: operations["get_trace_api_runs__run_id__trace_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -49,10 +240,7 @@ export interface components {
              * @enum {string}
              */
             basis: "sourced" | "assumption";
-            /**
-             * Citation
-             * @default null
-             */
+            /** Citation */
             citation: string | null;
             /** Name */
             name: string;
@@ -69,10 +257,7 @@ export interface components {
              * @enum {string}
              */
             role: "user" | "assistant";
-            /**
-             * Run Id
-             * @default null
-             */
+            /** Run Id */
             run_id: string | null;
         };
         /** Claim */
@@ -93,10 +278,7 @@ export interface components {
             label: "extracted" | "derived" | "inferred" | "modeled" | "hypothesis" | "unknown";
             /** Produced By */
             produced_by: string;
-            /**
-             * Rejection Reason
-             * @default null
-             */
+            /** Rejection Reason */
             rejection_reason: string | null;
             /**
              * Section
@@ -146,11 +328,8 @@ export interface components {
         CorrectionRequest: {
             /** Add Links */
             add_links?: string[];
-            /**
-             * Add Notes
-             * @default null
-             */
-            add_notes: string | null;
+            /** Add Notes */
+            add_notes?: string | null;
             /** Exclude Evidence Ids */
             exclude_evidence_ids?: string[];
             /** Text */
@@ -207,10 +386,7 @@ export interface components {
         };
         /** Evidence */
         Evidence: {
-            /**
-             * Data
-             * @default null
-             */
+            /** Data */
             data: {
                 [key: string]: unknown;
             } | null;
@@ -226,10 +402,7 @@ export interface components {
              * @enum {string}
              */
             kind: "text" | "structured";
-            /**
-             * Locator
-             * @default null
-             */
+            /** Locator */
             locator: string | null;
             /** Source Id */
             source_id: string;
@@ -296,10 +469,7 @@ export interface components {
              * @default false
              */
             cached: boolean;
-            /**
-             * Cost Usd
-             * @default null
-             */
+            /** Cost Usd */
             cost_usd: number | null;
             /** Latency Ms */
             latency_ms: number;
@@ -319,10 +489,7 @@ export interface components {
              * @enum {string}
              */
             basis: "sourced" | "assumption";
-            /**
-             * Citation
-             * @default null
-             */
+            /** Citation */
             citation: string | null;
             /** Claim Ids */
             claim_ids: string[];
@@ -365,15 +532,9 @@ export interface components {
             id: string;
             /** Label */
             label: string;
-            /**
-             * Price In Per Mtok
-             * @default null
-             */
+            /** Price In Per Mtok */
             price_in_per_mtok: number | null;
-            /**
-             * Price Out Per Mtok
-             * @default null
-             */
+            /** Price Out Per Mtok */
             price_out_per_mtok: number | null;
             /**
              * Tier
@@ -385,20 +546,11 @@ export interface components {
         NodeExecution: {
             /** Correction Ids */
             correction_ids: string[];
-            /**
-             * Cost Usd
-             * @default null
-             */
+            /** Cost Usd */
             cost_usd: number | null;
-            /**
-             * Error
-             * @default null
-             */
+            /** Error */
             error: string | null;
-            /**
-             * Finished At
-             * @default null
-             */
+            /** Finished At */
             finished_at: string | null;
             /** Input Summary */
             input_summary: {
@@ -418,10 +570,7 @@ export interface components {
             run_id: string;
             /** Source Ids */
             source_ids: string[];
-            /**
-             * Started At
-             * @default null
-             */
+            /** Started At */
             started_at: string | null;
             /**
              * Status
@@ -461,10 +610,7 @@ export interface components {
         };
         /** PanelCandidate */
         PanelCandidate: {
-            /**
-             * Decision Hint
-             * @default null
-             */
+            /** Decision Hint */
             decision_hint: string | null;
             /** Model */
             model: string;
@@ -500,47 +646,26 @@ export interface components {
         };
         /** ProgramInput */
         ProgramInput: {
-            /**
-             * Biomarkers
-             * @default null
-             */
-            biomarkers: string | null;
-            /**
-             * Drug Name
-             * @default null
-             */
-            drug_name: string | null;
+            /** Biomarkers */
+            biomarkers?: string | null;
+            /** Drug Name */
+            drug_name?: string | null;
             /** Indication */
             indication: string;
             /** Links */
             links?: string[];
             /** Mechanism */
             mechanism: string;
-            /**
-             * Modality
-             * @default null
-             */
-            modality: ("small_molecule" | "antibody" | "biologic_other" | "cell_therapy" | "gene_therapy" | "oligonucleotide" | "vaccine" | "other") | null;
-            /**
-             * Notes
-             * @default null
-             */
-            notes: string | null;
-            /**
-             * Preclinical Results
-             * @default null
-             */
-            preclinical_results: string | null;
-            /**
-             * Route
-             * @default null
-             */
-            route: string | null;
-            /**
-             * Stage
-             * @default null
-             */
-            stage: ("discovery" | "preclinical" | "ind_enabling" | "phase1" | "phase2" | "phase3" | "filed" | "approved") | null;
+            /** Modality */
+            modality?: ("small_molecule" | "antibody" | "biologic_other" | "cell_therapy" | "gene_therapy" | "oligonucleotide" | "vaccine" | "other") | null;
+            /** Notes */
+            notes?: string | null;
+            /** Preclinical Results */
+            preclinical_results?: string | null;
+            /** Route */
+            route?: string | null;
+            /** Stage */
+            stage?: ("discovery" | "preclinical" | "ind_enabling" | "phase1" | "phase2" | "phase3" | "filed" | "approved") | null;
         };
         /** Range */
         Range: {
@@ -576,21 +701,13 @@ export interface components {
             added_claim_ids: string[];
             /** Changed Sections */
             changed_sections: ("disease_need" | "scientific_thesis" | "translation" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks")[];
-            /**
-             * Decision After
-             * @default null
-             */
+            /** Decision After */
             decision_after: ("invest" | "conditional" | "do_not_invest") | null;
-            /**
-             * Decision Before
-             * @default null
-             */
+            /** Decision Before */
             decision_before: ("invest" | "conditional" | "do_not_invest") | null;
             /** From Run */
             from_run: string;
-            /** @default null */
             pos_after: components["schemas"]["Range"] | null;
-            /** @default null */
             pos_before: components["schemas"]["Range"] | null;
             /** Recomputed Nodes */
             recomputed_nodes: string[];
@@ -607,16 +724,11 @@ export interface components {
              */
             confidence: "low" | "medium" | "high";
             disease: components["schemas"]["EntityRef"];
-            /** @default null */
             drug: components["schemas"]["EntityRef"] | null;
-            /**
-             * Mechanism Class
-             * @default null
-             */
+            /** Mechanism Class */
             mechanism_class: string | null;
             /** Notes */
             notes: string[];
-            /** @default null */
             target: components["schemas"]["EntityRef"] | null;
             /** Therapeutic Areas */
             therapeutic_areas: string[];
@@ -642,7 +754,6 @@ export interface components {
         RunDetail: {
             /** Nodes */
             nodes: components["schemas"]["NodeExecution"][];
-            /** @default null */
             report: components["schemas"]["UnderwritingReport"] | null;
             summary: components["schemas"]["RunSummary"];
         };
@@ -679,15 +790,9 @@ export interface components {
              * @default 0
              */
             cache_hits: number;
-            /**
-             * Correction Id
-             * @default null
-             */
+            /** Correction Id */
             correction_id: string | null;
-            /**
-             * Cost Usd
-             * @default null
-             */
+            /** Cost Usd */
             cost_usd: number | null;
             /**
              * Created At
@@ -708,15 +813,9 @@ export interface components {
             failed_nodes: string[];
             /** Models Used */
             models_used: string[];
-            /**
-             * Panel Size
-             * @default null
-             */
+            /** Panel Size */
             panel_size: number | null;
-            /**
-             * Parent Run Id
-             * @default null
-             */
+            /** Parent Run Id */
             parent_run_id: string | null;
             /**
              * Synthetic
@@ -736,37 +835,28 @@ export interface components {
         };
         /** RunOptions */
         RunOptions: {
-            /**
-             * As Of
-             * @default null
-             */
-            as_of: string | null;
+            /** As Of */
+            as_of?: string | null;
             /**
              * Effort
              * @default medium
              * @enum {string}
              */
-            effort: "low" | "medium" | "high" | "panel";
+            effort?: "low" | "medium" | "high" | "panel";
             /**
              * Force Refresh
              * @default false
              */
-            force_refresh: boolean;
-            /**
-             * Model
-             * @default null
-             */
-            model: string | null;
-            /**
-             * Panel Models
-             * @default null
-             */
-            panel_models: string[] | null;
+            force_refresh?: boolean;
+            /** Model */
+            model?: string | null;
+            /** Panel Models */
+            panel_models?: string[] | null;
             /**
              * Panel Size
              * @default 3
              */
-            panel_size: number;
+            panel_size?: number;
         };
         /** RunSummary */
         RunSummary: {
@@ -775,23 +865,14 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
-            /**
-             * Decision
-             * @default null
-             */
+            /** Decision */
             decision: ("invest" | "conditional" | "do_not_invest") | null;
-            /**
-             * Error
-             * @default null
-             */
+            /** Error */
             error: string | null;
             /** Id */
             id: string;
             options: components["schemas"]["RunOptions"];
-            /**
-             * Parent Run Id
-             * @default null
-             */
+            /** Parent Run Id */
             parent_run_id: string | null;
             program: components["schemas"]["ProgramInput"];
             /**
@@ -804,7 +885,6 @@ export interface components {
         SectionResult: {
             /** Key Points */
             key_points: components["schemas"]["KeyPoint"][];
-            /** @default null */
             panel: components["schemas"]["PanelResult"] | null;
             /** Produced By */
             produced_by: string;
@@ -833,10 +913,7 @@ export interface components {
             identifiers: {
                 [key: string]: string;
             };
-            /**
-             * Published At
-             * @default null
-             */
+            /** Published At */
             published_at: string | null;
             /** Publisher */
             publisher: string;
@@ -852,10 +929,7 @@ export interface components {
              * @enum {string}
              */
             type: "paper" | "preprint" | "trial" | "label" | "approval" | "db_record" | "filing" | "user_provided" | "web";
-            /**
-             * Url
-             * @default null
-             */
+            /** Url */
             url: string | null;
         };
         /** TranslationLink */
@@ -890,10 +964,7 @@ export interface components {
              * @enum {string}
              */
             status: "approved" | "stopped" | "active" | "unknown";
-            /**
-             * Stop Reason
-             * @default null
-             */
+            /** Stop Reason */
             stop_reason: string | null;
         };
         /** TwinStats */
@@ -936,7 +1007,6 @@ export interface components {
             };
             /** Key Risks */
             key_risks: components["schemas"]["Risk"][];
-            /** @default null */
             ledger: components["schemas"]["EvidenceLedger"] | null;
             meta: components["schemas"]["RunMeta"];
             pos: components["schemas"]["Range"];
@@ -953,9 +1023,7 @@ export interface components {
             };
             /** Translation Chain */
             translation_chain: components["schemas"]["TranslationLink"][];
-            /** @default null */
             twin_stats: components["schemas"]["TwinStats"] | null;
-            /** @default null */
             valuation: components["schemas"]["Valuation"] | null;
             verdict: components["schemas"]["Verdict"];
         };
@@ -999,6 +1067,37 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_evidence_api_evidence__evidence_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceDetail"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     graph_api_graph_get: {
         parameters: {
             query?: never;
@@ -1044,6 +1143,391 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthStatus"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_models_api_models_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelInfo"][];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_runs_api_runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"][];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_run_api_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_run_api_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_diff_api_runs__run_id__diff__other_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                other_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDiff"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    run_events_api_runs__run_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "last-event-id"?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": {
+                        /** Data */
+                        data?: {
+                            [key: string]: unknown;
+                        };
+                        /** Node Id */
+                        node_id?: string | null;
+                        /** Run Id */
+                        run_id: string;
+                        /** Seq */
+                        seq: number;
+                        /**
+                         * Ts
+                         * Format: date-time
+                         */
+                        ts: string;
+                        /**
+                         * Type
+                         * @enum {string}
+                         */
+                        type: "run.started" | "node.started" | "node.log" | "node.completed" | "node.failed" | "node.skipped" | "node.reused" | "llm.call" | "run.completed" | "run.failed";
+                    };
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_message_api_runs__run_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatMessage"];
+            };
+        };
+        responses: {
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Successful Response */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_node_api_runs__run_id__nodes__node_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                node_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeExecution"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    post_correction_api_runs__run_id__nodes__node_id__corrections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                node_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunSummary"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_report_api_runs__run_id__report_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnderwritingReport"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_trace_api_runs__run_id__trace_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Unprocessable Entity */

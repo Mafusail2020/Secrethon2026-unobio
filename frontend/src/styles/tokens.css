@@ -1,0 +1,24 @@
+/* unobio.com's palette and fonts (graphite, slate, signal blue, paper, ink) */
+@theme {
+  --color-canvas: #f1ede4;
+  --color-ink: rgb(29, 29, 31);
+  --color-muted: rgb(110, 110, 115);
+  --color-line: #d8d2c5;
+  --color-navy: #04081a;
+  --color-brand: rgb(0, 113, 227);
+  --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  letter-spacing: -0.01em;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}

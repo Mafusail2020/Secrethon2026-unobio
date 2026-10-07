@@ -1,0 +1,7 @@
+@import "./site-base.css";
+@import "./site-home.css";
+
+/* the copied links have no href (they are inert) but should still read as clickable */
+.ub-site a:not([href]) {
+  cursor: pointer;
+}

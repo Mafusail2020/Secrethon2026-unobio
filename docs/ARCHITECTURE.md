@@ -5,7 +5,8 @@ optional drug, modality, stage, preclinical results, notes and links. Output: **
 and a report where every claim drills down Recommendation → Claims → Evidence → Sources. The unit of analysis is the
 drug program, never the company.
 
-Status legend: **[1a]** exists in the contract PR, **[1b]** lands in the walking-skeleton PR, **[later]** is planned.
+Status legend: **[1a]** contracts and skeleton, **[1b]** walking skeleton (both shipped), **[later]** planned. Node bodies other
+than `report_assembler` are still fixture-driven stubs until Person B replaces them; everything around them is real.
 
 ## 1. Principles
 
@@ -98,8 +99,12 @@ sequenceDiagram
   API-->>UI: history, then live stream
 ```
 
-Every event is persisted first and published second, so a late or reconnecting subscriber replays the full history
-from the database and then follows live. Heartbeat every 15 s; the stream closes on `run.completed` or `run.failed`.
+`emit` is synchronous: it assigns the per-run `seq`, publishes to live subscribers in call order, and queues the event for a
+single writer that commits in order. A subscriber registers first, then reads history: every event is either already in
+SQLite, in the snapshot of not-yet-committed events taken at subscribe time, or arrives on its queue, so a late or
+reconnecting client sees everything exactly once. `Last-Event-ID` resumes after that seq. Heartbeat every 15 s; the
+stream closes on `run.completed` or `run.failed`, or immediately when the client resumes past the end of a finished run.
+Runs left `queued` or `running` by a crash are marked failed at startup and get a terminal event.
 
 ## 6. Corrections: replay, not checkpoint forking [1b]
 
@@ -122,7 +127,7 @@ sequenceDiagram
       Runner->>Runner: run node with ctx.corrections_for(node)
     end
   end
-  UI->>API: GET /runs/{child}/diff/{parent}
+  UI->>API: GET /runs/{parent}/diff/{child}
 ```
 
 - The affected set is the corrected node plus every descendant. A container expands to all its inner nodes.
@@ -132,6 +137,23 @@ sequenceDiagram
 - Sources and evidence use content-hash ids and are stored globally, so parent and child share rows. A run's evidence
   set is the list of ids in its state; the retriever filters by that set, so a child never pollutes its parent.
 - `ReportDiff` compares any two runs of a lineage: decision, PoS, changed sections, added/removed claims, recomputed nodes.
+
+## 6b. API [1b]
+
+All under `/api`. Errors share one shape, `{"error": {"code", "message", "details": [{"path", "message", "type"}]}}`.
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/health`, `/models`, `/graph` | status and mode flags; `ModelInfo[]`; `GraphSpec` |
+| POST | `/runs` | `RunSummary` (202) |
+| GET | `/runs?limit=`, `/runs/{id}` | `RunSummary[]`; `RunDetail` (node list without logs and LLM calls) |
+| GET | `/runs/{id}/events` | SSE of `RunEvent`; `id:` is the seq |
+| GET | `/runs/{id}/report`, `/runs/{id}/nodes/{node}` | `UnderwritingReport`; full `NodeExecution` |
+| POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable |
+| GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
+| GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
+| GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
+| POST | `/runs/{id}/messages` | 501 until Stage 3U |
 
 ## 7. Effort and panel [1b]
 
@@ -151,8 +173,35 @@ Panel never applies to data, processing or quant nodes. In 1b panel is an interf
 
 SQLite at `backend/data/app.db` via SQLAlchemy 2 async, `create_all` at startup, no migrations. Tables: `runs` (with
 report JSON), `run_events`, `node_executions` (compact output for the UI plus the full state delta for replay),
-`corrections`, `llm_calls`, `llm_cache`, `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges`. Vectors live
-in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
+`corrections`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
+real stores; until then `store/fakes.py` keeps them in memory (so `/evidence/{id}` only knows evidence from the running
+process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
+
+## 9b. Frontend [1b]
+
+The header, footer and home page are a copy of unobio.com (`frontend/src/unobio/`, assets in `frontend/public/unobio/`): its
+compiled CSS scoped under one `.ub-site` class so it cannot clash with our Tailwind, its fonts and images, its
+server-rendered markup converted to JSX, and a port of its three behaviours (scroll reveal, hero parallax, header blur
+after scrolling). Every link and button is inert (no `href`); the exceptions are "Gravity" in the header, which opens
+`/underwriting`, and the header logo, which goes home. The chat page sits between the copied header and footer. The copied
+files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
+Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
+
+Vite, React, TanStack Query, `@xyflow/react` with dagre. `src/api/client.ts` is a typed `fetch` and `EventSource` wrapper over
+the generated types. With `VITE_API_MODE=mock` it loads `src/api/mock/`, which replays the fixture events with delays and
+builds corrected runs the same way the backend does, so the whole UI works with no server. Run state is a reducer over
+`RunEvent`s (`features/underwriting/reduceEvents.ts`): the chat steps, graph status rings and log timeline are all views of
+it, and a page reload rebuilds them by replaying the stream. The report drill-down (claim, evidence, source) reads from the
+report itself.
+
+## 9c. Implementing and testing a node [1b]
+
+1. Edit the node module; keep `SPEC` and the `run(state, ctx)` signature. Return only keys listed in `SPEC.writes`
+   (anything else fails the node). Register sources and evidence through `ctx`, not by returning ids.
+2. Gate every claim with `graph/provenance.gate_claims(claims, valid_evidence_ids)`; the assembler re-checks as a safety net.
+3. Run it: `make dev`, or in tests `create_run(services, program, options)` then `await manager.wait_idle()`
+   (see `backend/tests/test_runner_events.py`). `LLM_MODE=mock` and `STUB_DELAY_SCALE=0` make runs instant and free.
+4. `nodes/_fixture.py` and the fixture-derived bodies of the stubs are scaffolding; delete what you replace.
 
 ## 10. Provenance rules
 
@@ -203,6 +252,17 @@ $67 including development, so deliverable numbers come from a few real `live` ru
 - **Mock-first LLM.** `LLM_MODE=mock` gives deterministic zero-cost output for development and tests. Deliverables
   (demo, cost per run, README numbers) come from `live` runs.
 - **Fail-soft nodes.** One flaky source or model call should degrade a section, not kill a demo.
+- **Copied site styles are scoped, not shared.** unobio.com ships Tailwind v3 output; ours is Tailwind v4. Prefixing every
+  selector of the copied CSS with `.ub-site` (html and body rules map to the wrapper itself) and keeping our UI outside that
+  wrapper means neither stylesheet can restyle the other, while the copy stays pixel-identical (verified by screenshot diff
+  against the live page at desktop and mobile widths).
+- **`scratch` for hand-offs.** Data that moves between nodes but is not part of the report (raw fetch refs, drafted claims,
+  index stats) lives in `state["scratch"][node_id]`, so nodes need no extra state keys.
+- **Report meta is finalised by the runner.** `report_assembler` builds the report; tokens, cost, timing, cache hits and failed
+  nodes are only known once the run ends, so the runner fills them in. `synthetic` is set by the assembler whenever any
+  claim text or source title starts with `FIXTURE:`.
+- **Tests inject the OpenAI SDK's own transport.** The installed SDK ships its own http layer (`httpx2`), which `respx` does not
+  patch, so live-backend tests pass an `httpx2.MockTransport` as `http_client`.
 - **Content-hash ids.** Sources, evidence and claims get stable ids from their content, so runs share rows and
   corrected runs diff cleanly.
 - **Response schemas fully required.** The OpenAPI export marks every field of non-request models required, so the

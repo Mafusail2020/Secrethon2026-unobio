@@ -1,8 +1,25 @@
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import UnderwritingPage from "./features/underwriting/UnderwritingPage";
+import { ChatLayout } from "./shell/ChatLayout";
+import { HomePage } from "./shell/HomePage";
+import { UnobioShell } from "./shell/UnobioShell";
+
+const router = createBrowserRouter([
+  {
+    element: <UnobioShell />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      {
+        element: <ChatLayout />,
+        children: [
+          { path: "/underwriting", element: <UnderwritingPage /> },
+          { path: "/underwriting/runs/:runId", element: <UnderwritingPage /> },
+        ],
+      },
+    ],
+  },
+]);
+
 export default function App() {
-  return (
-    <main className="p-6">
-      <h1 className="text-xl font-semibold">Unobio Underwriting</h1>
-      <p>Skeleton. The shell and underwriting page land in the walking-skeleton PR.</p>
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }

@@ -1,0 +1,31 @@
+import type { components } from "./types.gen";
+
+type S = components["schemas"];
+
+export type ProgramInput = S["ProgramInput"];
+export type RunOptions = S["RunOptions"];
+export type CreateRunRequest = S["CreateRunRequest"];
+export type CorrectionRequest = S["CorrectionRequest"];
+export type RunSummary = S["RunSummary"];
+export type RunDetail = S["RunDetail"];
+export type RunEvent = S["RunEvent"];
+export type NodeExecution = S["NodeExecution"];
+export type LLMCall = S["LLMCallRecord"];
+export type NodeStatus = NodeExecution["status"];
+export type UnderwritingReport = S["UnderwritingReport"];
+export type Claim = S["Claim"];
+export type Evidence = S["Evidence"];
+export type SourceRef = S["SourceRef"];
+export type EvidenceDetail = S["EvidenceDetail"];
+export type SectionResult = S["SectionResult"];
+export type SectionId = SectionResult["section"];
+export type Range = S["Range"];
+export type Verdict = S["Verdict"];
+export type ReportDiff = S["ReportDiff"];
+export type ModelInfo = S["ModelInfo"];
+export type GraphSpec = S["GraphSpec"];
+export type NodeSpec = S["NodeSpec"];
+export type NodeKind = NodeSpec["kind"];
+export type Decision = Verdict["decision"];
+
+export const TERMINAL_EVENTS: ReadonlySet<RunEvent["type"]> = new Set(["run.completed", "run.failed"]);

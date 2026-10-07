@@ -1,4 +1,4 @@
-.PHONY: setup dev check lint test fe-check types types-check graph-spec
+.PHONY: setup dev check lint test fe-check types types-check graph-spec llm-smoke spend
 
 setup:
 	cd backend && uv sync
@@ -30,3 +30,9 @@ types-check:
 
 graph-spec:
 	cd backend && uv run python -m scripts.gen_graph_spec
+
+llm-smoke:
+	cd backend && uv run python -m scripts.llm_smoke
+
+spend:
+	cd backend && uv run python -m scripts.spend

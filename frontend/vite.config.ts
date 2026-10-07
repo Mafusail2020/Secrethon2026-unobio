@@ -4,6 +4,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // VITE_* vars live in the repo-root .env; other vars in it (the API key) are never exposed
+  envDir: "..",
   server: {
     port: 5173,
     proxy: { "/api": "http://localhost:8000" },
