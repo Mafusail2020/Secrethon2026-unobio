@@ -1,14 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { getApi } from "../../../../api/client";
 import { useNode } from "../../../../api/hooks";
 import type { GraphSpec, NodeSpec, UnderwritingReport } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
 import { ErrorBox } from "../../../../components/ui/ErrorBox";
 import { Spinner } from "../../../../components/ui/Spinner";
-import { humanize } from "../../../../lib/format";
-import { affectedSet, runnableNodes } from "../../graphUtils";
+import { CorrectionForm } from "../../correction/CorrectionForm";
 import type { RunStream } from "../../reduceEvents";
 import { STATUS_ICON, STATUS_TEXT } from "../../status";
 
@@ -17,110 +12,6 @@ function Json({ value }: { value: unknown }) {
     <pre className="max-h-48 overflow-auto rounded bg-canvas p-2 text-[11px] leading-snug">
       {JSON.stringify(value, null, 2)}
     </pre>
-  );
-}
-
-function CorrectionForm({
-  runId,
-  node,
-  graph,
-  report,
-  canCorrect,
-}: {
-  runId: string;
-  node: NodeSpec;
-  graph: GraphSpec;
-  report: UnderwritingReport | undefined;
-  canCorrect: boolean;
-}) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [text, setText] = useState("");
-  const [notes, setNotes] = useState("");
-  const [excluded, setExcluded] = useState<string[]>([]);
-
-  const affected = affectedSet(graph, node.id);
-  const total = runnableNodes(graph).length;
-
-  const send = useMutation({
-    mutationFn: async () =>
-      (await getApi()).createCorrection(runId, node.id, {
-        text: text.trim(),
-        exclude_evidence_ids: excluded,
-        add_notes: notes.trim() || undefined,
-      }),
-    onSuccess: (child) => {
-      void queryClient.invalidateQueries({ queryKey: ["runs"] });
-      navigate(`/underwriting/runs/${child.id}`);
-    },
-  });
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    send.mutate();
-  };
-
-  if (!node.correctable) {
-    return <p className="text-xs text-muted">This node is derived and cannot be corrected directly.</p>;
-  }
-  const evidence = report ? Object.values(report.evidence) : [];
-  return (
-    <form onSubmit={submit} className="space-y-2">
-      <h4 className="text-sm font-semibold">Correct this node</h4>
-      <textarea
-        required
-        rows={3}
-        aria-label="correction"
-        className="w-full rounded border border-line p-2 text-sm"
-        placeholder="e.g. the earlier trials were terminated for safety reasons"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      <textarea
-        rows={2}
-        aria-label="extra note"
-        className="w-full rounded border border-line p-2 text-sm"
-        placeholder="Optional: add a note as new user-provided evidence"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-      />
-      {evidence.length > 0 && (
-        <details className="rounded border border-line p-2 text-xs">
-          <summary className="cursor-pointer font-medium">Exclude evidence ({excluded.length})</summary>
-          <ul className="mt-1 max-h-40 space-y-1 overflow-auto">
-            {evidence.map((e) => (
-              <li key={e.id}>
-                <label className="flex items-start gap-1">
-                  <input
-                    type="checkbox"
-                    checked={excluded.includes(e.id)}
-                    onChange={(ev) =>
-                      setExcluded((cur) => (ev.target.checked ? [...cur, e.id] : cur.filter((x) => x !== e.id)))
-                    }
-                  />
-                  <span>
-                    {report?.sources[e.source_id]?.title}: {e.excerpt.slice(0, 80)}
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <p className="text-xs text-muted">
-        Recomputes {affected.size} of {total} steps ({[...affected].map(humanize).join(", ")}); the rest are reused.
-      </p>
-      {!canCorrect && <p className="text-xs text-amber-700">Corrections open once this run has completed.</p>}
-      {send.error && <ErrorBox error={send.error} title="Could not start the corrected run" />}
-      <button
-        type="submit"
-        disabled={!canCorrect || !text.trim() || send.isPending}
-        className="inline-flex items-center gap-2 rounded-full bg-navy px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-      >
-        {send.isPending && <Spinner className="h-3 w-3" />}
-        Re-run with correction
-      </button>
-    </form>
   );
 }
 
