@@ -842,12 +842,12 @@ export interface components {
              * @default medium
              * @enum {string}
              */
-            effort: "low" | "medium" | "high" | "panel";
+            effort?: "low" | "medium" | "high" | "panel";
             /**
              * Force Refresh
              * @default false
              */
-            force_refresh: boolean;
+            force_refresh?: boolean;
             /** Model */
             model?: string | null;
             /** Panel Models */
@@ -856,7 +856,7 @@ export interface components {
              * Panel Size
              * @default 3
              */
-            panel_size: number;
+            panel_size?: number;
         };
         /** RunSummary */
         RunSummary: {
