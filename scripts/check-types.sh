@@ -5,7 +5,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-(cd "$root/backend" && uv run python scripts/export_openapi.py --out "$tmp/openapi.json")
+(cd "$root/backend" && uv run python -m scripts.export_openapi --out "$tmp/openapi.json")
 if ! diff -q "$root/contracts/openapi.json" "$tmp/openapi.json" >/dev/null; then
   echo "contracts/openapi.json is stale: run 'make types'" >&2
   exit 1

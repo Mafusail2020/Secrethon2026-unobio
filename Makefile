@@ -22,11 +22,11 @@ fe-check:
 	cd frontend && npx tsc --noEmit && npx eslint . && npx vitest run
 
 types:
-	cd backend && uv run python scripts/export_openapi.py
+	cd backend && uv run python -m scripts.export_openapi
 	cd frontend && npm run types
 
 types-check:
 	@sh scripts/check-types.sh
 
 graph-spec:
-	cd backend && uv run python scripts/gen_graph_spec.py
+	cd backend && uv run python -m scripts.gen_graph_spec
