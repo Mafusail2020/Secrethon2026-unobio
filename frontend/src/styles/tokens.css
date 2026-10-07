@@ -1,0 +1,23 @@
+/* Placeholder tokens; Stage 2F samples the exact Unobio palette. */
+@theme {
+  --color-canvas: rgb(247, 248, 250);
+  --color-ink: rgb(29, 29, 31);
+  --color-muted: rgb(110, 113, 122);
+  --color-line: rgb(226, 229, 235);
+  --color-navy: #0b1f3a;
+  --color-brand: #2563eb;
+  --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+}
