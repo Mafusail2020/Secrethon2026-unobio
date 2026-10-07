@@ -42,6 +42,7 @@ make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
 | `MAX_CONCURRENT_RUNS` | Runs executing at once (default 2) |
 | `STUB_DELAY_SCALE` | Scales the sleeps in stub nodes; `0` for instant runs (tests set it) |
 | `VITE_API_MODE` | `live` or `mock` (frontend serves fixtures with no backend) |
+| `API_PROXY_TARGET` | Where the Vite dev server proxies `/api` (default `http://localhost:8000`); lets a second dev setup run beside the first |
 
 ## Make targets
 
@@ -69,7 +70,9 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 4. Graph tab, click `verdict` (or any node), write a correction containing "terminated", and re-run. Only the affected
    nodes recompute, the rest show as reused, and the version bar shows the decision change.
 
-No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flow from fixtures.
+No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flow from fixtures. In mock mode, add
+`?scenario=sparse|large|failed|slow|broken` to `/underwriting` before starting a run to see messy data. The full
+walk-through, with what to check at each step, is in [docs/frontend-demo-script.md](docs/frontend-demo-script.md).
 
 ## Layout
 

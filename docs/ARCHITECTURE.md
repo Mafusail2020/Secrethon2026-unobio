@@ -187,6 +187,15 @@ after scrolling). Every link and button is inert (no `href`); the exceptions are
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 
+The workspace (`features/underwriting/`) has a chat side and an artifact side. The chat shows the run as pipeline phases
+(`phases.ts` groups the 23 steps into eight collapsible blocks), live model usage, a verdict card, run history grouped by
+correction lineage, and a follow-up input that is ready for Stage 3U (the backend answers 501 until then). The artifact
+is the report as a document (sticky verdict, section navigator, a "What changed" banner for corrected runs, claim cards with
+evidence, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print), the graph (kind
+colours, follow mode, a tabbed step drawer, highlighting of what a correction would recompute), sources and logs. Pure
+logic lives in plain `.ts` modules with vitest tests (`phases`, `claimFilters`, `diffView`, `waterfall`, `twinView`,
+`markdown`, `correctionTarget`, `logView`, `sourcesView`, `elapsed`). The mock API takes `?scenario=` for messy data.
+
 Vite, React, TanStack Query, `@xyflow/react` with dagre. `src/api/client.ts` is a typed `fetch` and `EventSource` wrapper over
 the generated types. With `VITE_API_MODE=mock` it loads `src/api/mock/`, which replays the fixture events with delays and
 builds corrected runs the same way the backend does, so the whole UI works with no server. Run state is a reducer over
