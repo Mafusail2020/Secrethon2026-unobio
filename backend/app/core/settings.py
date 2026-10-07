@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     data_dir: Path = Path("backend/data")
 
     @property
+    def config_dir(self) -> Path:
+        return ROOT / "backend" / "config"
+
+    @property
     def data_path(self) -> Path:
         return self.data_dir if self.data_dir.is_absolute() else ROOT / self.data_dir
 
