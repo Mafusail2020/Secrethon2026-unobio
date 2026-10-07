@@ -19,10 +19,18 @@ export function useRunStream(runId: string | undefined): RunStream {
 
   useEffect(() => {
     if (!runId) return;
-    return subscribeToRun(
+    // per-node details (sources, durations) refresh at most every 1.5 s while a run progresses
+    let refresh: number | undefined;
+    const unsubscribe = subscribeToRun(
       runId,
       (event) => {
         dispatch({ type: "event", event });
+        if ((event.type === "node.completed" || event.type === "node.reused") && refresh === undefined) {
+          refresh = window.setTimeout(() => {
+            refresh = undefined;
+            void queryClient.invalidateQueries({ queryKey: ["run", runId] });
+          }, 1500);
+        }
         if (TERMINAL_EVENTS.has(event.type)) {
           for (const key of ["run", "report", "runs", "diff"]) {
             void queryClient.invalidateQueries({ queryKey: [key] });
@@ -31,6 +39,10 @@ export function useRunStream(runId: string | undefined): RunStream {
       },
       (connection) => dispatch({ type: "connection", state: connection }),
     );
+    return () => {
+      window.clearTimeout(refresh);
+      unsubscribe();
+    };
   }, [runId, queryClient]);
 
   return state;

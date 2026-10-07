@@ -18,6 +18,7 @@ export function CorrectionForm({
   initialText = "",
   initialExclude = [],
   note,
+  disabledReason,
   onSubmitted,
 }: {
   runId: string;
@@ -29,6 +30,8 @@ export function CorrectionForm({
   initialExclude?: string[];
   /** why this node was chosen, when it is not the obvious one */
   note?: string;
+  /** why corrections are unavailable right now, shown instead of the default explanation */
+  disabledReason?: string;
   onSubmitted?: () => void;
 }) {
   const navigate = useNavigate();
@@ -123,7 +126,7 @@ export function CorrectionForm({
       <p className="text-xs text-muted">
         Recomputes {affected.size} of {total} steps ({[...affected].map(humanize).join(", ")}); the rest are reused.
       </p>
-      {!canCorrect && <p className="text-xs text-amber-700">Corrections open once this run has completed.</p>}
+      {!canCorrect && <p role="status" className="text-xs text-amber-700">{disabledReason ?? "Corrections open once this run has completed."}</p>}
       {send.error && <ErrorBox error={send.error} title="Could not start the corrected run" />}
       <button
         type="submit"

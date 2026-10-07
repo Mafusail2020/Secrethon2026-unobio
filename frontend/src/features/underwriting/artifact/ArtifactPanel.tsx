@@ -2,9 +2,10 @@ import { useState } from "react";
 import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../../api/types";
 import { Spinner } from "../../../components/ui/Spinner";
 import { Tabs } from "../../../components/ui/Tabs";
+import { affectedSet, runnableNodes } from "../graphUtils";
 import type { RunStream } from "../reduceEvents";
 import { GraphView } from "./graph/GraphView";
-import { NodeDrawer } from "./graph/NodeDrawer";
+import { NodeDrawer, type DrawerTab } from "./graph/NodeDrawer";
 import { VersionBar } from "./graph/VersionBar";
 import { LogsTimeline } from "./logs/LogsTimeline";
 import { ReportView } from "./report/ReportView";
@@ -25,36 +26,72 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted">{children}</div>;
 }
 
+function RerunBanner({ run, stream, total }: { run: RunSummary; stream: RunStream; total: number }) {
+  const planned = stream.events.find((e) => e.type === "run.started")?.data.reused;
+  const reused = Math.max(Array.isArray(planned) ? planned.length : 0, Object.values(stream.nodes).filter((n) => n.status === "reused").length);
+  const recompute = total - reused;
+  if (!run.parent_run_id || stream.status === "queued") return null;
+  const text =
+    stream.status === "completed"
+      ? `Re-run complete: ${reused} steps reused, ${recompute} recomputed.`
+      : stream.status === "failed"
+        ? "The re-run failed."
+        : `Re-running: ${reused} steps reused, ${recompute} recomputing.`;
+  return (
+    <p role="status" className="border-b border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-900">
+      {text}
+    </p>
+  );
+}
+
 function GraphTab({
   run,
   graph,
   stream,
   report,
   canCorrect,
+  sourceCounts,
 }: {
   run: RunSummary | undefined;
   graph: GraphSpec;
   stream: RunStream;
   report: UnderwritingReport | undefined;
   canCorrect: boolean;
+  sourceCounts: Record<string, number>;
 }) {
   const [selected, setSelected] = useState<string | undefined>();
+  const [drawerTab, setDrawerTab] = useState<DrawerTab>("overview");
   const node: NodeSpec | undefined = graph.nodes.find((n) => n.id === selected);
+  // while the correction form is open, show what it would recompute
+  const highlight = node && drawerTab === "correct" ? affectedSet(graph, node.id) : undefined;
+  const total = runnableNodes(graph).length;
+
   return (
     <div className="flex h-full flex-col">
       {run && <VersionBar run={run} completed={canCorrect} />}
+      {run && <RerunBanner run={run} stream={stream} total={total} />}
+      {highlight && node && (
+        <p role="status" className="border-b border-violet-200 bg-violet-50 px-3 py-1 text-xs text-violet-900">
+          Correcting {node.label} recomputes {highlight.size} of {total} steps (outlined); the rest are reused.
+        </p>
+      )}
       <div className="relative min-h-0 flex-1">
-        <GraphView spec={graph} stream={stream} selected={selected} onSelect={setSelected} />
+        <GraphView spec={graph} stream={stream} selected={selected} onSelect={setSelected} sourceCounts={sourceCounts} highlight={highlight} />
         {node && (
           <NodeDrawer
             key={node.id}
-            runId={run?.id}
+            run={run}
             node={node}
             graph={graph}
             stream={stream}
             report={report}
             canCorrect={canCorrect}
-            onClose={() => setSelected(undefined)}
+            tab={drawerTab}
+            onTab={setDrawerTab}
+            onClose={() => {
+              setSelected(undefined);
+              setDrawerTab("overview");
+            }}
           />
         )}
       </div>
@@ -71,6 +108,7 @@ export function ArtifactPanel({
   report,
   canCorrect,
   focusClaim,
+  sourceCounts,
 }: {
   tab: TabId | null;
   onTab: (tab: TabId) => void;
@@ -80,6 +118,7 @@ export function ArtifactPanel({
   report: UnderwritingReport | undefined;
   canCorrect: boolean;
   focusClaim?: FocusClaim;
+  sourceCounts: Record<string, number>;
 }) {
   const active: TabId = tab ?? (report ? "report" : "graph");
   const waiting = run ? (
@@ -104,7 +143,7 @@ export function ArtifactPanel({
           ))}
         {active === "graph" &&
           (graph ? (
-            <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} />
+            <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} sourceCounts={sourceCounts} />
           ) : (
             <Empty>
               <Spinner />

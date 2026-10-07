@@ -32,6 +32,8 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
   const completed = stream.status === "completed" && run?.status === "completed";
   const decision: Decision | undefined = run?.decision ?? (stream.decision as Decision | undefined);
 
+  const sourceCounts = Object.fromEntries((detail.data?.nodes ?? []).map((n) => [n.node_id, n.source_ids.length]));
+
   const openClaim = (id: string) => {
     setTab("report");
     setFocusClaim({ id, nonce: Date.now() });
@@ -95,6 +97,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
         report={report}
         canCorrect={completed}
         focusClaim={focusClaim}
+        sourceCounts={sourceCounts}
       />
     </div>
   );
