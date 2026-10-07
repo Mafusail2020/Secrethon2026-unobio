@@ -1,0 +1,2 @@
+# Quant owner fills these. Every entry needs a `citation` or `assumption: true`.
+thresholds: {}                # e.g. invest_min_pos, do_not_invest_max_pos

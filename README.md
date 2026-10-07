@@ -1,1 +1,69 @@
-# Secrethon2026-unobio
+# Unobio Underwriting
+
+Secrethon 2026, Unobio track. A drug-program underwriting system: give it an indication and a mechanism or target, and
+it researches public evidence and answers whether the program will work in humans, get through trials and regulators,
+get used, and be worth funding to the next milestone. Output is Invest / Conditional / Do Not Invest plus a report
+with drill-down from recommendation to claims to evidence to sources.
+
+Concept for Unobio, not affiliated. Design and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Status
+
+PR 1a (contracts and skeleton): contracts, graph topology and node stubs, `GET /api/graph`, generated TS types, fixtures.
+The graph does not run yet. Streaming runs, corrections and the UI land in PR 1b.
+
+## Quick start
+
+Needs `uv`, Node 20+ and npm.
+
+```sh
+cp .env.example .env     # defaults to LLM_MODE=mock, no key needed
+make setup
+make check               # lint, tests, typecheck, generated types up to date
+make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
+```
+
+## Env vars
+
+| Var | Meaning |
+|---|---|
+| `TEAM_API_KEY` | Gateway key. Only in `.env`; never log or commit it |
+| `LLM_BASE_URL` | OpenAI-compatible gateway |
+| `LLM_MODE` | `mock` (dev/tests, zero cost) or `live` |
+| `LLM_CACHE` | `1` caches LLM responses in SQLite |
+| `DEFAULT_MODEL` | Override the registry default (cheapest) |
+| `MAX_RUN_COST_USD`, `MAX_RUN_TOKENS` | Per-run budget guards |
+| `MAX_PANEL_SIZE` | Upper bound for panel mode |
+| `CACHE_TTL_DAYS` | Source cache TTL |
+| `SEC_USER_AGENT` | Descriptive User-Agent with contact email for SEC requests |
+| `DATA_DIR` | SQLite and vector files (git-ignored) |
+| `VITE_API_MODE` | `live` or `mock` (frontend serves fixtures with no backend) |
+
+## Make targets
+
+| Target | What it does |
+|---|---|
+| `setup` | `uv sync` and `npm install` |
+| `dev` | Backend and frontend together |
+| `check` | `ruff` check and format check, `pytest`, `tsc`, `eslint`, `vitest`, generated types up to date |
+| `types` | Export OpenAPI to `contracts/openapi.json`, regenerate `frontend/src/api/types.gen.ts` |
+| `graph-spec` | Regenerate `contracts/fixtures/graph_spec.json` from the node registry |
+
+## Mock vs live
+
+`LLM_MODE=mock` is a development and test switch: deterministic canned replies, zero tokens, zero cost. The demo, demo
+cases, cost per run and any numbers quoted here come from `live` runs on real data.
+
+## Layout
+
+```
+backend/    FastAPI + LangGraph. contracts/ is the source of truth, nodes/ one module per node
+frontend/   Vite + React + TypeScript. src/api/types.gen.ts is generated, never hand-edited
+contracts/  openapi.json and fixtures (all fixture text is synthetic and prefixed FIXTURE:)
+docs/       ARCHITECTURE.md
+```
+
+## Sources
+
+Public data through official APIs only: Open Targets, ClinicalTrials.gov v2, Europe PMC, openFDA. Every claim in a
+report cites evidence ids that resolve to a source record with its URL and retrieval time.

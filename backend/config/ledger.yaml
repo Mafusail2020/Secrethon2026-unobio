@@ -1,0 +1,4 @@
+# Quant owner fills these. Every entry needs a `citation` or `assumption: true`.
+prior_fallback: null          # Range used when twin stats find no programs
+likelihood_ratios: {}         # factor -> {low, base, high, citation | assumption: true}
+posterior_clamp: {low: 0.01, high: 0.95, assumption: true}

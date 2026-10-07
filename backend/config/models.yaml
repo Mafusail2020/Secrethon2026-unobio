@@ -1,0 +1,8 @@
+# Only gpt-6-luna is known from the gateway example. Prices stay null until the real list arrives.
+models:
+  - id: gpt-6-luna
+    label: GPT-6 Luna
+    tier: unknown
+    price_in_per_mtok: null
+    price_out_per_mtok: null
+    default: true

@@ -1,0 +1,829 @@
+{
+  "run_id": "run_fixture_bace1_ad",
+  "program": {
+    "indication": "Alzheimer's disease",
+    "mechanism": "BACE1 inhibition",
+    "drug_name": null,
+    "modality": "small_molecule",
+    "stage": "preclinical",
+    "preclinical_results": null,
+    "biomarkers": null,
+    "route": null,
+    "notes": null,
+    "links": []
+  },
+  "entities": {
+    "disease": {
+      "id": "FIXTURE:disease:alzheimers",
+      "label": "Alzheimer's disease",
+      "kind": "disease",
+      "external_ids": {
+        "fixture": "alzheimers"
+      }
+    },
+    "target": {
+      "id": "FIXTURE:target:BACE1",
+      "label": "BACE1",
+      "kind": "target",
+      "external_ids": {
+        "fixture": "BACE1"
+      }
+    },
+    "drug": null,
+    "therapeutic_areas": [
+      "FIXTURE: neurology"
+    ],
+    "mechanism_class": "FIXTURE: enzyme inhibition",
+    "confidence": "medium",
+    "notes": [
+      "FIXTURE: placeholder entity resolution"
+    ]
+  },
+  "verdict": {
+    "decision": "conditional",
+    "confidence": "low",
+    "reason_codes": [
+      {
+        "code": "TARGET_LINK",
+        "text": "FIXTURE: biological link supports the thesis",
+        "direction": "positive",
+        "claim_ids": [
+          "clm_1ac67500e761b44a"
+        ]
+      },
+      {
+        "code": "TWIN_TERMINATIONS",
+        "text": "FIXTURE: prior programs were terminated",
+        "direction": "negative",
+        "claim_ids": [
+          "clm_f79587c4492ec202"
+        ]
+      },
+      {
+        "code": "TRANSLATION_GAP",
+        "text": "FIXTURE: human translation is unproven",
+        "direction": "negative",
+        "claim_ids": [
+          "clm_1a2d6b3903f6a5dd"
+        ]
+      }
+    ],
+    "conditions": [
+      "FIXTURE: obtain human target-engagement data before funding beyond phase 1"
+    ],
+    "rationale": "FIXTURE: placeholder rationale for a conditional decision"
+  },
+  "pos": {
+    "low": 0.01,
+    "base": 0.04,
+    "high": 0.09,
+    "unit": "probability"
+  },
+  "sections": {
+    "disease_need": {
+      "section": "disease_need",
+      "title": "Disease need",
+      "summary": "FIXTURE: unmet need summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: need persists",
+          "claim_ids": [
+            "clm_bb4bcdf6b95761e9"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: size of addressable population"
+      ],
+      "status": "ok",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "scientific_thesis": {
+      "section": "scientific_thesis",
+      "title": "Scientific thesis",
+      "summary": "FIXTURE: mechanism rationale summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: target link",
+          "claim_ids": [
+            "clm_1ac67500e761b44a"
+          ]
+        },
+        {
+          "text": "FIXTURE: user note",
+          "claim_ids": [
+            "clm_34b1ef96576f4e2e"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: human validation of the mechanism"
+      ],
+      "status": "ok",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "translation": {
+      "section": "translation",
+      "title": "Translation",
+      "summary": "FIXTURE: translation chain summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: patient benefit unproven",
+          "claim_ids": [
+            "clm_1a2d6b3903f6a5dd"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: human exposure data"
+      ],
+      "status": "partial",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "clinical_plan": {
+      "section": "clinical_plan",
+      "title": "Clinical plan",
+      "summary": "FIXTURE: clinical plan summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: earlier trials terminated",
+          "claim_ids": [
+            "clm_f79587c4492ec202"
+          ]
+        },
+        {
+          "text": "FIXTURE: phase 1 first",
+          "claim_ids": [
+            "clm_eb08852ab96d8aaa"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: stop reasons of earlier trials"
+      ],
+      "status": "ok",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "competition": {
+      "section": "competition",
+      "title": "Competition",
+      "summary": "FIXTURE: competition summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: standard of care exists",
+          "claim_ids": [
+            "clm_416363e42e8676f9"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: pipeline competitors"
+      ],
+      "status": "ok",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "commercial_adoption": {
+      "section": "commercial_adoption",
+      "title": "Commercial adoption",
+      "summary": "FIXTURE: adoption summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: pricing unknown",
+          "claim_ids": [
+            "clm_3dc51732aa8556eb"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: payer view"
+      ],
+      "status": "insufficient_evidence",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "capital": {
+      "section": "capital",
+      "title": "Capital",
+      "summary": "FIXTURE: capital summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: modeled capital range",
+          "claim_ids": [
+            "clm_9f6cf7cdd72d4b5b"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: CMC cost"
+      ],
+      "status": "partial",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "risks": {
+      "section": "risks",
+      "title": "Risks",
+      "summary": "FIXTURE: risk summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: safety liabilities",
+          "claim_ids": [
+            "clm_95778af45cd197f3"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: off-target effects"
+      ],
+      "status": "partial",
+      "produced_by": "section_analysts",
+      "panel": null
+    }
+  },
+  "translation_chain": [
+    {
+      "step": "molecular_effect",
+      "status": "supported",
+      "claim_ids": [
+        "clm_1ac67500e761b44a"
+      ]
+    },
+    {
+      "step": "human_exposure",
+      "status": "missing",
+      "claim_ids": []
+    },
+    {
+      "step": "target_engagement",
+      "status": "weak",
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "step": "biological_response",
+      "status": "weak",
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "step": "patient_benefit",
+      "status": "contradicted",
+      "claim_ids": [
+        "clm_f79587c4492ec202"
+      ]
+    }
+  ],
+  "twin_stats": {
+    "match_level": "target_area",
+    "n_programs": 2,
+    "twins": [
+      {
+        "drug": "verubecestat",
+        "drug_id": "FIXTURE:drug:verubecestat",
+        "disease": "Alzheimer's disease",
+        "max_stage": "FIXTURE: late-stage",
+        "status": "stopped",
+        "stop_reason": null,
+        "source_ids": [
+          "src_b0400ce82c2dfef3",
+          "src_4c5e3d15704a6b8a"
+        ]
+      },
+      {
+        "drug": "FIXTURE: example twin",
+        "drug_id": "FIXTURE:drug:twin",
+        "disease": "FIXTURE: related disease",
+        "max_stage": "FIXTURE: early-stage",
+        "status": "unknown",
+        "stop_reason": null,
+        "source_ids": []
+      }
+    ],
+    "stage_distribution": {
+      "FIXTURE: late-stage": 1,
+      "FIXTURE: early-stage": 1
+    },
+    "stop_reasons": {
+      "FIXTURE: reason not extracted": 1
+    },
+    "prior_pos": {
+      "low": 0.02,
+      "base": 0.05,
+      "high": 0.1,
+      "unit": "probability"
+    },
+    "notes": [
+      "FIXTURE: placeholder twin statistics"
+    ]
+  },
+  "ledger": {
+    "prior": {
+      "low": 0.02,
+      "base": 0.05,
+      "high": 0.1,
+      "unit": "probability"
+    },
+    "steps": [
+      {
+        "factor": "FIXTURE: terminated late-stage twin trials",
+        "direction": "down",
+        "likelihood_ratio": {
+          "low": 0.5,
+          "base": 0.7,
+          "high": 0.9,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [
+          "clm_f79587c4492ec202"
+        ],
+        "evidence_ids": [
+          "ev_692b194034153ddd",
+          "ev_703b525423824370"
+        ]
+      },
+      {
+        "factor": "FIXTURE: biological link to the indication",
+        "direction": "up",
+        "likelihood_ratio": {
+          "low": 1.1,
+          "base": 1.4,
+          "high": 2.0,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [
+          "clm_1ac67500e761b44a"
+        ],
+        "evidence_ids": [
+          "ev_a689ea04c9546031",
+          "ev_d81f1b38b8694f2b"
+        ]
+      },
+      {
+        "factor": "FIXTURE: unproven translation chain",
+        "direction": "down",
+        "likelihood_ratio": {
+          "low": 0.6,
+          "base": 0.8,
+          "high": 0.95,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [
+          "clm_1a2d6b3903f6a5dd"
+        ],
+        "evidence_ids": []
+      }
+    ],
+    "posterior": {
+      "low": 0.01,
+      "base": 0.04,
+      "high": 0.09,
+      "unit": "probability"
+    }
+  },
+  "valuation": {
+    "next_milestone": "FIXTURE: phase 1 readout",
+    "capital_to_milestone": {
+      "low": 5000000.0,
+      "base": 12000000.0,
+      "high": 25000000.0,
+      "unit": "USD"
+    },
+    "time_to_milestone_months": {
+      "low": 12.0,
+      "base": 18.0,
+      "high": 30.0,
+      "unit": "months"
+    },
+    "rnpv": {
+      "low": -5000000.0,
+      "base": 10000000.0,
+      "high": 60000000.0,
+      "unit": "USD"
+    },
+    "value_inflection_points": [
+      "FIXTURE: phase 1 target engagement readout"
+    ],
+    "assumptions": [
+      {
+        "name": "FIXTURE: discount rate",
+        "value": {
+          "low": 0.1,
+          "base": 0.12,
+          "high": 0.15,
+          "unit": "rate"
+        },
+        "basis": "assumption",
+        "citation": null
+      }
+    ]
+  },
+  "key_risks": [
+    {
+      "category": "efficacy",
+      "text": "FIXTURE: efficacy may not translate",
+      "severity": "high",
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "category": "safety",
+      "text": "FIXTURE: related-program safety liabilities",
+      "severity": "medium",
+      "claim_ids": [
+        "clm_95778af45cd197f3"
+      ]
+    }
+  ],
+  "critical_unknowns": [
+    "FIXTURE: human target engagement",
+    "FIXTURE: reasons earlier trials stopped"
+  ],
+  "diligence_questions": [
+    {
+      "question": "FIXTURE: diligence question 1",
+      "why_it_matters": "FIXTURE: why it matters",
+      "requires": [
+        "proprietary_data"
+      ],
+      "priority": 1,
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "question": "FIXTURE: diligence question 2",
+      "why_it_matters": "FIXTURE: why it matters",
+      "requires": [
+        "patient_level_data"
+      ],
+      "priority": 2,
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "question": "FIXTURE: diligence question 3",
+      "why_it_matters": "FIXTURE: why it matters",
+      "requires": [
+        "kol_interview"
+      ],
+      "priority": 3,
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "question": "FIXTURE: diligence question 4",
+      "why_it_matters": "FIXTURE: why it matters",
+      "requires": [
+        "new_experiment"
+      ],
+      "priority": 4,
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    },
+    {
+      "question": "FIXTURE: diligence question 5",
+      "why_it_matters": "FIXTURE: why it matters",
+      "requires": [
+        "public_research"
+      ],
+      "priority": 5,
+      "claim_ids": [
+        "clm_1a2d6b3903f6a5dd"
+      ]
+    }
+  ],
+  "claims": {
+    "clm_bb4bcdf6b95761e9": {
+      "id": "clm_bb4bcdf6b95761e9",
+      "text": "FIXTURE: disease burden is high and unmet need persists",
+      "section": "disease_need",
+      "stance": "pro",
+      "label": "inferred",
+      "evidence_ids": [
+        "ev_721a976c318470a8"
+      ],
+      "confidence": "medium",
+      "produced_by": "section_analysts",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_1ac67500e761b44a": {
+      "id": "clm_1ac67500e761b44a",
+      "text": "FIXTURE: the target is biologically linked to the indication",
+      "section": "scientific_thesis",
+      "stance": "pro",
+      "label": "extracted",
+      "evidence_ids": [
+        "ev_a689ea04c9546031",
+        "ev_d81f1b38b8694f2b"
+      ],
+      "confidence": "medium",
+      "produced_by": "bull_claim_gate",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_34b1ef96576f4e2e": {
+      "id": "clm_34b1ef96576f4e2e",
+      "text": "FIXTURE: the user-provided preclinical note reports a favourable result",
+      "section": "scientific_thesis",
+      "stance": "pro",
+      "label": "extracted",
+      "evidence_ids": [
+        "ev_7ba8bc84e6050988"
+      ],
+      "confidence": "low",
+      "produced_by": "bull_claim_gate",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_f79587c4492ec202": {
+      "id": "clm_f79587c4492ec202",
+      "text": "FIXTURE: two Alzheimer's trials of a prior inhibitor of this target, NCT01739348 and NCT01953601, have status TERMINATED",
+      "section": "clinical_plan",
+      "stance": "con",
+      "label": "extracted",
+      "evidence_ids": [
+        "ev_692b194034153ddd",
+        "ev_703b525423824370"
+      ],
+      "confidence": "high",
+      "produced_by": "bear_claim_gate",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_1a2d6b3903f6a5dd": {
+      "id": "clm_1a2d6b3903f6a5dd",
+      "text": "FIXTURE: the link from human target engagement to patient benefit is unproven for this mechanism",
+      "section": "translation",
+      "stance": "con",
+      "label": "hypothesis",
+      "evidence_ids": [],
+      "confidence": "low",
+      "produced_by": "section_analysts",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_eb08852ab96d8aaa": {
+      "id": "clm_eb08852ab96d8aaa",
+      "text": "FIXTURE: a biomarker-led phase 1 study is the nearest milestone",
+      "section": "clinical_plan",
+      "stance": "neutral",
+      "label": "hypothesis",
+      "evidence_ids": [],
+      "confidence": "low",
+      "produced_by": "section_analysts",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_416363e42e8676f9": {
+      "id": "clm_416363e42e8676f9",
+      "text": "FIXTURE: standard of care already provides symptomatic benefit",
+      "section": "competition",
+      "stance": "con",
+      "label": "extracted",
+      "evidence_ids": [
+        "ev_721a976c318470a8"
+      ],
+      "confidence": "medium",
+      "produced_by": "section_analysts",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_3dc51732aa8556eb": {
+      "id": "clm_3dc51732aa8556eb",
+      "text": "FIXTURE: pricing and reimbursement cannot be assessed from public evidence",
+      "section": "commercial_adoption",
+      "stance": "neutral",
+      "label": "unknown",
+      "evidence_ids": [],
+      "confidence": "low",
+      "produced_by": "section_analysts",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_9f6cf7cdd72d4b5b": {
+      "id": "clm_9f6cf7cdd72d4b5b",
+      "text": "FIXTURE: capital to the next milestone is a modeled range",
+      "section": "capital",
+      "stance": "neutral",
+      "label": "modeled",
+      "evidence_ids": [],
+      "confidence": "low",
+      "produced_by": "section_analysts",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_95778af45cd197f3": {
+      "id": "clm_95778af45cd197f3",
+      "text": "FIXTURE: safety liabilities in related programs raise risk",
+      "section": "risks",
+      "stance": "con",
+      "label": "inferred",
+      "evidence_ids": [
+        "ev_a689ea04c9546031"
+      ],
+      "confidence": "low",
+      "produced_by": "bear_claim_gate",
+      "status": "downgraded",
+      "rejection_reason": "FIXTURE: evidence supports only a weak reading"
+    },
+    "clm_d0769d2b88ba644a": {
+      "id": "clm_d0769d2b88ba644a",
+      "text": "FIXTURE: animal results guarantee human efficacy",
+      "section": "scientific_thesis",
+      "stance": "pro",
+      "label": "inferred",
+      "evidence_ids": [
+        "ev_missing"
+      ],
+      "confidence": "low",
+      "produced_by": "bull_claim_gate",
+      "status": "rejected",
+      "rejection_reason": "FIXTURE: cited evidence id does not exist in this run"
+    }
+  },
+  "evidence": {
+    "ev_692b194034153ddd": {
+      "id": "ev_692b194034153ddd",
+      "source_id": "src_b0400ce82c2dfef3",
+      "excerpt": "overallStatus: TERMINATED",
+      "locator": "protocolSection.statusModule.overallStatus",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "structured",
+      "data": {
+        "nct_id": "NCT01739348",
+        "overall_status": "TERMINATED"
+      }
+    },
+    "ev_703b525423824370": {
+      "id": "ev_703b525423824370",
+      "source_id": "src_4c5e3d15704a6b8a",
+      "excerpt": "overallStatus: TERMINATED",
+      "locator": "protocolSection.statusModule.overallStatus",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "structured",
+      "data": {
+        "nct_id": "NCT01953601",
+        "overall_status": "TERMINATED"
+      }
+    },
+    "ev_a689ea04c9546031": {
+      "id": "ev_a689ea04c9546031",
+      "source_id": "src_a110564589ae5260",
+      "excerpt": "FIXTURE: target-disease association score with datatype breakdown",
+      "locator": "associations[0]",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "structured",
+      "data": {
+        "fixture": true
+      }
+    },
+    "ev_d81f1b38b8694f2b": {
+      "id": "ev_d81f1b38b8694f2b",
+      "source_id": "src_4c5f1008f4617f8f",
+      "excerpt": "FIXTURE: verbatim passage describing target validation in model systems",
+      "locator": "abstract",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "text",
+      "data": null
+    },
+    "ev_721a976c318470a8": {
+      "id": "ev_721a976c318470a8",
+      "source_id": "src_29a0f9575c7ca7ea",
+      "excerpt": "FIXTURE: verbatim passage describing the standard-of-care indication",
+      "locator": "indications",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "text",
+      "data": null
+    },
+    "ev_7ba8bc84e6050988": {
+      "id": "ev_7ba8bc84e6050988",
+      "source_id": "src_d5c69f047476b7d1",
+      "excerpt": "FIXTURE: user-provided preclinical result",
+      "locator": "notes",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "text",
+      "data": null
+    }
+  },
+  "sources": {
+    "src_b0400ce82c2dfef3": {
+      "id": "src_b0400ce82c2dfef3",
+      "type": "trial",
+      "title": "FIXTURE: verubecestat Alzheimer's disease trial (NCT01739348)",
+      "url": "https://clinicaltrials.gov/study/NCT01739348",
+      "publisher": "ClinicalTrials.gov",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {
+        "nct": "NCT01739348"
+      }
+    },
+    "src_4c5e3d15704a6b8a": {
+      "id": "src_4c5e3d15704a6b8a",
+      "type": "trial",
+      "title": "FIXTURE: verubecestat Alzheimer's disease trial (NCT01953601)",
+      "url": "https://clinicaltrials.gov/study/NCT01953601",
+      "publisher": "ClinicalTrials.gov",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {
+        "nct": "NCT01953601"
+      }
+    },
+    "src_a110564589ae5260": {
+      "id": "src_a110564589ae5260",
+      "type": "db_record",
+      "title": "FIXTURE: target-disease association record",
+      "url": "https://example.org/fixture/opentargets",
+      "publisher": "FIXTURE: Open Targets Platform",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {}
+    },
+    "src_4c5f1008f4617f8f": {
+      "id": "src_4c5f1008f4617f8f",
+      "type": "paper",
+      "title": "FIXTURE: target validation paper",
+      "url": "https://example.org/fixture/paper-target-validation",
+      "publisher": "FIXTURE: journal",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {
+        "pmid": "FIXTURE"
+      }
+    },
+    "src_29a0f9575c7ca7ea": {
+      "id": "src_29a0f9575c7ca7ea",
+      "type": "label",
+      "title": "FIXTURE: standard-of-care label",
+      "url": "https://example.org/fixture/label-soc",
+      "publisher": "FIXTURE: regulator label",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {}
+    },
+    "src_d5c69f047476b7d1": {
+      "id": "src_d5c69f047476b7d1",
+      "type": "user_provided",
+      "title": "FIXTURE: user preclinical note",
+      "url": "https://example.org/fixture/user-note",
+      "publisher": "user",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {}
+    }
+  },
+  "meta": {
+    "models_used": [
+      "mock"
+    ],
+    "effort": "medium",
+    "panel_size": null,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": null,
+    "duration_s": 12.4,
+    "cache_hits": 0,
+    "created_at": "2026-10-05T12:00:00Z",
+    "parent_run_id": null,
+    "correction_id": null,
+    "synthetic": true,
+    "failed_nodes": []
+  }
+}

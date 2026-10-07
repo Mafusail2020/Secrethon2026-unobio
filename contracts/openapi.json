@@ -1,0 +1,2671 @@
+{
+  "components": {
+    "schemas": {
+      "Assumption": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "sourced",
+              "assumption"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Citation"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Range"
+          }
+        },
+        "required": [
+          "basis",
+          "citation",
+          "name",
+          "value"
+        ],
+        "title": "Assumption",
+        "type": "object"
+      },
+      "ChatMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "cited_claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cited Claim Ids",
+            "type": "array"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Run Id"
+          }
+        },
+        "required": [
+          "cited_claim_ids",
+          "content",
+          "role",
+          "run_id"
+        ],
+        "title": "ChatMessage",
+        "type": "object"
+      },
+      "Claim": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "enum": [
+              "extracted",
+              "derived",
+              "inferred",
+              "modeled",
+              "hypothesis",
+              "unknown"
+            ],
+            "title": "Label",
+            "type": "string"
+          },
+          "produced_by": {
+            "title": "Produced By",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Rejection Reason"
+          },
+          "section": {
+            "enum": [
+              "disease_need",
+              "scientific_thesis",
+              "translation",
+              "clinical_plan",
+              "competition",
+              "commercial_adoption",
+              "capital",
+              "risks"
+            ],
+            "title": "Section",
+            "type": "string"
+          },
+          "stance": {
+            "enum": [
+              "pro",
+              "con",
+              "neutral"
+            ],
+            "title": "Stance",
+            "type": "string"
+          },
+          "status": {
+            "default": "accepted",
+            "enum": [
+              "accepted",
+              "rejected",
+              "downgraded"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confidence",
+          "evidence_ids",
+          "id",
+          "label",
+          "produced_by",
+          "rejection_reason",
+          "section",
+          "stance",
+          "status",
+          "text"
+        ],
+        "title": "Claim",
+        "type": "object"
+      },
+      "Correction": {
+        "additionalProperties": false,
+        "properties": {
+          "add_links": {
+            "items": {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Add Links",
+            "type": "array"
+          },
+          "add_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Add Notes"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "exclude_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclude Evidence Ids",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "add_links",
+          "add_notes",
+          "created_at",
+          "exclude_evidence_ids",
+          "id",
+          "node_id",
+          "run_id",
+          "text"
+        ],
+        "title": "Correction",
+        "type": "object"
+      },
+      "CorrectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "add_links": {
+            "items": {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Add Links",
+            "type": "array"
+          },
+          "add_notes": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Add Notes"
+          },
+          "exclude_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclude Evidence Ids",
+            "type": "array"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "CorrectionRequest",
+        "type": "object"
+      },
+      "CreateRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "options": {
+            "$ref": "#/components/schemas/RunOptions"
+          },
+          "program": {
+            "$ref": "#/components/schemas/ProgramInput"
+          }
+        },
+        "required": [
+          "program"
+        ],
+        "title": "CreateRunRequest",
+        "type": "object"
+      },
+      "DiligenceQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "requires": {
+            "items": {
+              "enum": [
+                "proprietary_data",
+                "patient_level_data",
+                "kol_interview",
+                "new_experiment",
+                "cmc_diligence",
+                "ip_diligence",
+                "public_research"
+              ],
+              "type": "string"
+            },
+            "title": "Requires",
+            "type": "array"
+          },
+          "why_it_matters": {
+            "title": "Why It Matters",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_ids",
+          "priority",
+          "question",
+          "requires",
+          "why_it_matters"
+        ],
+        "title": "DiligenceQuestion",
+        "type": "object"
+      },
+      "EntityRef": {
+        "additionalProperties": false,
+        "properties": {
+          "external_ids": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "External Ids",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "disease",
+              "target",
+              "drug",
+              "trial",
+              "paper",
+              "company"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "external_ids",
+          "id",
+          "kind",
+          "label"
+        ],
+        "title": "EntityRef",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "details",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Data"
+          },
+          "entity_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Entity Ids",
+            "type": "array"
+          },
+          "excerpt": {
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "default": "text",
+            "enum": [
+              "text",
+              "structured"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Locator"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "entity_ids",
+          "excerpt",
+          "id",
+          "kind",
+          "locator",
+          "source_id"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "EvidenceDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          }
+        },
+        "required": [
+          "evidence",
+          "source"
+        ],
+        "title": "EvidenceDetail",
+        "type": "object"
+      },
+      "EvidenceLedger": {
+        "additionalProperties": false,
+        "properties": {
+          "posterior": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "prior": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/LedgerStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "posterior",
+          "prior",
+          "steps"
+        ],
+        "title": "EvidenceLedger",
+        "type": "object"
+      },
+      "GraphEdge": {
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target"
+        ],
+        "title": "GraphEdge",
+        "type": "object"
+      },
+      "GraphSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "kind_colors": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "enum": [
+                "data",
+                "processing",
+                "knowledge",
+                "quant",
+                "bull",
+                "bear",
+                "analysis",
+                "output"
+              ]
+            },
+            "title": "Kind Colors",
+            "type": "object"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/NodeSpec"
+            },
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "edges",
+          "kind_colors",
+          "nodes"
+        ],
+        "title": "GraphSpec",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "has_api_key": {
+            "title": "Has Api Key",
+            "type": "boolean"
+          },
+          "llm_cache": {
+            "title": "Llm Cache",
+            "type": "boolean"
+          },
+          "llm_mode": {
+            "enum": [
+              "mock",
+              "live"
+            ],
+            "title": "Llm Mode",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "has_api_key",
+          "llm_cache",
+          "llm_mode",
+          "status"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "KeyPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_ids",
+          "text"
+        ],
+        "title": "KeyPoint",
+        "type": "object"
+      },
+      "LLMCallRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "cached": {
+            "default": false,
+            "title": "Cached",
+            "type": "boolean"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Usd"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "tokens_in": {
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "title": "Tokens Out",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cached",
+          "cost_usd",
+          "latency_ms",
+          "model",
+          "purpose",
+          "tokens_in",
+          "tokens_out"
+        ],
+        "title": "LLMCallRecord",
+        "type": "object"
+      },
+      "LedgerStep": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "sourced",
+              "assumption"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Citation"
+          },
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "direction": {
+            "enum": [
+              "up",
+              "down"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "factor": {
+            "title": "Factor",
+            "type": "string"
+          },
+          "likelihood_ratio": {
+            "$ref": "#/components/schemas/Range"
+          }
+        },
+        "required": [
+          "basis",
+          "citation",
+          "claim_ids",
+          "direction",
+          "evidence_ids",
+          "factor",
+          "likelihood_ratio"
+        ],
+        "title": "LedgerStep",
+        "type": "object"
+      },
+      "LogLine": {
+        "additionalProperties": false,
+        "properties": {
+          "level": {
+            "enum": [
+              "debug",
+              "info",
+              "warn",
+              "error"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "level",
+          "message",
+          "ts"
+        ],
+        "title": "LogLine",
+        "type": "object"
+      },
+      "ModelInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "default": {
+            "default": false,
+            "title": "Default",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "price_in_per_mtok": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price In Per Mtok"
+          },
+          "price_out_per_mtok": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price Out Per Mtok"
+          },
+          "tier": {
+            "enum": [
+              "cheap",
+              "standard",
+              "premium",
+              "unknown"
+            ],
+            "title": "Tier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "default",
+          "id",
+          "label",
+          "price_in_per_mtok",
+          "price_out_per_mtok",
+          "tier"
+        ],
+        "title": "ModelInfo",
+        "type": "object"
+      },
+      "NodeExecution": {
+        "additionalProperties": false,
+        "properties": {
+          "correction_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Correction Ids",
+            "type": "array"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Usd"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Finished At"
+          },
+          "input_summary": {
+            "additionalProperties": true,
+            "title": "Input Summary",
+            "type": "object"
+          },
+          "llm_calls": {
+            "items": {
+              "$ref": "#/components/schemas/LLMCallRecord"
+            },
+            "title": "Llm Calls",
+            "type": "array"
+          },
+          "log": {
+            "items": {
+              "$ref": "#/components/schemas/LogLine"
+            },
+            "title": "Log",
+            "type": "array"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "output": {
+            "additionalProperties": true,
+            "title": "Output",
+            "type": "object"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "failed",
+              "skipped",
+              "reused"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "correction_ids",
+          "cost_usd",
+          "error",
+          "finished_at",
+          "input_summary",
+          "llm_calls",
+          "log",
+          "node_id",
+          "output",
+          "run_id",
+          "source_ids",
+          "started_at",
+          "status"
+        ],
+        "title": "NodeExecution",
+        "type": "object"
+      },
+      "NodeSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "correctable": {
+            "default": true,
+            "title": "Correctable",
+            "type": "boolean"
+          },
+          "critical": {
+            "default": false,
+            "title": "Critical",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "data",
+              "processing",
+              "knowledge",
+              "quant",
+              "bull",
+              "bear",
+              "analysis",
+              "output"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "reads": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reads",
+            "type": "array"
+          },
+          "writes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Writes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "correctable",
+          "critical",
+          "description",
+          "id",
+          "kind",
+          "label",
+          "parent",
+          "reads",
+          "writes"
+        ],
+        "title": "NodeSpec",
+        "type": "object"
+      },
+      "PanelCandidate": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Decision Hint"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision_hint",
+          "model",
+          "summary"
+        ],
+        "title": "PanelCandidate",
+        "type": "object"
+      },
+      "PanelResult": {
+        "additionalProperties": false,
+        "properties": {
+          "agreement": {
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Agreement",
+            "type": "number"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/PanelCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "consensus": {
+            "title": "Consensus",
+            "type": "string"
+          },
+          "disagreements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Disagreements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "agreement",
+          "candidates",
+          "consensus",
+          "disagreements"
+        ],
+        "title": "PanelResult",
+        "type": "object"
+      },
+      "PlannedQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "section": {
+            "enum": [
+              "disease_need",
+              "scientific_thesis",
+              "translation",
+              "clinical_plan",
+              "competition",
+              "commercial_adoption",
+              "capital",
+              "risks"
+            ],
+            "title": "Section",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "priority",
+          "question",
+          "rationale",
+          "section"
+        ],
+        "title": "PlannedQuestion",
+        "type": "object"
+      },
+      "ProgramInput": {
+        "additionalProperties": false,
+        "properties": {
+          "biomarkers": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Biomarkers"
+          },
+          "drug_name": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Drug Name"
+          },
+          "indication": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Indication",
+            "type": "string"
+          },
+          "links": {
+            "items": {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Links",
+            "type": "array"
+          },
+          "mechanism": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Mechanism",
+            "type": "string"
+          },
+          "modality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "small_molecule",
+                  "antibody",
+                  "biologic_other",
+                  "cell_therapy",
+                  "gene_therapy",
+                  "oligonucleotide",
+                  "vaccine",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Modality"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Notes"
+          },
+          "preclinical_results": {
+            "anyOf": [
+              {
+                "maxLength": 5000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Preclinical Results"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Route"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "discovery",
+                  "preclinical",
+                  "ind_enabling",
+                  "phase1",
+                  "phase2",
+                  "phase3",
+                  "filed",
+                  "approved"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stage"
+          }
+        },
+        "required": [
+          "indication",
+          "mechanism"
+        ],
+        "title": "ProgramInput",
+        "type": "object"
+      },
+      "Range": {
+        "additionalProperties": false,
+        "properties": {
+          "base": {
+            "title": "Base",
+            "type": "number"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base",
+          "high",
+          "low",
+          "unit"
+        ],
+        "title": "Range",
+        "type": "object"
+      },
+      "ReasonCode": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "positive",
+              "negative"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_ids",
+          "code",
+          "direction",
+          "text"
+        ],
+        "title": "ReasonCode",
+        "type": "object"
+      },
+      "ReportDiff": {
+        "additionalProperties": false,
+        "properties": {
+          "added_claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Added Claim Ids",
+            "type": "array"
+          },
+          "changed_sections": {
+            "items": {
+              "enum": [
+                "disease_need",
+                "scientific_thesis",
+                "translation",
+                "clinical_plan",
+                "competition",
+                "commercial_adoption",
+                "capital",
+                "risks"
+              ],
+              "type": "string"
+            },
+            "title": "Changed Sections",
+            "type": "array"
+          },
+          "decision_after": {
+            "anyOf": [
+              {
+                "enum": [
+                  "invest",
+                  "conditional",
+                  "do_not_invest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Decision After"
+          },
+          "decision_before": {
+            "anyOf": [
+              {
+                "enum": [
+                  "invest",
+                  "conditional",
+                  "do_not_invest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Decision Before"
+          },
+          "from_run": {
+            "title": "From Run",
+            "type": "string"
+          },
+          "pos_after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "pos_before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "recomputed_nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recomputed Nodes",
+            "type": "array"
+          },
+          "removed_claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed Claim Ids",
+            "type": "array"
+          },
+          "to_run": {
+            "title": "To Run",
+            "type": "string"
+          }
+        },
+        "required": [
+          "added_claim_ids",
+          "changed_sections",
+          "decision_after",
+          "decision_before",
+          "from_run",
+          "pos_after",
+          "pos_before",
+          "recomputed_nodes",
+          "removed_claim_ids",
+          "to_run"
+        ],
+        "title": "ReportDiff",
+        "type": "object"
+      },
+      "ResolvedEntities": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "disease": {
+            "$ref": "#/components/schemas/EntityRef"
+          },
+          "drug": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntityRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "mechanism_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mechanism Class"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EntityRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "therapeutic_areas": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Therapeutic Areas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "confidence",
+          "disease",
+          "drug",
+          "mechanism_class",
+          "notes",
+          "target",
+          "therapeutic_areas"
+        ],
+        "title": "ResolvedEntities",
+        "type": "object"
+      },
+      "Risk": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "efficacy",
+              "safety",
+              "pk_exposure",
+              "commercial",
+              "regulatory",
+              "cmc",
+              "ip"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "severity": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "claim_ids",
+          "severity",
+          "text"
+        ],
+        "title": "Risk",
+        "type": "object"
+      },
+      "RunDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/NodeExecution"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnderwritingReport"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RunSummary"
+          }
+        },
+        "required": [
+          "nodes",
+          "report",
+          "summary"
+        ],
+        "title": "RunDetail",
+        "type": "object"
+      },
+      "RunEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "node_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Node Id"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "run.started",
+              "node.started",
+              "node.log",
+              "node.completed",
+              "node.failed",
+              "node.skipped",
+              "node.reused",
+              "llm.call",
+              "run.completed",
+              "run.failed"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "node_id",
+          "run_id",
+          "seq",
+          "ts",
+          "type"
+        ],
+        "title": "RunEvent",
+        "type": "object"
+      },
+      "RunMeta": {
+        "additionalProperties": false,
+        "properties": {
+          "cache_hits": {
+            "default": 0,
+            "title": "Cache Hits",
+            "type": "integer"
+          },
+          "correction_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Correction Id"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Usd"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "duration_s": {
+            "default": 0,
+            "title": "Duration S",
+            "type": "number"
+          },
+          "effort": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "panel"
+            ],
+            "title": "Effort",
+            "type": "string"
+          },
+          "failed_nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Failed Nodes",
+            "type": "array"
+          },
+          "models_used": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Models Used",
+            "type": "array"
+          },
+          "panel_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Panel Size"
+          },
+          "parent_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parent Run Id"
+          },
+          "synthetic": {
+            "default": false,
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "tokens_in": {
+            "default": 0,
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "default": 0,
+            "title": "Tokens Out",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cache_hits",
+          "correction_id",
+          "cost_usd",
+          "created_at",
+          "duration_s",
+          "effort",
+          "failed_nodes",
+          "models_used",
+          "panel_size",
+          "parent_run_id",
+          "synthetic",
+          "tokens_in",
+          "tokens_out"
+        ],
+        "title": "RunMeta",
+        "type": "object"
+      },
+      "RunOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "As Of"
+          },
+          "effort": {
+            "default": "medium",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "panel"
+            ],
+            "title": "Effort",
+            "type": "string"
+          },
+          "force_refresh": {
+            "default": false,
+            "title": "Force Refresh",
+            "type": "boolean"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Model"
+          },
+          "panel_models": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Panel Models"
+          },
+          "panel_size": {
+            "default": 3,
+            "minimum": 2,
+            "title": "Panel Size",
+            "type": "integer"
+          }
+        },
+        "title": "RunOptions",
+        "type": "object"
+      },
+      "RunSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "enum": [
+                  "invest",
+                  "conditional",
+                  "do_not_invest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Decision"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "options": {
+            "$ref": "#/components/schemas/RunOptions"
+          },
+          "parent_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parent Run Id"
+          },
+          "program": {
+            "$ref": "#/components/schemas/ProgramInput"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "created_at",
+          "decision",
+          "error",
+          "id",
+          "options",
+          "parent_run_id",
+          "program",
+          "status"
+        ],
+        "title": "RunSummary",
+        "type": "object"
+      },
+      "SectionResult": {
+        "additionalProperties": false,
+        "properties": {
+          "key_points": {
+            "items": {
+              "$ref": "#/components/schemas/KeyPoint"
+            },
+            "title": "Key Points",
+            "type": "array"
+          },
+          "panel": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PanelResult"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "produced_by": {
+            "title": "Produced By",
+            "type": "string"
+          },
+          "section": {
+            "enum": [
+              "disease_need",
+              "scientific_thesis",
+              "translation",
+              "clinical_plan",
+              "competition",
+              "commercial_adoption",
+              "capital",
+              "risks"
+            ],
+            "title": "Section",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "partial",
+              "insufficient_evidence"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknowns",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key_points",
+          "panel",
+          "produced_by",
+          "section",
+          "status",
+          "summary",
+          "title",
+          "unknowns"
+        ],
+        "title": "SectionResult",
+        "type": "object"
+      },
+      "SourceRef": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "identifiers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Identifiers",
+            "type": "object"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Published At"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "paper",
+              "preprint",
+              "trial",
+              "label",
+              "approval",
+              "db_record",
+              "filing",
+              "user_provided",
+              "web"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "identifiers",
+          "published_at",
+          "publisher",
+          "retrieved_at",
+          "title",
+          "type",
+          "url"
+        ],
+        "title": "SourceRef",
+        "type": "object"
+      },
+      "TranslationLink": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "supported",
+              "weak",
+              "missing",
+              "contradicted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "step": {
+            "enum": [
+              "molecular_effect",
+              "human_exposure",
+              "target_engagement",
+              "biological_response",
+              "patient_benefit"
+            ],
+            "title": "Step",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_ids",
+          "status",
+          "step"
+        ],
+        "title": "TranslationLink",
+        "type": "object"
+      },
+      "TwinProgram": {
+        "additionalProperties": false,
+        "properties": {
+          "disease": {
+            "title": "Disease",
+            "type": "string"
+          },
+          "drug": {
+            "title": "Drug",
+            "type": "string"
+          },
+          "drug_id": {
+            "title": "Drug Id",
+            "type": "string"
+          },
+          "max_stage": {
+            "title": "Max Stage",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "approved",
+              "stopped",
+              "active",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stop Reason"
+          }
+        },
+        "required": [
+          "disease",
+          "drug",
+          "drug_id",
+          "max_stage",
+          "source_ids",
+          "status",
+          "stop_reason"
+        ],
+        "title": "TwinProgram",
+        "type": "object"
+      },
+      "TwinStats": {
+        "additionalProperties": false,
+        "properties": {
+          "match_level": {
+            "enum": [
+              "exact_target_indication",
+              "target_area",
+              "target_any",
+              "target_class",
+              "area_base_rate"
+            ],
+            "title": "Match Level",
+            "type": "string"
+          },
+          "n_programs": {
+            "minimum": 0,
+            "title": "N Programs",
+            "type": "integer"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "prior_pos": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "stage_distribution": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stage Distribution",
+            "type": "object"
+          },
+          "stop_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Stop Reasons",
+            "type": "object"
+          },
+          "twins": {
+            "items": {
+              "$ref": "#/components/schemas/TwinProgram"
+            },
+            "title": "Twins",
+            "type": "array"
+          }
+        },
+        "required": [
+          "match_level",
+          "n_programs",
+          "notes",
+          "prior_pos",
+          "stage_distribution",
+          "stop_reasons",
+          "twins"
+        ],
+        "title": "TwinStats",
+        "type": "object"
+      },
+      "UnderwritingReport": {
+        "additionalProperties": false,
+        "properties": {
+          "claims": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "title": "Claims",
+            "type": "object"
+          },
+          "critical_unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Critical Unknowns",
+            "type": "array"
+          },
+          "diligence_questions": {
+            "items": {
+              "$ref": "#/components/schemas/DiligenceQuestion"
+            },
+            "maxItems": 10,
+            "title": "Diligence Questions",
+            "type": "array"
+          },
+          "entities": {
+            "$ref": "#/components/schemas/ResolvedEntities"
+          },
+          "evidence": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "object"
+          },
+          "key_risks": {
+            "items": {
+              "$ref": "#/components/schemas/Risk"
+            },
+            "title": "Key Risks",
+            "type": "array"
+          },
+          "ledger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceLedger"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RunMeta"
+          },
+          "pos": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "program": {
+            "$ref": "#/components/schemas/ProgramInput"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "sections": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SectionResult"
+            },
+            "propertyNames": {
+              "enum": [
+                "disease_need",
+                "scientific_thesis",
+                "translation",
+                "clinical_plan",
+                "competition",
+                "commercial_adoption",
+                "capital",
+                "risks"
+              ]
+            },
+            "title": "Sections",
+            "type": "object"
+          },
+          "sources": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "title": "Sources",
+            "type": "object"
+          },
+          "translation_chain": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationLink"
+            },
+            "title": "Translation Chain",
+            "type": "array"
+          },
+          "twin_stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TwinStats"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "valuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Valuation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          }
+        },
+        "required": [
+          "claims",
+          "critical_unknowns",
+          "diligence_questions",
+          "entities",
+          "evidence",
+          "key_risks",
+          "ledger",
+          "meta",
+          "pos",
+          "program",
+          "run_id",
+          "sections",
+          "sources",
+          "translation_chain",
+          "twin_stats",
+          "valuation",
+          "verdict"
+        ],
+        "title": "UnderwritingReport",
+        "type": "object"
+      },
+      "Valuation": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Assumption"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "capital_to_milestone": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "next_milestone": {
+            "title": "Next Milestone",
+            "type": "string"
+          },
+          "rnpv": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "time_to_milestone_months": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "value_inflection_points": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Value Inflection Points",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assumptions",
+          "capital_to_milestone",
+          "next_milestone",
+          "rnpv",
+          "time_to_milestone_months",
+          "value_inflection_points"
+        ],
+        "title": "Valuation",
+        "type": "object"
+      },
+      "Verdict": {
+        "additionalProperties": false,
+        "properties": {
+          "conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "invest",
+              "conditional",
+              "do_not_invest"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCode"
+            },
+            "maxItems": 5,
+            "title": "Reason Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "conditions",
+          "confidence",
+          "decision",
+          "rationale",
+          "reason_codes"
+        ],
+        "title": "Verdict",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Unobio Underwriting",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/graph": {
+      "get": {
+        "operationId": "graph_api_graph_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphSpec"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Graph"
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Health"
+      }
+    }
+  }
+}
