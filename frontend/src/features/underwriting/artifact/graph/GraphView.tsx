@@ -148,6 +148,8 @@ export function GraphView({
       onPaneClick={() => onSelect(undefined)}
       nodesDraggable={false}
       nodesConnectable={false}
+      nodesFocusable={false}
+      edgesFocusable={false}
       fitView
       fitViewOptions={{ padding: 0.04 }}
       minZoom={0.2}

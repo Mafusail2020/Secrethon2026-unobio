@@ -45,23 +45,25 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
     .join(" · ");
   return (
     <div className="group relative">
-      <div
+      <button
+        type="button"
+        aria-pressed={data.selected}
+        aria-label={`${data.spec.label}, ${data.status}. Open details`}
         style={{ width: NODE_W, height: NODE_H, borderLeftColor: data.color }}
-        className={`flex flex-col justify-center rounded-md border border-l-4 px-2 text-xs shadow-sm transition-opacity ${STATUS_CLASS[data.status]} ${
+        className={`flex flex-col justify-center rounded-md border border-l-4 px-2 text-left text-xs shadow-sm transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.selected ? "outline outline-2 outline-offset-2 outline-brand" : ""
         } ${data.affected ? "ring-2 ring-violet-500 ring-offset-1" : ""} ${data.dim ? "opacity-30" : ""}`}
       >
         <Handle type="target" position={Position.Top} className="!opacity-0" />
-        <div className="flex items-center gap-1">
+        <span className="flex items-center gap-1">
           <span className={STATUS_TEXT[data.status]} aria-hidden="true">
             {STATUS_ICON[data.status]}
           </span>
           <span className="truncate font-medium">{data.spec.label}</span>
-          <span className="sr-only">, {data.status}</span>
-        </div>
-        <div className="truncate text-[10px] text-muted">{meta}</div>
+        </span>
+        <span className="block truncate text-[10px] text-muted">{meta}</span>
         <Handle type="source" position={Position.Bottom} className="!opacity-0" />
-      </div>
+      </button>
       <div
         role="tooltip"
         className="pointer-events-none invisible absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-line bg-white p-2 text-xs shadow-lg group-hover:visible"
@@ -81,12 +83,18 @@ export function ContainerNodeView({ data }: NodeProps<GroupFlowNode>) {
         data.affected ? "ring-2 ring-violet-500" : ""
       } ${data.dim ? "opacity-30" : ""}`}
     >
-      <div className="flex items-center gap-1 px-2 pt-1 text-xs font-semibold" style={{ color: data.color }}>
+      <button
+        type="button"
+        aria-pressed={data.selected}
+        aria-label={`${data.spec.label}, ${data.status}. Open details`}
+        className="flex items-center gap-1 rounded px-2 pt-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+        style={{ color: data.color }}
+      >
         <span className={STATUS_TEXT[data.status]} aria-hidden="true">
           {STATUS_ICON[data.status]}
         </span>
         {data.spec.label}
-      </div>
+      </button>
     </div>
   );
 }

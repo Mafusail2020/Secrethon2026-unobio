@@ -95,8 +95,8 @@ export function ReportView({
 
   return (
     <ReportContext.Provider value={{ report, runId, graph, canCorrect, focus, jumpToClaim, openCorrection: setSeed }}>
-      <div className="pb-6">
-        <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
+      <div className="@container pb-6">
+        <header className="sticky top-14 z-20 border-b border-line bg-canvas/95 backdrop-blur md:top-0" data-print-header>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-2">
             <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
             <span className="text-xs text-muted">{verdict.confidence} confidence</span>
@@ -168,7 +168,7 @@ export function ReportView({
               )}
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-4 @3xl:grid-cols-2">
               {report.twin_stats ? <TwinPanel twin={report.twin_stats} report={report} /> : <Missing title="Similar programs" why="Historical twin statistics are not available for this run." />}
               {report.valuation ? <ValuationPanel valuation={report.valuation} /> : <Missing title="Funding to the next milestone" why="No valuation was produced for this run." />}
             </div>

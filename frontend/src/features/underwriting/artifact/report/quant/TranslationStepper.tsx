@@ -32,7 +32,7 @@ export function TranslationStepper({ chain }: { chain: TranslationLink[] }) {
       <h3 id="chain-h" className="text-sm font-semibold">
         Will it work in humans? The translation chain
       </h3>
-      <ol className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-5">
+      <ol className="mt-2 grid grid-cols-1 gap-2 @xl:grid-cols-5">
         {links.map((link, i) => (
           <li key={link.step} className="relative">
             <button

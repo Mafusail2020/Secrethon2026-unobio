@@ -78,7 +78,7 @@ function GraphTab({
           Correcting {node.label} recomputes {highlight.size} of {total} steps (outlined); the rest are reused.
         </p>
       )}
-      <div className="relative min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1 max-md:min-h-[32rem]">
         <GraphView spec={graph} stream={stream} selected={selected} onSelect={setSelected} sourceCounts={sourceCounts} highlight={highlight} />
         {node && (
           <NodeDrawer
@@ -92,8 +92,11 @@ function GraphTab({
             tab={drawerTab}
             onTab={setDrawerTab}
             onClose={() => {
+              const id = node.id;
               setSelected(undefined);
               setDrawerTab("overview");
+              // hand focus back to the step that opened the drawer
+              requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-id="${id}"] button`)?.focus());
             }}
           />
         )}
@@ -146,13 +149,13 @@ export function ArtifactPanel({
 
   return (
     <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
-      <Tabs tabs={TABS} active={active} onChange={onTab} />
+      <Tabs tabs={TABS} active={active} onChange={onTab} idPrefix="artifact" label="Underwriting artifact" />
       {stubbed && active !== "report" && (
         <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-1 text-xs text-amber-900">
           Synthetic data: parts of this run come from stub steps and contain placeholder content.
         </p>
       )}
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div role="tabpanel" id="artifact-panel" aria-labelledby={`artifact-${active}`} className="min-h-0 flex-1 overflow-auto">
         <ErrorBoundary resetKey={`${active}:${run?.id ?? ""}`}>
           {active === "report" &&
             (report && run ? (

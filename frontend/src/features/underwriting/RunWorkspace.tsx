@@ -41,7 +41,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div data-uw className="flex h-full min-h-0 flex-col">
       <ConnectionBanner />
       <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
       <aside className="flex min-h-0 flex-col bg-white">

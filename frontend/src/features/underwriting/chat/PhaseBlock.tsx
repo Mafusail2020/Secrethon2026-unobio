@@ -109,7 +109,7 @@ export function PhaseBlock({ phase, live }: { phase: PhaseView; live: Record<str
       {open && !pending && (
         <div className="border-t border-line px-1.5 py-1.5">
           {phase.lanes.length > 0 ? (
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 @md:grid-cols-2">
               {phase.lanes.map((lane) => (
                 <div key={lane.id}>
                   <h4 className="px-1 text-xs font-medium text-muted">{lane.label}</h4>

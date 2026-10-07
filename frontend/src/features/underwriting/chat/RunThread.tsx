@@ -127,7 +127,7 @@ export function RunThread({
   });
 
   return (
-    <div className="space-y-3 p-3">
+    <div className="@container space-y-3 p-3">
       <ProgramMessage run={run} />
       <div className="mr-2 space-y-2 rounded-2xl rounded-tl-sm bg-canvas p-3">
         {run.parent_run_id && (

@@ -5,6 +5,7 @@ import { Badge } from "../../../../components/ui/Badge";
 import { ErrorBox } from "../../../../components/ui/ErrorBox";
 import { InfoTip } from "../../../../components/ui/InfoTip";
 import { Spinner } from "../../../../components/ui/Spinner";
+import { Tabs } from "../../../../components/ui/Tabs";
 import { formatCost, formatDuration, humanize } from "../../../../lib/format";
 import { CorrectionForm } from "../../correction/CorrectionForm";
 import type { RunStream } from "../../reduceEvents";
@@ -218,7 +219,11 @@ export function NodeDrawer({
         : undefined;
 
   return (
-    <aside aria-label={`${node.label} details`} className="absolute right-0 top-0 z-10 flex h-full w-[26rem] max-w-full flex-col border-l border-line bg-white shadow-lg">
+    <aside
+      aria-label={`${node.label} details`}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      className="absolute right-0 top-0 z-10 flex h-full w-[26rem] max-w-full flex-col border-l border-line bg-white shadow-lg"
+    >
       <div className="border-b border-line p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -240,25 +245,10 @@ export function NodeDrawer({
             ✕
           </button>
         </div>
-        <div role="tablist" aria-label="Step details" className="mt-2 flex gap-1">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={active === t.id}
-              onClick={() => onTab(t.id)}
-              className={`rounded-full px-2.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${
-                active === t.id ? "bg-navy text-white" : "text-muted hover:bg-canvas"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <Tabs tabs={tabs} active={active} onChange={onTab} idPrefix="drawer" label="Step details" variant="pill" />
       </div>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-auto p-3" role="tabpanel">
+      <div role="tabpanel" id="drawer-panel" aria-labelledby={`drawer-${active}`} className="min-h-0 flex-1 space-y-3 overflow-auto p-3">
         {active === "overview" && (
           <>
             <p className="text-sm">{node.description}</p>

@@ -44,7 +44,7 @@ export function TwinPanel({ twin, report }: { twin: TwinStats; report: Underwrit
         <p className="sr-only">{pctRange(twin.prior_pos)}</p>
       </div>
 
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+      <div className="mt-3 grid gap-4 @2xl:grid-cols-2">
         <div>
           <h4 className="mb-1 text-xs font-medium text-muted">Furthest stage reached</h4>
           {stages.length ? <BarList items={stages.map((s) => ({ label: s.stage, value: s.count }))} /> : <p className="text-xs text-muted">No stage data.</p>}
