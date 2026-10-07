@@ -21,7 +21,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Citation"
           },
           "name": {
@@ -72,7 +71,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Run Id"
           }
         },
@@ -133,7 +131,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Rejection Reason"
           },
           "section": {
@@ -280,7 +277,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Add Notes"
           },
           "exclude_evidence_ids": {
@@ -462,7 +458,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Data"
           },
           "entity_ids": {
@@ -498,7 +493,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Locator"
           },
           "source_id": {
@@ -698,7 +692,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Cost Usd"
           },
           "latency_ms": {
@@ -754,7 +747,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Citation"
           },
           "claim_ids": {
@@ -859,7 +851,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Price In Per Mtok"
           },
           "price_out_per_mtok": {
@@ -871,7 +862,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Price Out Per Mtok"
           },
           "tier": {
@@ -916,7 +906,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Cost Usd"
           },
           "error": {
@@ -928,7 +917,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Error"
           },
           "finished_at": {
@@ -941,7 +929,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Finished At"
           },
           "input_summary": {
@@ -993,7 +980,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Started At"
           },
           "status": {
@@ -1118,7 +1104,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Decision Hint"
           },
           "model": {
@@ -1142,8 +1127,8 @@
         "additionalProperties": false,
         "properties": {
           "agreement": {
-            "maximum": 1,
-            "minimum": 0,
+            "maximum": 1.0,
+            "minimum": 0.0,
             "title": "Agreement",
             "type": "number"
           },
@@ -1232,7 +1217,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Biomarkers"
           },
           "drug_name": {
@@ -1245,7 +1229,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Drug Name"
           },
           "indication": {
@@ -1290,7 +1273,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Modality"
           },
           "notes": {
@@ -1303,7 +1285,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Notes"
           },
           "preclinical_results": {
@@ -1316,7 +1297,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Preclinical Results"
           },
           "route": {
@@ -1329,7 +1309,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Route"
           },
           "stage": {
@@ -1351,7 +1330,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Stage"
           }
         },
@@ -1469,7 +1447,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Decision After"
           },
           "decision_before": {
@@ -1486,7 +1463,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Decision Before"
           },
           "from_run": {
@@ -1501,8 +1477,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "pos_before": {
             "anyOf": [
@@ -1512,8 +1487,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "recomputed_nodes": {
             "items": {
@@ -1572,8 +1546,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "mechanism_class": {
             "anyOf": [
@@ -1584,7 +1557,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Mechanism Class"
           },
           "notes": {
@@ -1602,8 +1574,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "therapeutic_areas": {
             "items": {
@@ -1689,8 +1660,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "summary": {
             "$ref": "#/components/schemas/RunSummary"
@@ -1782,7 +1752,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Correction Id"
           },
           "cost_usd": {
@@ -1794,7 +1763,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Cost Usd"
           },
           "created_at": {
@@ -1840,7 +1808,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Panel Size"
           },
           "parent_run_id": {
@@ -1852,7 +1819,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Parent Run Id"
           },
           "synthetic": {
@@ -1902,7 +1868,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "As Of"
           },
           "effort": {
@@ -1930,7 +1895,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Model"
           },
           "panel_models": {
@@ -1945,12 +1909,11 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Panel Models"
           },
           "panel_size": {
             "default": 3,
-            "minimum": 2,
+            "minimum": 2.0,
             "title": "Panel Size",
             "type": "integer"
           }
@@ -1980,7 +1943,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Decision"
           },
           "error": {
@@ -1992,7 +1954,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Error"
           },
           "id": {
@@ -2011,7 +1972,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Parent Run Id"
           },
           "program": {
@@ -2059,8 +2019,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "produced_by": {
             "title": "Produced By",
@@ -2142,7 +2101,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Published At"
           },
           "publisher": {
@@ -2182,7 +2140,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Url"
           }
         },
@@ -2284,7 +2241,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Stop Reason"
           }
         },
@@ -2315,7 +2271,7 @@
             "type": "string"
           },
           "n_programs": {
-            "minimum": 0,
+            "minimum": 0.0,
             "title": "N Programs",
             "type": "integer"
           },
@@ -2413,8 +2369,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "meta": {
             "$ref": "#/components/schemas/RunMeta"
@@ -2470,8 +2425,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "valuation": {
             "anyOf": [
@@ -2481,8 +2435,7 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "verdict": {
             "$ref": "#/components/schemas/Verdict"
@@ -2611,6 +2564,45 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/evidence/{evidence_id}": {
+      "get": {
+        "operationId": "get_evidence_api_evidence__evidence_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "evidence_id",
+            "required": true,
+            "schema": {
+              "title": "Evidence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Evidence"
+      }
+    },
     "/api/graph": {
       "get": {
         "operationId": "graph_api_graph_get",
@@ -2665,6 +2657,562 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/models": {
+      "get": {
+        "operationId": "list_models_api_models_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelInfo"
+                  },
+                  "title": "Response List Models Api Models Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "List Models"
+      }
+    },
+    "/api/runs": {
+      "get": {
+        "operationId": "list_runs_api_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunSummary"
+                  },
+                  "title": "Response List Runs Api Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "List Runs"
+      },
+      "post": {
+        "operationId": "post_run_api_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Post Run"
+      }
+    },
+    "/api/runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_api_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Run"
+      }
+    },
+    "/api/runs/{run_id}/diff/{other_id}": {
+      "get": {
+        "description": "Changes going from run_id to other_id.",
+        "operationId": "get_diff_api_runs__run_id__diff__other_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "other_id",
+            "required": true,
+            "schema": {
+              "title": "Other Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDiff"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Diff"
+      }
+    },
+    "/api/runs/{run_id}/events": {
+      "get": {
+        "operationId": "run_events_api_runs__run_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "last-event-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": true,
+                      "title": "Data",
+                      "type": "object"
+                    },
+                    "node_id": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "title": "Node Id"
+                    },
+                    "run_id": {
+                      "title": "Run Id",
+                      "type": "string"
+                    },
+                    "seq": {
+                      "title": "Seq",
+                      "type": "integer"
+                    },
+                    "ts": {
+                      "format": "date-time",
+                      "title": "Ts",
+                      "type": "string"
+                    },
+                    "type": {
+                      "enum": [
+                        "run.started",
+                        "node.started",
+                        "node.log",
+                        "node.completed",
+                        "node.failed",
+                        "node.skipped",
+                        "node.reused",
+                        "llm.call",
+                        "run.completed",
+                        "run.failed"
+                      ],
+                      "title": "Type",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "seq",
+                    "run_id",
+                    "ts",
+                    "type"
+                  ],
+                  "title": "RunEvent",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Run Events"
+      }
+    },
+    "/api/runs/{run_id}/messages": {
+      "post": {
+        "operationId": "post_message_api_runs__run_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessage"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Post Message"
+      }
+    },
+    "/api/runs/{run_id}/nodes/{node_id}": {
+      "get": {
+        "operationId": "get_node_api_runs__run_id__nodes__node_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeExecution"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Node"
+      }
+    },
+    "/api/runs/{run_id}/nodes/{node_id}/corrections": {
+      "post": {
+        "operationId": "post_correction_api_runs__run_id__nodes__node_id__corrections_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Post Correction"
+      }
+    },
+    "/api/runs/{run_id}/report": {
+      "get": {
+        "operationId": "get_report_api_runs__run_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnderwritingReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Report"
+      }
+    },
+    "/api/runs/{run_id}/trace": {
+      "get": {
+        "operationId": "get_trace_api_runs__run_id__trace_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Trace"
       }
     }
   }

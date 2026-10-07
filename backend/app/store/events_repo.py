@@ -45,6 +45,16 @@ class EventsRepo:
             )
             return value or 0
 
+    async def last_event(self, run_id: str) -> RunEvent | None:
+        async with self.db.session() as s:
+            row = await s.scalar(
+                select(RunEventRow)
+                .where(RunEventRow.run_id == run_id)
+                .order_by(RunEventRow.seq.desc())
+                .limit(1)
+            )
+            return _event(row) if row else None
+
     async def after(self, run_id: str, seq: int = 0) -> list[RunEvent]:
         async with self.db.session() as s:
             rows = await s.scalars(
