@@ -8,14 +8,11 @@ import { NodeDrawer } from "./graph/NodeDrawer";
 import { VersionBar } from "./graph/VersionBar";
 import { LogsTimeline } from "./logs/LogsTimeline";
 import { ReportView } from "./report/ReportView";
+import type { FocusClaim } from "./report/reportContext";
 import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
 
-export interface FocusClaim {
-  id: string;
-  nonce: number;
-}
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "report", label: "Report" },
@@ -99,7 +96,12 @@ export function ArtifactPanel({
     <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
       <Tabs tabs={TABS} active={active} onChange={onTab} />
       <div className="min-h-0 flex-1 overflow-auto">
-        {active === "report" && (report ? <ReportView report={report} focusClaim={focusClaim} /> : waiting)}
+        {active === "report" &&
+          (report && run ? (
+            <ReportView report={report} runId={run.id} graph={graph} canCorrect={canCorrect} focusClaim={focusClaim} />
+          ) : (
+            waiting
+          ))}
         {active === "graph" &&
           (graph ? (
             <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} />

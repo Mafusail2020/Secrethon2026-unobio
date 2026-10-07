@@ -18,6 +18,15 @@ export const useRunDetail = (runId: string | undefined) =>
     retry: false,
   });
 
+export const useReportOf = (runId: string | null | undefined) =>
+  useQuery({
+    queryKey: ["report", runId],
+    queryFn: async () => (await getApi()).getReport(runId!),
+    enabled: !!runId,
+    retry: false,
+    staleTime: 60_000,
+  });
+
 export const useNode = (runId: string, nodeId: string | undefined, version: string) =>
   useQuery({
     queryKey: ["node", runId, nodeId, version],

@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useDiff, useRuns } from "../../../../api/hooks";
 import type { RunSummary } from "../../../../api/types";
-import { Badge } from "../../../../components/ui/Badge";
-import { DECISION_LABEL, DECISION_STYLE, pct } from "../../../../lib/format";
+import { DECISION_LABEL } from "../../../../lib/format";
 import { familyOf } from "../../graphUtils";
+import { buildDiffView } from "../report/diffView";
+import { DiffSummaryCompact } from "../report/DiffSummary";
 
 export function VersionBar({ run, completed }: { run: RunSummary; completed: boolean }) {
   const navigate = useNavigate();
@@ -29,27 +30,7 @@ export function VersionBar({ run, completed }: { run: RunSummary; completed: boo
           ))}
         </select>
       </label>
-      {diff.data && (
-        <span className="flex flex-wrap items-center gap-2" data-testid="diff-badge">
-          {diff.data.decision_before && diff.data.decision_after && (
-            <>
-              <Badge className={DECISION_STYLE[diff.data.decision_before]}>{DECISION_LABEL[diff.data.decision_before]}</Badge>
-              <span>→</span>
-              <Badge className={DECISION_STYLE[diff.data.decision_after]}>{DECISION_LABEL[diff.data.decision_after]}</Badge>
-              {diff.data.decision_before === diff.data.decision_after && <span className="text-muted">decision unchanged</span>}
-            </>
-          )}
-          {diff.data.pos_before && diff.data.pos_after && (
-            <span className="text-muted">
-              PoS {pct(diff.data.pos_before.base)} → {pct(diff.data.pos_after.base)}
-            </span>
-          )}
-          <span className="text-muted">{diff.data.recomputed_nodes.length} nodes recomputed</span>
-          {diff.data.changed_sections.length > 0 && (
-            <span className="text-muted">{diff.data.changed_sections.length} sections changed</span>
-          )}
-        </span>
-      )}
+      {diff.data && <DiffSummaryCompact view={buildDiffView(diff.data, undefined, undefined)} />}
     </div>
   );
 }

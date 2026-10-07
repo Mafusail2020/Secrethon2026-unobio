@@ -1,10 +1,24 @@
-import { useEffect } from "react";
-import type { SectionId, SectionResult, UnderwritingReport } from "../../../../api/types";
+import { useEffect, useMemo, useState } from "react";
+import type { GraphSpec, SectionId, UnderwritingReport } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
 import { DECISION_LABEL, DECISION_STYLE, humanize, pctRange } from "../../../../lib/format";
-import type { FocusClaim } from "../ArtifactPanel";
-import { ClaimItem } from "./ClaimItem";
-import { LedgerPanel, TwinPanel, ValuationPanel } from "./QuantPanels";
+import { CorrectionDialog } from "../../correction/CorrectionDialog";
+import { ClaimCard } from "./ClaimCard";
+import { ClaimFilterBar } from "./ClaimFilterBar";
+import { emptyFilters, filterClaims, type ClaimFilters } from "./claimFilters";
+import { ExportBar } from "./ExportBar";
+import { DiligencePanel } from "./quant/DiligencePanel";
+import { LedgerWaterfall } from "./quant/LedgerWaterfall";
+import { RisksPanel } from "./quant/RisksPanel";
+import { TranslationStepper } from "./quant/TranslationStepper";
+import { TwinPanel } from "./quant/TwinPanel";
+import { ValuationPanel } from "./quant/ValuationPanel";
+import { ReportContext, type CorrectionSeed, type FocusClaim } from "./reportContext";
+import { RunDetails } from "./RunDetails";
+import { Section } from "./Section";
+import { isSyntheticReport } from "./synthetic";
+import { useScrollSpy } from "./useScrollSpy";
+import { WhatChanged } from "./WhatChanged";
 
 const SECTION_ORDER: SectionId[] = [
   "disease_need",
@@ -17,210 +31,198 @@ const SECTION_ORDER: SectionId[] = [
   "risks",
 ];
 
-const SECTION_STATUS: Record<SectionResult["status"], string> = {
-  ok: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  partial: "border-amber-300 bg-amber-50 text-amber-800",
-  insufficient_evidence: "border-red-300 bg-red-50 text-red-700",
-};
+const prefersCalm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const LINK_STATUS: Record<string, string> = {
-  supported: "bg-emerald-100 text-emerald-800",
-  weak: "bg-amber-100 text-amber-800",
-  missing: "bg-slate-100 text-slate-600",
-  contradicted: "bg-red-100 text-red-800",
-};
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ block: "start", behavior: prefersCalm() ? "auto" : "smooth" });
+}
 
-function Section({
-  result,
+export function ReportView({
   report,
+  runId,
+  graph,
+  canCorrect,
   focusClaim,
 }: {
-  result: SectionResult;
   report: UnderwritingReport;
+  runId: string;
+  graph: GraphSpec | undefined;
+  canCorrect: boolean;
   focusClaim?: FocusClaim;
 }) {
+  const { verdict } = report;
+  const [local, setLocal] = useState<FocusClaim | undefined>();
+  const [seed, setSeed] = useState<CorrectionSeed | undefined>();
+  const [filters, setFilters] = useState<ClaimFilters>(emptyFilters);
+  const focus = focusClaim && (!local || focusClaim.nonce > local.nonce) ? focusClaim : local;
+
+  const claims = useMemo(() => Object.values(report.claims), [report.claims]);
+  const shownClaims = useMemo(() => filterClaims(claims, filters, report), [claims, filters, report]);
+  const inSection = (id: string) => Object.values(report.sections).some((s) => s.key_points.some((kp) => kp.claim_ids.includes(id)));
+  const focusInAll = !!focus && !inSection(focus.id);
+
+  const sections = SECTION_ORDER.flatMap((id) => (report.sections[id] ? [report.sections[id]] : []));
+  const nav = [
+    { id: "overview", label: "Overview" },
+    ...(report.translation_chain.length ? [{ id: "translation-chain", label: "Translation chain" }] : []),
+    ...sections.map((s) => ({ id: `section-${s.section}`, label: s.title })),
+    { id: "risks-unknowns", label: "Risks and unknowns" },
+    { id: "all-claims", label: `All claims (${claims.length})` },
+    { id: "run-details", label: "Run" },
+  ];
+  const active = useScrollSpy(nav.map((n) => n.id).join("|"));
+
+  const jumpToClaim = (id: string) => {
+    setFilters(emptyFilters);
+    setLocal((prev) => ({ id, nonce: Math.max(prev?.nonce ?? 0, focusClaim?.nonce ?? 0) + 1 }));
+  };
+
+  useEffect(() => {
+    if (!focus) return;
+    const el = document.getElementById(`claim-${focus.id}`) ?? document.getElementById(`all-claim-${focus.id}`);
+    el?.scrollIntoView({ block: "center", behavior: prefersCalm() ? "auto" : "smooth" });
+  }, [focus]);
+
+  // print rules in styles/print.css apply only while a report is on screen
+  useEffect(() => {
+    document.body.dataset.print = "report";
+    return () => {
+      delete document.body.dataset.print;
+    };
+  }, []);
+
+  const synthetic = isSyntheticReport(report);
+
   return (
-    <section className="rounded-lg border border-line bg-white p-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">{result.title}</h3>
-        <Badge className={SECTION_STATUS[result.status]}>{humanize(result.status)}</Badge>
-      </div>
-      <p className="mt-1 text-sm text-muted">{result.summary}</p>
-      {result.panel && (
-        <p className="mt-1 text-xs text-muted">
-          Panel of {result.panel.candidates.length}, {Math.round(result.panel.agreement * 100)}% agreement:{" "}
-          {result.panel.consensus}
-        </p>
-      )}
-      {result.key_points.length > 0 && (
-        <ul className="mt-2 space-y-2">
-          {result.key_points.map((kp) => (
-            <li key={kp.text}>
-              <div className="text-sm font-medium">{kp.text}</div>
-              <ul className="mt-1 space-y-1">
-                {kp.claim_ids.map((id) => {
-                  const claim = report.claims[id];
-                  if (!claim) return null;
-                  const focused = focusClaim?.id === id;
-                  return (
-                    <ClaimItem
-                      key={focused ? `${id}-${focusClaim.nonce}` : id}
-                      claim={claim}
-                      report={report}
-                      domId={`claim-${id}`}
-                      focused={focused}
-                    />
-                  );
+    <ReportContext.Provider value={{ report, runId, graph, canCorrect, focus, jumpToClaim, openCorrection: setSeed }}>
+      <div className="pb-6">
+        <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-2">
+            <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
+            <span className="text-xs text-muted">{verdict.confidence} confidence</span>
+            <span className="text-sm">
+              Probability of success <strong>{pctRange(report.pos)}</strong>
+            </span>
+            <div className="ml-auto">
+              <ExportBar report={report} />
+            </div>
+          </div>
+          {synthetic && (
+            <p role="alert" className="mx-4 mt-1.5 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-900">
+              Synthetic data: this report contains placeholder content from stub steps, not real research.
+            </p>
+          )}
+          <nav aria-label="Report sections" className="mt-1 flex gap-1 overflow-x-auto px-4 pb-2" data-print-hide>
+            {nav.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToId(item.id)}
+                aria-current={active === item.id ? "location" : undefined}
+                className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${
+                  active === item.id ? "bg-navy text-white" : "text-muted hover:bg-white hover:text-ink"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        <div className="space-y-4 p-4">
+          {report.meta.parent_run_id && <WhatChanged report={report} onJumpSection={(id) => scrollToId(`section-${id}`)} />}
+
+          <section id="overview" className="scroll-mt-32 space-y-4" aria-label="Overview">
+            <div className="rounded-lg border border-line bg-white p-4">
+              <h2 className="text-lg font-semibold">
+                {report.program.mechanism} in {report.program.indication}
+              </h2>
+              <p className="mt-1 text-sm">{verdict.rationale}</p>
+              <ul className="mt-3 space-y-1">
+                {verdict.reason_codes.map((rc) => (
+                  <li key={rc.code} className="flex items-start gap-2 text-sm">
+                    <span className={rc.direction === "positive" ? "text-emerald-600" : "text-red-600"} aria-hidden="true">
+                      {rc.direction === "positive" ? "▲" : "▼"}
+                    </span>
+                    <span>
+                      <span className="sr-only">{rc.direction}: </span>
+                      <span className="font-medium">{humanize(rc.code.toLowerCase())}</span>: {rc.text}
+                      {rc.claim_ids.map((id) => (
+                        <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1 rounded-full border border-line px-1.5 text-xs text-brand hover:border-brand">
+                          claim
+                        </button>
+                      ))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {verdict.conditions.length > 0 && (
+                <div className="mt-3 text-sm">
+                  <span className="font-medium">Conditions to proceed:</span>
+                  <ul className="list-disc pl-5">
+                    {verdict.conditions.map((c) => (
+                      <li key={c}>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              {report.twin_stats ? <TwinPanel twin={report.twin_stats} report={report} /> : <Missing title="Similar programs" why="Historical twin statistics are not available for this run." />}
+              {report.valuation ? <ValuationPanel valuation={report.valuation} /> : <Missing title="Funding to the next milestone" why="No valuation was produced for this run." />}
+            </div>
+            {report.ledger ? <LedgerWaterfall ledger={report.ledger} /> : <Missing title="Evidence ledger" why="No evidence ledger was produced, so the probability above rests on the twin prior alone." />}
+          </section>
+
+          {report.translation_chain.length > 0 && (
+            <div id="translation-chain" className="scroll-mt-32">
+              <TranslationStepper chain={report.translation_chain} />
+            </div>
+          )}
+
+          {sections.map((s) => (
+            <Section key={s.section} result={s} />
+          ))}
+
+          <div id="risks-unknowns" className="scroll-mt-32 space-y-4">
+            {report.key_risks.length > 0 && <RisksPanel risks={report.key_risks} />}
+            {(report.critical_unknowns.length > 0 || report.diligence_questions.length > 0) && (
+              <DiligencePanel unknowns={report.critical_unknowns} questions={report.diligence_questions} />
+            )}
+          </div>
+
+          <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="scroll-mt-32 rounded-lg border border-line bg-white p-3">
+            <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
+            <div className="mt-2 space-y-2">
+              <ClaimFilterBar claims={claims} filters={filters} shown={shownClaims.length} onChange={setFilters} />
+              {shownClaims.length === 0 && <p className="text-sm text-muted">No claims match these filters.</p>}
+              <ul className="space-y-1.5">
+                {shownClaims.map((claim) => {
+                  const focused = focusInAll && focus.id === claim.id;
+                  return <ClaimCard key={focused ? `${claim.id}-${focus.nonce}` : claim.id} claim={claim} domId={`all-claim-${claim.id}`} focused={focused} />;
                 })}
               </ul>
-            </li>
-          ))}
-        </ul>
-      )}
-      {result.unknowns.length > 0 && (
-        <div className="mt-2 text-xs text-muted">
-          <span className="font-medium">Unknown:</span> {result.unknowns.join("; ")}
+            </div>
+          </details>
+
+          <div id="run-details" className="scroll-mt-32">
+            <RunDetails meta={report.meta} runId={report.run_id} />
+          </div>
         </div>
+      </div>
+      {seed && graph && (
+        <CorrectionDialog seed={seed} runId={runId} graph={graph} report={report} canCorrect={canCorrect} onClose={() => setSeed(undefined)} />
       )}
-    </section>
+    </ReportContext.Provider>
   );
 }
 
-export function ReportView({ report, focusClaim }: { report: UnderwritingReport; focusClaim?: FocusClaim }) {
-  const { verdict, meta } = report;
-  const claims = Object.values(report.claims);
-  const inSection = (id: string) =>
-    Object.values(report.sections).some((s) => s.key_points.some((kp) => kp.claim_ids.includes(id)));
-  const focusInAll = !!focusClaim && !inSection(focusClaim.id);
-
-  useEffect(() => {
-    if (!focusClaim) return;
-    const el = document.getElementById(`claim-${focusClaim.id}`) ?? document.getElementById(`all-claim-${focusClaim.id}`);
-    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el?.scrollIntoView({ block: "center", behavior: calm ? "auto" : "smooth" });
-  }, [focusClaim]);
+function Missing({ title, why }: { title: string; why: string }) {
   return (
-    <div className="space-y-4 p-4">
-      <header className="rounded-lg border border-line bg-white p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge className={`px-3 py-1 text-base ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
-          <span className="text-sm text-muted">{verdict.confidence} confidence</span>
-          <span className="text-sm">
-            Probability of success <strong>{pctRange(report.pos)}</strong>
-          </span>
-          {meta.synthetic && (
-            <Badge className="border-amber-300 bg-amber-50 text-amber-800">synthetic fixture data</Badge>
-          )}
-        </div>
-        <h2 className="mt-3 text-lg font-semibold">
-          {report.program.mechanism} in {report.program.indication}
-        </h2>
-        <p className="mt-1 text-sm">{verdict.rationale}</p>
-        <ul className="mt-3 space-y-1">
-          {verdict.reason_codes.map((rc) => (
-            <li key={rc.code} className="flex items-start gap-2 text-sm">
-              <span className={rc.direction === "positive" ? "text-emerald-600" : "text-red-600"}>
-                {rc.direction === "positive" ? "▲" : "▼"}
-              </span>
-              <span>
-                <span className="font-medium">{humanize(rc.code.toLowerCase())}</span>: {rc.text}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {verdict.conditions.length > 0 && (
-          <div className="mt-3 text-sm">
-            <span className="font-medium">Conditions:</span>
-            <ul className="list-disc pl-5">
-              {verdict.conditions.map((c) => (
-                <li key={c}>{c}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </header>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {report.twin_stats && <TwinPanel twin={report.twin_stats} />}
-        {report.valuation && <ValuationPanel valuation={report.valuation} />}
-      </div>
-      {report.ledger && <LedgerPanel ledger={report.ledger} />}
-
-      {report.translation_chain.length > 0 && (
-        <section className="rounded-lg border border-line bg-white p-3">
-          <h3 className="text-sm font-semibold">Translation chain</h3>
-          <ol className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            {report.translation_chain.map((link, i) => (
-              <li key={link.step} className="flex items-center gap-2">
-                {i > 0 && <span className="text-muted">→</span>}
-                <span className={`rounded px-2 py-1 ${LINK_STATUS[link.status]}`}>
-                  {humanize(link.step)}: {link.status}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      {SECTION_ORDER.flatMap((id) => {
-        const result = report.sections[id];
-        return result ? [<Section key={id} result={result} report={report} focusClaim={focusClaim} />] : [];
-      })}
-
-      {report.key_risks.length > 0 && (
-        <section className="rounded-lg border border-line bg-white p-3">
-          <h3 className="text-sm font-semibold">Key risks</h3>
-          <ul className="mt-2 space-y-1 text-sm">
-            {report.key_risks.map((r) => (
-              <li key={r.text}>
-                <Badge className="mr-2 border-slate-300 text-slate-700">
-                  {r.category.replace(/_/g, " ")} · {r.severity}
-                </Badge>
-                {r.text}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {(report.critical_unknowns.length > 0 || report.diligence_questions.length > 0) && (
-        <section className="rounded-lg border border-line bg-white p-3">
-          <h3 className="text-sm font-semibold">What we still need to know</h3>
-          <ul className="mt-2 list-disc pl-5 text-sm">
-            {report.critical_unknowns.map((u) => (
-              <li key={u}>{u}</li>
-            ))}
-          </ul>
-          <ol className="mt-3 space-y-2 text-sm">
-            {report.diligence_questions.map((q) => (
-              <li key={q.question}>
-                <div className="font-medium">{q.question}</div>
-                <div className="text-xs text-muted">
-                  {q.why_it_matters} Needs: {q.requires.map(humanize).join(", ") || "n/a"}.
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      <details key={focusInAll ? focusClaim.nonce : "all"} open={focusInAll || undefined} className="rounded-lg border border-line bg-white p-3">
-        <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
-        <ul className="mt-2 space-y-1">
-          {claims.map((claim) => {
-            const focused = focusInAll && focusClaim.id === claim.id;
-            return <ClaimItem key={claim.id} claim={claim} report={report} domId={`all-claim-${claim.id}`} focused={focused} />;
-          })}
-        </ul>
-      </details>
-
-      <footer className="pb-4 text-xs text-muted">
-        run {report.run_id} · {meta.models_used.join(", ") || "no model calls"} · {meta.effort}
-        {meta.panel_size ? ` (panel of ${meta.panel_size})` : ""} · {meta.tokens_in + meta.tokens_out} tokens ·{" "}
-        {meta.cost_usd === null ? "cost unknown (no prices)" : `$${meta.cost_usd.toFixed(4)}`} · {meta.duration_s}s ·{" "}
-        {meta.cache_hits} cache hits
-        {meta.failed_nodes.length > 0 && ` · degraded: ${meta.failed_nodes.join(", ")}`}
-      </footer>
-    </div>
+    <section className="rounded-lg border border-dashed border-line bg-white/60 p-3">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <p className="text-xs text-muted">{why}</p>
+    </section>
   );
 }

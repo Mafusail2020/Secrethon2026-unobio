@@ -59,7 +59,9 @@ function draftsFor(run: MockRun): Draft[] {
         ? { ...event.data, parent_run_id: run.summary.parent_run_id, reused: [...run.reused] }
         : event.type === "run.completed"
           ? { decision: flips(run) ? "do_not_invest" : "conditional" }
-          : event.data;
+          : event.type === "llm.call"
+            ? { ...event.data, model: "mock/gpt-6-luna", cost_usd: 0 }
+            : event.data;
     out.push({ type: event.type, node_id: id, data });
   }
   return out;
@@ -84,6 +86,22 @@ function buildReport(run: MockRun): UnderwritingReport {
       conditions: [],
       rationale: "FIXTURE: decision changed after a correction about a terminated program",
     };
+  }
+  if (run.summary.options.effort === "panel") {
+    const size = run.summary.options.panel_size ?? 3;
+    report.meta = { ...report.meta, effort: "panel", panel_size: size };
+    for (const section of Object.values(report.sections)) {
+      section.panel = {
+        candidates: [1, 2].map((i) => ({
+          model: `mock/gpt-6-luna#${i}`,
+          summary: `FIXTURE: mock candidate ${i} for ${section.title}`,
+          decision_hint: i === 1 ? "conditional" : "do_not_invest",
+        })),
+        consensus: `FIXTURE: mock consensus for ${section.title}`,
+        disagreements: ["FIXTURE: candidates weigh the terminated trials differently"],
+        agreement: 0.72,
+      };
+    }
   }
   return report;
 }
