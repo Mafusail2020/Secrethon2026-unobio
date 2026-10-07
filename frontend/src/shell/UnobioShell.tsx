@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 import { Footer } from "../unobio/Footer";
 import { Navigation } from "../unobio/Navigation";
 import { SiteFrame } from "../unobio/SiteFrame";
@@ -8,6 +8,7 @@ export function UnobioShell() {
   const onHome = useLocation().pathname === "/";
   return (
     <>
+      <ScrollRestoration />
       <SiteFrame>
         <Navigation dark={onHome} />
       </SiteFrame>

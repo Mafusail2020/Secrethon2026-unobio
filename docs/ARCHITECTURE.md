@@ -182,8 +182,8 @@ process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend
 The header, footer and home page are a copy of unobio.com (`frontend/src/unobio/`, assets in `frontend/public/unobio/`): its
 compiled CSS scoped under one `.ub-site` class so it cannot clash with our Tailwind, its fonts and images, its
 server-rendered markup converted to JSX, and a port of its three behaviours (scroll reveal, hero parallax, header blur
-after scrolling). Every link and button is inert (no `href`); the one exception is the hero's primary button, which opens
-`/underwriting`. The chat page sits between the copied header and footer, and a concept disclaimer is added under the
+after scrolling). Every link and button is inert (no `href`); the exceptions are the hero's primary button, which opens
+`/underwriting`, and the header logo, which goes home. The chat page sits between the copied header and footer, and a concept disclaimer is added under the
 footer. The copied files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx` and `HeroAssets.tsx`
 beyond that button; Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 

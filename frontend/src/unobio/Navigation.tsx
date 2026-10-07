@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const LINKS = ["Diligence", "Licensing & Pipeline", "Blog", "About Us", "Contact Us"];
 
@@ -17,7 +18,7 @@ function Logo({ textColor }: { textColor: string }) {
   );
 }
 
-/** unobio.com's header: transparent until the page scrolls, then a blurred bar. Links are inert. */
+/** unobio.com's header: transparent until the page scrolls, then a blurred bar. Only the logo is a link. */
 export function Navigation({ dark }: { dark: boolean }) {
   const [scrolled, setScrolled] = useState(false);
 
@@ -49,9 +50,9 @@ export function Navigation({ dark }: { dark: boolean }) {
     >
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
-          <a className="flex items-center">
+          <Link to="/" className="flex items-center">
             <Logo textColor={dark ? "text-white" : "text-graphite"} />
-          </a>
+          </Link>
           <div className="hidden md:flex items-center gap-7">
             {LINKS.map((label) => (
               <a key={label} className={link}>

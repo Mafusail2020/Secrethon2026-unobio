@@ -16,8 +16,10 @@ describe("the copied unobio.com pages", () => {
     expect(links[0]).toContain('href="/underwriting"');
   });
 
-  it("keep the header and footer inert", () => {
-    expect(anchorsWithHref(html(<Navigation dark />))).toEqual([]);
+  it("keep the header inert except the logo, which goes home, and the footer fully inert", () => {
+    const links = anchorsWithHref(html(<Navigation dark />));
+    expect(links).toHaveLength(1);
+    expect(links[0]).toContain('href="/"');
     expect(anchorsWithHref(html(<Footer />))).toEqual([]);
   });
 
