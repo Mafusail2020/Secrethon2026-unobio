@@ -1,0 +1,2 @@
+# Quant owner fills these. Every entry needs a `citation` or `assumption: true`.
+assumptions: {}               # name -> {low, base, high, unit, citation | assumption: true}

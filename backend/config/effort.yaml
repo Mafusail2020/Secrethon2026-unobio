@@ -1,0 +1,6 @@
+# Tuning knobs per effort level. tier falls back to the cheapest available model.
+effort:
+  low:    {tier: cheap,    retrieval_k: 4,  n_queries: 2, max_tokens: 512}
+  medium: {tier: cheap,    retrieval_k: 8,  n_queries: 4, max_tokens: 1024}
+  high:   {tier: standard, retrieval_k: 16, n_queries: 8, max_tokens: 2048}
+  panel:  {tier: cheap,    retrieval_k: 8,  n_queries: 4, max_tokens: 1024}
