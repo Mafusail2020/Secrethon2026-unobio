@@ -98,6 +98,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
         canCorrect={completed}
         focusClaim={focusClaim}
         sourceCounts={sourceCounts}
+        onOpenClaim={openClaim}
       />
     </div>
   );

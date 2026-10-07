@@ -109,6 +109,7 @@ export function ArtifactPanel({
   canCorrect,
   focusClaim,
   sourceCounts,
+  onOpenClaim,
 }: {
   tab: TabId | null;
   onTab: (tab: TabId) => void;
@@ -119,6 +120,7 @@ export function ArtifactPanel({
   canCorrect: boolean;
   focusClaim?: FocusClaim;
   sourceCounts: Record<string, number>;
+  onOpenClaim: (claimId: string) => void;
 }) {
   const active: TabId = tab ?? (report ? "report" : "graph");
   const waiting = run ? (
@@ -149,7 +151,7 @@ export function ArtifactPanel({
               <Spinner />
             </Empty>
           ))}
-        {active === "sources" && (report ? <SourcesTable report={report} /> : waiting)}
+        {active === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
         {active === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
       </div>
     </section>
