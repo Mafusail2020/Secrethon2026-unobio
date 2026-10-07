@@ -62,7 +62,8 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 
 ## Run a demo case
 
-1. `make dev`, open http://localhost:5173/underwriting.
+1. `make dev`, open http://localhost:5173. This is the Unobio home page; every link on it is inert except the hero button
+   "Underwrite a program →", which opens the chat page.
 2. Click "Use the BACE1 example", then Underwrite. Chat steps, the Graph tab and the Logs tab stream live.
 3. When it completes, the Report tab shows the verdict. Expand a claim to see its evidence and the source link.
 4. Graph tab, click `verdict` (or any node), write a correction containing "terminated", and re-run. Only the affected
@@ -74,7 +75,8 @@ No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flo
 
 ```
 backend/    FastAPI + LangGraph. contracts/ is the source of truth, nodes/ one module per node
-frontend/   Vite + React + TypeScript. src/api/types.gen.ts is generated, never hand-edited
+frontend/   Vite + React + TypeScript. src/api/types.gen.ts is generated, never hand-edited;
+            src/unobio/ is a copy of the unobio.com header, footer and home page (see ARCHITECTURE 9b)
 contracts/  openapi.json and fixtures (all fixture text is synthetic and prefixed FIXTURE:)
 docs/       ARCHITECTURE.md
 ```

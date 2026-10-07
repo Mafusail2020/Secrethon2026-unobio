@@ -179,6 +179,14 @@ process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend
 
 ## 9b. Frontend [1b]
 
+The header, footer and home page are a copy of unobio.com (`frontend/src/unobio/`, assets in `frontend/public/unobio/`): its
+compiled CSS scoped under one `.ub-site` class so it cannot clash with our Tailwind, its fonts and images, its
+server-rendered markup converted to JSX, and a port of its three behaviours (scroll reveal, hero parallax, header blur
+after scrolling). Every link and button is inert (no `href`); the one exception is the hero's primary button, which opens
+`/underwriting`. The chat page sits between the copied header and footer, and a concept disclaimer is added under the
+footer. The copied files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx` and `HeroAssets.tsx`
+beyond that button; Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
+
 Vite, React, TanStack Query, `@xyflow/react` with dagre. `src/api/client.ts` is a typed `fetch` and `EventSource` wrapper over
 the generated types. With `VITE_API_MODE=mock` it loads `src/api/mock/`, which replays the fixture events with delays and
 builds corrected runs the same way the backend does, so the whole UI works with no server. Run state is a reducer over
@@ -244,6 +252,10 @@ $67 including development, so deliverable numbers come from a few real `live` ru
 - **Mock-first LLM.** `LLM_MODE=mock` gives deterministic zero-cost output for development and tests. Deliverables
   (demo, cost per run, README numbers) come from `live` runs.
 - **Fail-soft nodes.** One flaky source or model call should degrade a section, not kill a demo.
+- **Copied site styles are scoped, not shared.** unobio.com ships Tailwind v3 output; ours is Tailwind v4. Prefixing every
+  selector of the copied CSS with `.ub-site` (html and body rules map to the wrapper itself) and keeping our UI outside that
+  wrapper means neither stylesheet can restyle the other, while the copy stays pixel-identical (verified by screenshot diff
+  against the live page at desktop and mobile widths).
 - **`scratch` for hand-offs.** Data that moves between nodes but is not part of the report (raw fetch refs, drafted claims,
   index stats) lives in `state["scratch"][node_id]`, so nodes need no extra state keys.
 - **Report meta is finalised by the runner.** `report_assembler` builds the report; tokens, cost, timing, cache hits and failed
