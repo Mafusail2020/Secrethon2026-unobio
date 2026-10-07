@@ -8,6 +8,8 @@ from app.contracts import API_MODELS
 from app.main import create_app
 
 DEFAULT_OUT = Path(__file__).resolve().parents[2] / "contracts" / "openapi.json"
+# clients may omit defaulted fields only on these; every other model is always fully serialized
+REQUEST_MODELS = {"ProgramInput", "RunOptions", "CreateRunRequest", "CorrectionRequest"}
 
 
 def build_openapi() -> dict:
@@ -19,6 +21,9 @@ def build_openapi() -> dict:
     components = schema.setdefault("components", {}).setdefault("schemas", {})
     for name, model_schema in defs.get("$defs", {}).items():
         components.setdefault(name, model_schema)
+    for name, model_schema in components.items():
+        if name not in REQUEST_MODELS and "properties" in model_schema:
+            model_schema["required"] = sorted(model_schema["properties"])
     return schema
 
 

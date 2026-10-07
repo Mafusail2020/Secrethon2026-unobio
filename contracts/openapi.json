@@ -33,9 +33,10 @@
           }
         },
         "required": [
+          "basis",
+          "citation",
           "name",
-          "value",
-          "basis"
+          "value"
         ],
         "title": "Assumption",
         "type": "object"
@@ -76,8 +77,10 @@
           }
         },
         "required": [
+          "cited_claim_ids",
+          "content",
           "role",
-          "content"
+          "run_id"
         ],
         "title": "ChatMessage",
         "type": "object"
@@ -172,13 +175,16 @@
           }
         },
         "required": [
+          "confidence",
+          "evidence_ids",
           "id",
-          "text",
+          "label",
+          "produced_by",
+          "rejection_reason",
           "section",
           "stance",
-          "label",
-          "confidence",
-          "produced_by"
+          "status",
+          "text"
         ],
         "title": "Claim",
         "type": "object"
@@ -238,11 +244,14 @@
           }
         },
         "required": [
+          "add_links",
+          "add_notes",
+          "created_at",
+          "exclude_evidence_ids",
           "id",
-          "run_id",
           "node_id",
-          "text",
-          "created_at"
+          "run_id",
+          "text"
         ],
         "title": "Correction",
         "type": "object"
@@ -350,9 +359,11 @@
           }
         },
         "required": [
+          "claim_ids",
+          "priority",
           "question",
-          "why_it_matters",
-          "priority"
+          "requires",
+          "why_it_matters"
         ],
         "title": "DiligenceQuestion",
         "type": "object"
@@ -389,9 +400,10 @@
           }
         },
         "required": [
+          "external_ids",
           "id",
-          "label",
-          "kind"
+          "kind",
+          "label"
         ],
         "title": "EntityRef",
         "type": "object"
@@ -418,6 +430,7 @@
         },
         "required": [
           "code",
+          "details",
           "message"
         ],
         "title": "ErrorBody",
@@ -494,9 +507,13 @@
           }
         },
         "required": [
+          "data",
+          "entity_ids",
+          "excerpt",
           "id",
-          "source_id",
-          "excerpt"
+          "kind",
+          "locator",
+          "source_id"
         ],
         "title": "Evidence",
         "type": "object"
@@ -536,8 +553,9 @@
           }
         },
         "required": [
+          "posterior",
           "prior",
-          "posterior"
+          "steps"
         ],
         "title": "EvidenceLedger",
         "type": "object"
@@ -599,9 +617,9 @@
           }
         },
         "required": [
-          "nodes",
           "edges",
-          "kind_colors"
+          "kind_colors",
+          "nodes"
         ],
         "title": "GraphSpec",
         "type": "object"
@@ -633,9 +651,10 @@
           }
         },
         "required": [
-          "llm_mode",
+          "has_api_key",
           "llm_cache",
-          "has_api_key"
+          "llm_mode",
+          "status"
         ],
         "title": "HealthStatus",
         "type": "object"
@@ -656,6 +675,7 @@
           }
         },
         "required": [
+          "claim_ids",
           "text"
         ],
         "title": "KeyPoint",
@@ -703,11 +723,13 @@
           }
         },
         "required": [
+          "cached",
+          "cost_usd",
+          "latency_ms",
           "model",
           "purpose",
           "tokens_in",
-          "tokens_out",
-          "latency_ms"
+          "tokens_out"
         ],
         "title": "LLMCallRecord",
         "type": "object"
@@ -766,10 +788,13 @@
           }
         },
         "required": [
-          "factor",
+          "basis",
+          "citation",
+          "claim_ids",
           "direction",
-          "likelihood_ratio",
-          "basis"
+          "evidence_ids",
+          "factor",
+          "likelihood_ratio"
         ],
         "title": "LedgerStep",
         "type": "object"
@@ -798,9 +823,9 @@
           }
         },
         "required": [
-          "ts",
           "level",
-          "message"
+          "message",
+          "ts"
         ],
         "title": "LogLine",
         "type": "object"
@@ -861,10 +886,13 @@
           }
         },
         "required": [
+          "available",
+          "default",
           "id",
           "label",
-          "tier",
-          "available"
+          "price_in_per_mtok",
+          "price_out_per_mtok",
+          "tier"
         ],
         "title": "ModelInfo",
         "type": "object"
@@ -982,8 +1010,18 @@
           }
         },
         "required": [
-          "run_id",
+          "correction_ids",
+          "cost_usd",
+          "error",
+          "finished_at",
+          "input_summary",
+          "llm_calls",
+          "log",
           "node_id",
+          "output",
+          "run_id",
+          "source_ids",
+          "started_at",
           "status"
         ],
         "title": "NodeExecution",
@@ -1055,10 +1093,15 @@
           }
         },
         "required": [
+          "correctable",
+          "critical",
+          "description",
           "id",
-          "label",
           "kind",
-          "description"
+          "label",
+          "parent",
+          "reads",
+          "writes"
         ],
         "title": "NodeSpec",
         "type": "object"
@@ -1088,6 +1131,7 @@
           }
         },
         "required": [
+          "decision_hint",
           "model",
           "summary"
         ],
@@ -1123,9 +1167,10 @@
           }
         },
         "required": [
+          "agreement",
           "candidates",
           "consensus",
-          "agreement"
+          "disagreements"
         ],
         "title": "PanelResult",
         "type": "object"
@@ -1166,10 +1211,10 @@
         },
         "required": [
           "id",
-          "section",
+          "priority",
           "question",
           "rationale",
-          "priority"
+          "section"
         ],
         "title": "PlannedQuestion",
         "type": "object"
@@ -1339,9 +1384,10 @@
           }
         },
         "required": [
-          "low",
           "base",
-          "high"
+          "high",
+          "low",
+          "unit"
         ],
         "title": "Range",
         "type": "object"
@@ -1374,9 +1420,10 @@
           }
         },
         "required": [
+          "claim_ids",
           "code",
-          "text",
-          "direction"
+          "direction",
+          "text"
         ],
         "title": "ReasonCode",
         "type": "object"
@@ -1488,7 +1535,15 @@
           }
         },
         "required": [
+          "added_claim_ids",
+          "changed_sections",
+          "decision_after",
+          "decision_before",
           "from_run",
+          "pos_after",
+          "pos_before",
+          "recomputed_nodes",
+          "removed_claim_ids",
           "to_run"
         ],
         "title": "ReportDiff",
@@ -1559,8 +1614,13 @@
           }
         },
         "required": [
+          "confidence",
           "disease",
-          "confidence"
+          "drug",
+          "mechanism_class",
+          "notes",
+          "target",
+          "therapeutic_areas"
         ],
         "title": "ResolvedEntities",
         "type": "object"
@@ -1604,8 +1664,9 @@
         },
         "required": [
           "category",
-          "text",
-          "severity"
+          "claim_ids",
+          "severity",
+          "text"
         ],
         "title": "Risk",
         "type": "object"
@@ -1636,6 +1697,8 @@
           }
         },
         "required": [
+          "nodes",
+          "report",
           "summary"
         ],
         "title": "RunDetail",
@@ -1692,8 +1755,10 @@
           }
         },
         "required": [
-          "seq",
+          "data",
+          "node_id",
           "run_id",
+          "seq",
           "ts",
           "type"
         ],
@@ -1807,8 +1872,19 @@
           }
         },
         "required": [
+          "cache_hits",
+          "correction_id",
+          "cost_usd",
+          "created_at",
+          "duration_s",
           "effort",
-          "created_at"
+          "failed_nodes",
+          "models_used",
+          "panel_size",
+          "parent_run_id",
+          "synthetic",
+          "tokens_in",
+          "tokens_out"
         ],
         "title": "RunMeta",
         "type": "object"
@@ -1953,11 +2029,14 @@
           }
         },
         "required": [
+          "created_at",
+          "decision",
+          "error",
           "id",
-          "status",
-          "program",
           "options",
-          "created_at"
+          "parent_run_id",
+          "program",
+          "status"
         ],
         "title": "RunSummary",
         "type": "object"
@@ -2027,11 +2106,14 @@
           }
         },
         "required": [
+          "key_points",
+          "panel",
+          "produced_by",
           "section",
-          "title",
-          "summary",
           "status",
-          "produced_by"
+          "summary",
+          "title",
+          "unknowns"
         ],
         "title": "SectionResult",
         "type": "object"
@@ -2106,10 +2188,13 @@
         },
         "required": [
           "id",
-          "type",
-          "title",
+          "identifiers",
+          "published_at",
           "publisher",
-          "retrieved_at"
+          "retrieved_at",
+          "title",
+          "type",
+          "url"
         ],
         "title": "SourceRef",
         "type": "object"
@@ -2147,8 +2232,9 @@
           }
         },
         "required": [
-          "step",
-          "status"
+          "claim_ids",
+          "status",
+          "step"
         ],
         "title": "TranslationLink",
         "type": "object"
@@ -2203,11 +2289,13 @@
           }
         },
         "required": [
+          "disease",
           "drug",
           "drug_id",
-          "disease",
           "max_stage",
-          "status"
+          "source_ids",
+          "status",
+          "stop_reason"
         ],
         "title": "TwinProgram",
         "type": "object"
@@ -2266,7 +2354,11 @@
         "required": [
           "match_level",
           "n_programs",
-          "prior_pos"
+          "notes",
+          "prior_pos",
+          "stage_distribution",
+          "stop_reasons",
+          "twins"
         ],
         "title": "TwinStats",
         "type": "object"
@@ -2397,13 +2489,23 @@
           }
         },
         "required": [
-          "run_id",
-          "program",
+          "claims",
+          "critical_unknowns",
+          "diligence_questions",
           "entities",
-          "verdict",
+          "evidence",
+          "key_risks",
+          "ledger",
+          "meta",
           "pos",
+          "program",
+          "run_id",
           "sections",
-          "meta"
+          "sources",
+          "translation_chain",
+          "twin_stats",
+          "valuation",
+          "verdict"
         ],
         "title": "UnderwritingReport",
         "type": "object"
@@ -2440,10 +2542,12 @@
           }
         },
         "required": [
-          "next_milestone",
+          "assumptions",
           "capital_to_milestone",
+          "next_milestone",
+          "rnpv",
           "time_to_milestone_months",
-          "rnpv"
+          "value_inflection_points"
         ],
         "title": "Valuation",
         "type": "object"
@@ -2490,10 +2594,11 @@
           }
         },
         "required": [
-          "decision",
+          "conditions",
           "confidence",
-          "reason_codes",
-          "rationale"
+          "decision",
+          "rationale",
+          "reason_codes"
         ],
         "title": "Verdict",
         "type": "object"
