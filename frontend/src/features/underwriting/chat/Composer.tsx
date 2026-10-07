@@ -255,7 +255,7 @@ export function Composer() {
         <button
           type="submit"
           disabled={create.isPending}
-          className="inline-flex items-center gap-2 rounded-md bg-navy px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-full bg-navy px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           {create.isPending && <Spinner className="h-3 w-3" />}
           Underwrite

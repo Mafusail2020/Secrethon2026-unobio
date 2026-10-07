@@ -115,7 +115,7 @@ function CorrectionForm({
       <button
         type="submit"
         disabled={!canCorrect || !text.trim() || send.isPending}
-        className="inline-flex items-center gap-2 rounded-md bg-navy px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-full bg-navy px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
       >
         {send.isPending && <Spinner className="h-3 w-3" />}
         Re-run with correction

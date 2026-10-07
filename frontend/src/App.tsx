@@ -1,14 +1,21 @@
-import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import UnderwritingPage from "./features/underwriting/UnderwritingPage";
+import { ChatLayout } from "./shell/ChatLayout";
+import { HomePage } from "./shell/HomePage";
 import { UnobioShell } from "./shell/UnobioShell";
 
 const router = createBrowserRouter([
-  { path: "/", element: <Navigate to="/underwriting" replace /> },
   {
     element: <UnobioShell />,
     children: [
-      { path: "/underwriting", element: <UnderwritingPage /> },
-      { path: "/underwriting/runs/:runId", element: <UnderwritingPage /> },
+      { path: "/", element: <HomePage /> },
+      {
+        element: <ChatLayout />,
+        children: [
+          { path: "/underwriting", element: <UnderwritingPage /> },
+          { path: "/underwriting/runs/:runId", element: <UnderwritingPage /> },
+        ],
+      },
     ],
   },
 ]);
