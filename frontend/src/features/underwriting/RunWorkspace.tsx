@@ -21,7 +21,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
   const decision: Decision | undefined = run?.decision ?? (stream.decision as Decision | undefined);
 
   return (
-    <div className="grid h-full grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)]">
+    <div className="grid h-full grid-cols-1 md:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
       <aside className="flex min-h-0 flex-col overflow-auto bg-white">
         <h1 className="border-b border-line px-4 py-3 text-base font-semibold">Underwriting</h1>
         {!runId && (

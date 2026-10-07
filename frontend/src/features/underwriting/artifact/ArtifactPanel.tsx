@@ -89,7 +89,7 @@ export function ArtifactPanel({
   );
 
   return (
-    <section className="flex h-full min-w-0 flex-col border-l border-line bg-canvas">
+    <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
       <Tabs tabs={TABS} active={active} onChange={onTab} />
       <div className="min-h-0 flex-1 overflow-auto">
         {active === "report" && (report ? <ReportView report={report} /> : waiting)}
