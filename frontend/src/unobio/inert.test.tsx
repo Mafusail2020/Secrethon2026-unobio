@@ -10,17 +10,16 @@ const html = (node: ReactElement) => renderToStaticMarkup(<MemoryRouter>{node}</
 const anchorsWithHref = (markup: string) => markup.match(/<a\b[^>]*\shref="[^"]*"/g) ?? [];
 
 describe("the copied unobio.com pages", () => {
-  it("have no working links except the home button that opens the chat page", () => {
-    const links = anchorsWithHref(html(<Home />));
-    expect(links).toHaveLength(1);
-    expect(links[0]).toContain('href="/underwriting"');
+  it("keep the home page and footer fully inert", () => {
+    expect(anchorsWithHref(html(<Home />))).toEqual([]);
+    expect(anchorsWithHref(html(<Footer />))).toEqual([]);
   });
 
-  it("keep the header inert except the logo, which goes home, and the footer fully inert", () => {
+  it("have exactly two working links in the header: the logo (home) and Gravity (the chat page)", () => {
     const links = anchorsWithHref(html(<Navigation dark />));
-    expect(links).toHaveLength(1);
+    expect(links).toHaveLength(2);
     expect(links[0]).toContain('href="/"');
-    expect(anchorsWithHref(html(<Footer />))).toEqual([]);
+    expect(links[1]).toContain('href="/underwriting"');
   });
 
   it("still carry the original copy", () => {

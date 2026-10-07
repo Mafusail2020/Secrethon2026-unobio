@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const LINKS = ["Diligence", "Licensing & Pipeline", "Blog", "About Us", "Contact Us"];
 
@@ -18,7 +18,7 @@ function Logo({ textColor }: { textColor: string }) {
   );
 }
 
-/** unobio.com's header: transparent until the page scrolls, then a blurred bar. Only the logo is a link. */
+/** unobio.com's header: transparent until the page scrolls, then a blurred bar. Only the logo and Gravity are links. */
 export function Navigation({ dark }: { dark: boolean }) {
   const [scrolled, setScrolled] = useState(false);
 
@@ -59,6 +59,13 @@ export function Navigation({ dark }: { dark: boolean }) {
                 {label}
               </a>
             ))}
+            <NavLink
+              to="/underwriting"
+              className={link}
+              style={({ isActive }) => (isActive ? { color: dark ? "#fff" : "rgb(29, 29, 31)" } : undefined)}
+            >
+              Gravity
+            </NavLink>
           </div>
           <div className="hidden md:flex items-center gap-6">
             <a className={link}>Log in</a>

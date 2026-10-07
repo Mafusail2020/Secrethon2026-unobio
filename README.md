@@ -62,8 +62,8 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 
 ## Run a demo case
 
-1. `make dev`, open http://localhost:5173. This is the Unobio home page; every link on it is inert except the hero button
-   "Underwrite a program →", which opens the chat page, and the header logo, which returns here.
+1. `make dev`, open http://localhost:5173. This is the Unobio home page; every link on it is inert except "Gravity" in the
+   header, which opens the chat page, and the header logo, which returns here.
 2. Click "Use the BACE1 example", then Underwrite. Chat steps, the Graph tab and the Logs tab stream live.
 3. When it completes, the Report tab shows the verdict. Expand a claim to see its evidence and the source link.
 4. Graph tab, click `verdict` (or any node), write a correction containing "terminated", and re-run. Only the affected

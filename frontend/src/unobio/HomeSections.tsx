@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { HeroAssets } from "./HeroAssets";
 
 export function HomeSections() {
@@ -50,9 +49,9 @@ export function HomeSections() {
             A Quantitative AI Engine that Systematizes the Search, Evaluation, and Development of Pharma assets.
           </p>
           <div className="home-module__7XBcjq__heroCta home-module__7XBcjq__reveal home-module__7XBcjq__d3">
-            <Link to="/underwriting" className="home-module__7XBcjq__btnPrim">
-              {"Underwrite a program →"}
-            </Link>
+            <a className="home-module__7XBcjq__btnPrim">
+              {"See licensing & pipeline →"}
+            </a>
             <a className="home-module__7XBcjq__btnGlass">
               See the gap
             </a>
