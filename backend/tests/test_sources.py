@@ -131,3 +131,13 @@ def test_trial_records_keep_why_stopped_verbatim_and_cap_outcomes():
 )
 def test_parent_name_strips_salt_forms(name, parent):
     assert parent_name(name) == parent
+
+
+def test_long_user_text_is_chunked_into_verbatim_sentence_aligned_pieces():
+    from app.sources.records import CHUNK_CHARS, user_records
+
+    text = " ".join(f"Sentence {i} reports a result in rats." for i in range(120))
+    source, evidence = user_records(text, "page text", [], url="https://example.org/a", title="t")
+    assert len(evidence) > 1 and all(e.source_id == source.id for e in evidence)
+    assert all(e.excerpt in text and len(e.excerpt) <= CHUNK_CHARS for e in evidence)
+    assert evidence[0].locator == "page text [1]" and evidence[0].excerpt.endswith(".")

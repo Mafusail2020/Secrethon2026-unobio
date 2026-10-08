@@ -1,6 +1,7 @@
 """API payloads -> SourceRef + Evidence. Excerpts are verbatim text or a plain rendering of the
 structured record they come from; the claim gate matches quotes against them."""
 
+import re
 from datetime import datetime
 from typing import Any
 
@@ -10,6 +11,7 @@ from app.contracts.ids import evidence_id, source_id
 OT_RELEASE = "Open Targets Platform 26.09"
 ABSTRACT_MAX = 4000
 MAX_OUTCOMES = 2
+CHUNK_CHARS = 1500
 DRUGS_FDA_URL = (
     "https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo="
 )
@@ -328,4 +330,33 @@ def user_records(
         retrieved_at=utcnow(),
         identifiers={"url": url} if url else {},
     )
-    return source, [_evidence(source, text, locator, entity_ids)]
+    chunks = chunk_text(text) if len(text) > CHUNK_CHARS else [text]
+    locators = (
+        [locator] if len(chunks) == 1 else [f"{locator} [{i + 1}]" for i in range(len(chunks))]
+    )
+    return source, [
+        _evidence(source, c, loc, entity_ids) for c, loc in zip(chunks, locators, strict=True)
+    ]
+
+
+def chunk_text(text: str, size: int = 0) -> list[str]:
+    """Sentence-aligned pieces of about `size` chars; each piece is a verbatim slice of the text."""
+    size = size or CHUNK_CHARS
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    chunks: list[str] = []
+    current = ""
+    for sentence in sentences:
+        while len(sentence) > size:  # one huge run-on "sentence" (tables, scraped pages)
+            if current:
+                chunks.append(current)
+                current = ""
+            chunks.append(sentence[:size])
+            sentence = sentence[size:]
+        if current and len(current) + 1 + len(sentence) > size:
+            chunks.append(current)
+            current = sentence
+        else:
+            current = f"{current} {sentence}" if current else sentence
+    if current:
+        chunks.append(current)
+    return chunks
