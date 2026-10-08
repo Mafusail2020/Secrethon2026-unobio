@@ -15,7 +15,7 @@ export function Section({ result }: { result: SectionResult }) {
   const { report, focus } = useReportContext();
   const insufficient = result.status === "insufficient_evidence";
   return (
-    <section id={`section-${result.section}`} aria-labelledby={`h-${result.section}`} className="report-anchor rounded-lg border border-line bg-surface p-3">
+    <section id={`section-${result.section}`} aria-labelledby={`h-${result.section}`} className="report-anchor rounded-sm border border-line bg-surface p-3">
       <div className="flex items-center justify-between gap-2">
         <h3 id={`h-${result.section}`} className="text-sm font-semibold">
           {result.title}
@@ -23,7 +23,7 @@ export function Section({ result }: { result: SectionResult }) {
         <Badge className={STATUS[result.status]}>{humanize(result.status)}</Badge>
       </div>
       {insufficient ? (
-        <div role="note" className="mt-2 rounded-md border border-dashed border-red-300 bg-red-50/50 p-3 text-sm">
+        <div role="note" className="mt-2 rounded-sm border border-dashed border-red-300 bg-red-50/50 p-3 text-sm">
           <p className="font-medium text-red-900">Not enough public evidence</p>
           <p className="text-xs text-muted">Public sources could not answer this section well enough to make claims. Saying so is the honest answer; it is not a gap in the analysis.</p>
           {result.summary && <p className="mt-2 text-sm text-muted">{result.summary}</p>}
@@ -50,7 +50,7 @@ export function Section({ result }: { result: SectionResult }) {
         </ul>
       )}
       {result.unknowns.length > 0 && (
-        <div className={`mt-2 text-xs ${insufficient ? "rounded-md bg-canvas p-2" : "text-muted"}`}>
+        <div className={`mt-2 text-xs ${insufficient ? "rounded-sm bg-canvas p-2" : "text-muted"}`}>
           <span className="font-medium">What we could not establish:</span>
           <ul className="list-disc pl-4">
             {result.unknowns.map((u) => (

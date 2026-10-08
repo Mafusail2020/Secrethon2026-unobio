@@ -28,7 +28,7 @@ export function TranslationStepper({ chain }: { chain: TranslationLink[] }) {
   const claims = (open ? byStep.get(open)?.claim_ids : [])?.flatMap((id) => (report.claims[id] ? [report.claims[id]] : [])) ?? [];
 
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="chain-h">
+    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="chain-h">
       <h3 id="chain-h" className="text-base font-semibold">
         Will it work in humans? The translation chain
       </h3>
@@ -39,7 +39,7 @@ export function TranslationStepper({ chain }: { chain: TranslationLink[] }) {
               type="button"
               onClick={() => link.claim_ids.length && setOpen(open === link.step ? undefined : link.step)}
               aria-expanded={link.claim_ids.length ? open === link.step : undefined}
-              className={`h-full w-full rounded-lg border p-2 text-left text-xs ${STATUS_STYLE[link.status]} ${link.claim_ids.length ? "cursor-pointer hover:shadow-sm" : "cursor-default"}`}
+              className={`h-full w-full rounded-sm border p-2 text-left text-xs ${STATUS_STYLE[link.status]} ${link.claim_ids.length ? "cursor-pointer hover:shadow-sm" : "cursor-default"}`}
             >
               <span className="block text-[10px] uppercase tracking-wide opacity-70">Step {i + 1}</span>
               <span className="block font-medium">{humanize(link.step)}</span>

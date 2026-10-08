@@ -25,7 +25,7 @@ export function TwinPanel({ twin, report }: { twin: TwinStats; report: Underwrit
   const stops = groupStopReasons(twin.stop_reasons, twin.stop_reason_categories);
   const guessed = hasGuessedGroups(twin.stop_reasons, twin.stop_reason_categories);
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="twin-h">
+    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="twin-h">
       <div className="flex flex-wrap items-center gap-2">
         <h3 id="twin-h" className="text-sm font-semibold">
           Similar programs
@@ -36,7 +36,7 @@ export function TwinPanel({ twin, report }: { twin: TwinStats; report: Underwrit
         </span>
       </div>
       {twin.n_programs < 3 && (
-        <p role="note" className="mt-2 rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+        <p role="note" className="mt-2 rounded-sm bg-amber-50 p-2 text-xs text-amber-900">
           Thin history: with only {twin.n_programs} similar program{twin.n_programs === 1 ? "" : "s"} this prior is weak. Treat the range as a starting point.
         </p>
       )}

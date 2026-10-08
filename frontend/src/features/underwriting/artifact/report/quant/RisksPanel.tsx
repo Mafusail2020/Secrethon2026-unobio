@@ -15,7 +15,7 @@ export function RisksPanel({ risks }: { risks: Risk[] }) {
   const sorted = [...risks].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity));
   const categories = [...new Set(sorted.map((r) => r.category))];
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="risks-h">
+    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="risks-h">
       <h3 id="risks-h" className="text-base font-semibold">
         Key risks
       </h3>

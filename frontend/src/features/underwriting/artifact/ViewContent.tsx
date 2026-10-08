@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useHealth } from "../../../api/hooks";
 import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../../api/types";
 import { ErrorBoundary } from "../../../components/ErrorBoundary";
@@ -57,10 +57,35 @@ function GraphTab({
 }) {
   const [selected, setSelected] = useState<string | undefined>();
   const [drawerTab, setDrawerTab] = useState<DrawerTab>("overview");
+  // the drawer slides back out before it is removed
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
   const node: NodeSpec | undefined = graph.nodes.find((n) => n.id === selected);
   // while the correction form is open, show what it would recompute
   const highlight = node && drawerTab === "correct" ? affectedSet(graph, node.id) : undefined;
   const total = runnableNodes(graph).length;
+
+  const closeDrawer = useCallback(() => {
+    if (!selected || closing) return;
+    const id = selected;
+    const finish = () => {
+      setClosing(false);
+      setSelected(undefined);
+      setDrawerTab("overview");
+      // hand focus back to the step that opened the drawer
+      requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-id="${id}"] button`)?.focus());
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return finish();
+    setClosing(true);
+    closeTimer.current = window.setTimeout(finish, 220);
+  }, [selected, closing]);
+  const pick = (id: string | undefined) => {
+    if (!id) return closeDrawer();
+    window.clearTimeout(closeTimer.current); // picked again while it was leaving: it stays
+    setClosing(false);
+    setSelected(id);
+  };
 
   // a panel-mode run answers every model step with several analysts and an aggregator: draw them
   const maxPanel = useHealth().data?.max_panel_size ?? 4;
@@ -78,26 +103,23 @@ function GraphTab({
         </p>
       )}
       <div className="relative min-h-0 flex-1 max-md:min-h-[32rem]">
-        <GraphView spec={drawn} base={graph} stream={stream} selected={selected} onSelect={setSelected} sourceCounts={sourceCounts} highlight={highlight} />
+        <GraphView spec={drawn} base={graph} stream={stream} selected={selected} onSelect={pick} sourceCounts={sourceCounts} highlight={highlight} />
         {node && (
-          <NodeDrawer
-            key={node.id}
-            run={run}
-            node={node}
-            graph={graph}
-            stream={stream}
-            report={report}
-            canCorrect={canCorrect}
-            tab={drawerTab}
-            onTab={setDrawerTab}
-            onClose={() => {
-              const id = node.id;
-              setSelected(undefined);
-              setDrawerTab("overview");
-              // hand focus back to the step that opened the drawer
-              requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-id="${id}"] button`)?.focus());
-            }}
-          />
+          // one shell for as long as a step is open, so only opening and closing slide; switching steps does not
+          <div className={`absolute right-0 top-0 z-10 h-full w-[26rem] max-w-full ${closing ? "uw-drawer-out" : "uw-drawer-in"}`}>
+            <NodeDrawer
+              key={node.id}
+              run={run}
+              node={node}
+              graph={graph}
+              stream={stream}
+              report={report}
+              canCorrect={canCorrect}
+              tab={drawerTab}
+              onTab={setDrawerTab}
+              onClose={closeDrawer}
+            />
+          </div>
         )}
       </div>
     </div>

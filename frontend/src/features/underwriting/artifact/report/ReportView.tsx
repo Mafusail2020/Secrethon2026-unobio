@@ -192,13 +192,13 @@ export function ReportView({
             focus={focus}
           />
 
-          <section id="full-report" aria-labelledby="full-report-title" className="report-anchor rounded-xl border border-line bg-surface">
+          <section id="full-report" aria-labelledby="full-report-title" className="report-anchor rounded-sm border border-line bg-surface">
             <button
               type="button"
               aria-expanded={fullOpen}
               aria-controls="full-report-body"
               onClick={() => setFullOpen((o) => !o)}
-              className="flex w-full items-center justify-between gap-3 rounded-xl p-4 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              className="flex w-full items-center justify-between gap-3 rounded-sm p-4 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
               data-print-hide
             >
               <span>
@@ -236,7 +236,7 @@ export function ReportView({
                   )}
                 </div>
 
-                <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="report-anchor rounded-lg border border-line bg-surface p-3">
+                <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="report-anchor rounded-sm border border-line bg-surface p-3">
                   <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
                   <div className="mt-2 space-y-2">
                     <ClaimFilterBar claims={claims} filters={filters} shown={shownClaims.length} onChange={setFilters} />
@@ -269,7 +269,7 @@ export function ReportView({
 
 function Missing({ title, why }: { title: string; why: string }) {
   return (
-    <section className="rounded-lg border border-dashed border-line bg-surface/60 p-3">
+    <section className="rounded-sm border border-dashed border-line bg-surface/60 p-3">
       <h3 className="text-sm font-semibold">{title}</h3>
       <p className="text-xs text-muted">{why}</p>
     </section>

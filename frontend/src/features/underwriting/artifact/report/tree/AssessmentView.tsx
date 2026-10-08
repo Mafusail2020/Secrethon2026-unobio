@@ -21,7 +21,7 @@ const format = (value: number | null, unit: string | null) => (value === null ? 
 export function AssessmentView({ assessment, hideHeadline = false }: { assessment: Assessment; hideHeadline?: boolean }) {
   const standing = RATING[assessment.rating];
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-label={TITLE[assessment.cause]}>
+    <section className="rounded-sm border border-line bg-surface p-3" aria-label={TITLE[assessment.cause]}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-base font-semibold">{TITLE[assessment.cause]}</h4>
         <Badge className={STANDING_STYLE[standing]}>

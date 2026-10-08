@@ -15,6 +15,13 @@
 @keyframes uw-flash {
   from { background-color: color-mix(in srgb, var(--color-brand) 22%, transparent); }
 }
+@keyframes uw-drawer-in {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes uw-drawer-out {
+  to { transform: translateX(100%); opacity: 0.6; }
+}
 @keyframes uw-ring {
   from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand) 50%, transparent); }
   to { box-shadow: 0 0 0 12px transparent; }
@@ -40,6 +47,9 @@
 .uw-slide-right { animation: uw-slide-right 280ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
 .uw-flash { animation: uw-flash 1400ms ease-out backwards; }
 .uw-ring { animation: uw-ring 1000ms ease-out 1; }
+/* the step's details slide in from the right edge, and back out when closed */
+.uw-drawer-in { animation: uw-drawer-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.uw-drawer-out { animation: uw-drawer-out 220ms cubic-bezier(0.4, 0, 1, 1) forwards; pointer-events: none; }
 
 /* a block of text that arrives top to bottom, like it is being written */
 .uw-stagger > * { animation: uw-rise 320ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
@@ -59,6 +69,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .uw-graph .react-flow__node { transition: none !important; }
-  .uw-rise, .uw-fade, .uw-slide-right, .uw-flash, .uw-ring, .uw-stagger > * { animation: none !important; }
+  .uw-rise, .uw-fade, .uw-slide-right, .uw-flash, .uw-ring, .uw-drawer-in, .uw-drawer-out, .uw-stagger > * { animation: none !important; }
   .uw-collapse { transition: none !important; }
 }

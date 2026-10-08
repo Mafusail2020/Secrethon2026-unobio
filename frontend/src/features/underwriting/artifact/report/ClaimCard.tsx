@@ -24,7 +24,7 @@ export function ClaimCard({ claim, domId, focused = false, bare = false }: { cla
       className={
         bare
           ? `${rejected ? "opacity-70" : ""}`
-          : `scroll-mt-32 overflow-hidden rounded-lg border bg-surface [content-visibility:auto] ${
+          : `scroll-mt-32 overflow-hidden rounded-sm border bg-surface [content-visibility:auto] ${
               focused ? "uw-flash border-brand ring-2 ring-brand/30" : "border-line"
             } ${rejected ? "opacity-70" : ""}`
       }

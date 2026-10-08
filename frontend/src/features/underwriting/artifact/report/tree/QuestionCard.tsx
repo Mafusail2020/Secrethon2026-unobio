@@ -74,13 +74,13 @@ export function QuestionCard({
   const forPeek = peek(node.pros);
   const againstPeek = peek(node.cons);
   return (
-    <section id={`q-${node.id}`} aria-labelledby={`q-title-${node.id}`} className={`report-anchor rounded-xl border border-l-[6px] border-line bg-surface shadow-sm ${STANDING_EDGE[node.standing]}`}>
+    <section id={`q-${node.id}`} aria-labelledby={`q-title-${node.id}`} className={`report-anchor rounded-sm border border-l-[6px] border-line bg-surface shadow-sm ${STANDING_EDGE[node.standing]}`}>
       <button
         type="button"
         aria-expanded={open}
         aria-controls={bodyId}
         onClick={onToggle}
-        className="block w-full rounded-t-xl p-4 pb-3 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+        className="block w-full rounded-t-sm p-4 pb-3 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
       >
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
@@ -143,7 +143,7 @@ export function QuestionCard({
           {node.id === "funding" && report.valuation && <ValuationPanel valuation={report.valuation} />}
 
           {node.neutral.length > 0 && (
-            <details className="rounded-lg border border-line px-3 py-2" open={node.neutral.some((c) => c.id === focus?.id) || undefined}>
+            <details className="rounded-sm border border-line px-3 py-2" open={node.neutral.some((c) => c.id === focus?.id) || undefined}>
               <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted">Context ({node.neutral.length})</summary>
               <ul className="mt-2 space-y-1.5">
                 {node.neutral.map((c) => (
