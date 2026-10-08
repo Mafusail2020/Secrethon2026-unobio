@@ -43,7 +43,7 @@ function Step({ node, live }: { node: NodeSpec; live: NodeLive | undefined }) {
         <span className="min-w-0 flex-1">
           <span className={status === "pending" ? "text-muted" : ""}>{node.label}</span>
           {last && status !== "done" && <span className="block truncate text-xs text-muted">{last}</span>}
-          {status === "reused" && <span className="block text-xs text-violet-600">reused from the previous run</span>}
+          {status === "reused" && <span className="block text-xs text-brand">reused from the previous run</span>}
           {live?.error && <span className="block text-xs text-red-700">{live.error}</span>}
         </span>
         {live?.durationMs ? <span className="shrink-0 text-xs text-muted">{formatDuration(live.durationMs)}</span> : null}

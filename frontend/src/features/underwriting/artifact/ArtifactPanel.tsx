@@ -40,7 +40,7 @@ function RerunBanner({ run, stream, total }: { run: RunSummary; stream: RunStrea
         ? "The re-run failed."
         : `Re-running: ${reused} steps reused, ${recompute} recomputing.`;
   return (
-    <p role="status" className="border-b border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-900">
+    <p role="status" className="border-b border-brand/30 bg-brand/10 px-3 py-1.5 text-xs text-royal">
       {text}
     </p>
   );
@@ -73,7 +73,7 @@ function GraphTab({
       {run && <VersionBar run={run} completed={canCorrect} />}
       {run && <RerunBanner run={run} stream={stream} total={total} />}
       {highlight && node && (
-        <p role="status" className="border-b border-violet-200 bg-violet-50 px-3 py-1 text-xs text-violet-900">
+        <p role="status" className="border-b border-brand/30 bg-brand/10 px-3 py-1 text-xs text-royal">
           Correcting {node.label} recomputes {highlight.size} of {total} steps (outlined); the rest are reused.
         </p>
       )}

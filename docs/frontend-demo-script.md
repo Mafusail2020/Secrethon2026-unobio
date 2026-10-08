@@ -59,7 +59,7 @@ the ✕, to close it). Below 1280 px the panel covers the conversation; below 76
    recomputing"; the history lists the run once with **v1** and **v2** links.
 3. Report view: the **What changed after your correction** banner shows Conditional → Do not invest, the PoS change,
    the changed sections and the added and removed claims (click to jump).
-4. Graph view: version bar switches between v1 and v2; reused steps are dashed violet.
+4. Graph view: version bar switches between v1 and v2; reused steps are dashed blue.
 5. Alternative path: **Graph** → click **Verdict** → **Correct** tab. While the form is open the steps that would
    recompute are outlined and the rest dim.
 

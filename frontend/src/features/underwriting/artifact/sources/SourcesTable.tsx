@@ -85,7 +85,7 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
                     ) : (
                       s.title
                     )}
-                    {s.type === "user_provided" && <Badge className="ml-2 border-violet-300 bg-violet-50 text-violet-800">you provided</Badge>}
+                    {s.type === "user_provided" && <Badge className="ml-2 border-brand/30 bg-brand/10 text-royal">you provided</Badge>}
                     <div className="text-xs text-muted">{evidenceCount} evidence item{evidenceCount === 1 ? "" : "s"}</div>
                   </td>
                   <td>

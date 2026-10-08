@@ -52,7 +52,7 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
         style={{ width: NODE_W, height: NODE_H, borderLeftColor: data.color }}
         className={`flex flex-col justify-center rounded-md border border-l-4 px-2 text-left text-xs shadow-sm transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.selected ? "outline outline-2 outline-offset-2 outline-brand" : ""
-        } ${data.affected ? "ring-2 ring-violet-500 ring-offset-1" : ""} ${data.dim ? "opacity-30" : ""}`}
+        } ${data.affected ? "ring-2 ring-brand ring-offset-1" : ""} ${data.dim ? "opacity-30" : ""}`}
       >
         <Handle type="target" position={Position.Top} className="!opacity-0" />
         <span className="flex items-center gap-1">
@@ -80,7 +80,7 @@ export function ContainerNodeView({ data }: NodeProps<GroupFlowNode>) {
     <div
       style={{ width: data.w, height: data.h, borderColor: data.color }}
       className={`rounded-lg border-2 border-dashed bg-surface/40 transition-opacity ${data.selected ? "outline outline-2 outline-brand" : ""} ${
-        data.affected ? "ring-2 ring-violet-500" : ""
+        data.affected ? "ring-2 ring-brand" : ""
       } ${data.dim ? "opacity-30" : ""}`}
     >
       <button

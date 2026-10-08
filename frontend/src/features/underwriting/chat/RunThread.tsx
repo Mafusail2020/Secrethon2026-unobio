@@ -131,7 +131,7 @@ export function RunThread({
       <ProgramMessage run={run} />
       <div className="space-y-3">
         {run.parent_run_id && (
-          <p className="rounded-md bg-violet-50 p-2 text-xs text-violet-800">
+          <p className="rounded-md bg-brand/10 p-2 text-xs text-royal">
             Re-run of <Link className="underline" to={`/underwriting/runs/${run.parent_run_id}`}>the previous version</Link>{" "}
             after a correction{stream.status !== "queued" ? `: ${reused} steps reused, the rest recompute` : ""}.
           </p>

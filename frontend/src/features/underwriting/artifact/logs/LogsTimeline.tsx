@@ -8,7 +8,7 @@ const TYPE_STYLE: Record<string, string> = {
   "node.failed": "text-red-600",
   "run.failed": "text-red-600",
   "node.skipped": "text-amber-600",
-  "node.reused": "text-violet-600",
+  "node.reused": "text-brand",
   "run.completed": "text-emerald-600",
   "node.completed": "text-emerald-600",
 };

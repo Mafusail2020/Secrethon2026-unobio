@@ -43,7 +43,7 @@ export function DiffSummaryFull({
   onJumpClaim: (claimId: string) => void;
   onJumpSection: (sectionId: string) => void;
 }) {
-  const tone = view.decisionChanged ? "border-violet-400 bg-violet-50" : "border-line bg-surface";
+  const tone = view.decisionChanged ? "border-brand/50 bg-brand/10" : "border-line bg-surface";
   return (
     <section role="region" aria-labelledby="changed-h" className={`rounded-lg border-2 p-3 ${tone}`}>
       <h3 id="changed-h" className="text-sm font-semibold">
@@ -61,7 +61,7 @@ export function DiffSummaryFull({
         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
           <span className="text-muted">Changed sections:</span>
           {view.sections.map((s) => (
-            <button key={s.id} type="button" onClick={() => onJumpSection(s.id)} className="rounded-full border border-violet-300 bg-surface px-2 py-0.5 text-violet-900 hover:border-violet-500">
+            <button key={s.id} type="button" onClick={() => onJumpSection(s.id)} className="rounded-full border border-brand/30 bg-surface px-2 py-0.5 text-royal hover:border-brand">
               {s.title}
             </button>
           ))}
