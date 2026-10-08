@@ -24,6 +24,7 @@ from app.graph.state import GraphState
 from app.graph.topology import LANES, lane_container, lane_node
 from app.nodes._analysis import (
     DIGEST_CHARS,
+    OUT_TOKENS,
     QUOTE_MISSING,
     Draft,
     DraftClaim,
@@ -44,7 +45,13 @@ from app.nodes._data import entity_ids
 from app.nodes._fixture import excluded_ids, fixture_report, nap, slug, touch_llm
 from app.nodes.base import NodeContext, NodeRun
 from app.nodes.subgraphs.bull_bear import rank_hits
-from app.quant.assessment import EfficacyInputs, SafetyInputs, score_efficacy, score_safety
+from app.quant.assessment import (
+    EfficacyInputs,
+    SafetyInputs,
+    infer_modality,
+    score_efficacy,
+    score_safety,
+)
 
 TRANSLATION_STEPS: tuple[str, ...] = get_args(TranslationStep)
 _GOAL: dict[str, str] = {
@@ -288,7 +295,12 @@ def make_nodes(lane: AssessedCause) -> dict[str, NodeRun]:
 
         schema = EfficacyDraft if lane == "efficacy" else SafetyDraft
         drafted, _, provided = await ask_fitted(
-            ctx, f"{extract}.extract", system_prompt(f"{lane}_extract"), build, schema, 3000
+            ctx,
+            f"{extract}.extract",
+            system_prompt(f"{lane}_extract"),
+            build,
+            schema,
+            OUT_TOKENS["extract"],
         )
         drafts = (drafted.claims if drafted else [])[: 4 + ctx.effort.n_queries]
         claims, quotes = to_claims(drafts, extract)
@@ -341,12 +353,17 @@ def make_nodes(lane: AssessedCause) -> dict[str, NodeRun]:
         ]
         twins = state.get("twin_stats")
         valid = usable_evidence(state)
+        program, entities = state["program"], state.get("entities")
         if lane == "efficacy":
             facts = _scratch(state, "fetch_opentargets")
             regulatory = _scratch(state, "fetch_regulatory")
             adjustments, result = score_efficacy(
                 EfficacyInputs(
                     genetic_score=facts.get("genetic_association"),
+                    somatic_score=facts.get("somatic_mutation"),
+                    cancer=any(
+                        "cancer" in a for a in (entities.therapeutic_areas if entities else [])
+                    ),
                     association_score=facts.get("association_score"),
                     association_evidence_ids=[
                         i for i in facts.get("association_evidence_ids", []) if i in valid
@@ -379,6 +396,8 @@ def make_nodes(lane: AssessedCause) -> dict[str, NodeRun]:
                     claim_ids=own,
                     twins=twins,
                     fetched="liabilities" in facts,
+                    modality=program.modality or infer_modality(program.mechanism),
+                    drug_modalities=facts.get("drug_modalities", {}),
                 ),
                 conf,
                 ctx.node_id,

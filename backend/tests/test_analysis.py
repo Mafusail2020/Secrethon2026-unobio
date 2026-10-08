@@ -744,3 +744,59 @@ async def test_a_refused_long_input_is_retried_smaller():
     parsed, _, shown = await ask_fitted(ctx, "p", "s", build, DraftClaims, 100)
     assert scales == [1.0, 0.6] and shown == ["ev_0.6"] and parsed is not None
     assert any("input too long" in m for _, m in ctx.logs)
+
+
+def test_modality_is_read_from_the_mechanism_text():
+    from app.quant.assessment import infer_modality
+
+    assert infer_modality("DMD exon 51 skipping antisense") == "oligonucleotide"
+    assert infer_modality("anti-PCSK9 monoclonal antibody") == "antibody"
+    assert infer_modality("association with AAV gene therapy") == "gene_therapy"
+    assert infer_modality("BACE1 inhibition") is None  # 'association' is not 'aso'
+
+
+def test_safety_ignores_labels_of_another_modality():
+    adjustments, result = score_safety(
+        SafetyInputs(
+            same_target_approved=["elevidys", "eteplirsen"],
+            labels_checked={"elevidys": ["ev_1"], "eteplirsen": ["ev_2"]},
+            boxed_warnings={"elevidys": ["ev_1"]},
+            modality="oligonucleotide",
+            drug_modalities={"elevidys": "gene_therapy", "eteplirsen": "oligonucleotide"},
+        ),
+        CONF,
+        "safety_score",
+    )
+    assert [a.factor for a in adjustments] == [
+        "same-target drug approved without a boxed warning (eteplirsen)"
+    ]
+    assert "elevidys (gene_therapy)" in result.headline
+
+
+def test_cancer_genetic_support_counts_somatic_evidence():
+    adjustments, result = score_efficacy(
+        EfficacyInputs(somatic_score=0.92, cancer=True, association_score=0.8), CONF, "e"
+    )
+    assert adjustments[0].inputs["somatic_mutation"] == 0.92
+    assert "(somatic)" in result.headline
+    adjustments, _ = score_efficacy(
+        EfficacyInputs(somatic_score=0.62, association_score=0.8), CONF, "e"
+    )
+    assert adjustments == []  # outside cancer somatic hits do not count
+
+
+def test_a_base_rate_prior_alone_rates_unknown():
+    twins = _twins("area_base_rate").model_copy(update={"n_programs": 0})
+    _, efficacy = score_efficacy(EfficacyInputs(twins=twins), CONF, "e")
+    _, safety = score_safety(SafetyInputs(twins=twins, fetched=False), CONF, "s")
+    assert efficacy.rating == safety.rating == "unknown"
+
+
+async def test_reply_caps_stay_within_what_the_gateway_accepts():
+    from app.nodes._analysis import MAX_OUT_TOKENS, OUT_TOKENS, DraftClaims, ask
+
+    llm = FakeLLM()
+    ctx = FakeCtx("section_analysts", InMemoryStore(), llm)
+    await ask(ctx, "p", "s", "u", DraftClaims, 10_000)
+    assert llm.tasks[0].max_tokens == MAX_OUT_TOKENS
+    assert max(OUT_TOKENS.values()) <= MAX_OUT_TOKENS

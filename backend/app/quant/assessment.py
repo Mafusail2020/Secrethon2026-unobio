@@ -2,6 +2,7 @@
 a rating and a headline. Formulas only; every ratio comes from config/ledger.yaml `risk_ratios`."""
 
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -17,11 +18,43 @@ from app.sources.records import OT_RELEASE
 
 HUMAN_STEPS = ("target_engagement", "biological_response", "patient_benefit")
 OPENFDA = "U.S. FDA drug labels via openFDA"
+# Open Targets drugType -> our Modality
+OT_MODALITY = {
+    "small molecule": "small_molecule",
+    "antibody": "antibody",
+    "antibody drug conjugate": "antibody",
+    "oligonucleotide": "oligonucleotide",
+    "gene": "gene_therapy",
+    "cell": "cell_therapy",
+    "protein": "biologic_other",
+    "enzyme": "biologic_other",
+}
+_MODALITY_WORDS = (
+    (
+        re.compile(r"antisense|oligonucleotide|\bsirna\b|\baso\b|exon.skipping|\brnai\b", re.I),
+        "oligonucleotide",
+    ),
+    (re.compile(r"gene therapy|gene transfer|\baav\b|gene editing|crispr", re.I), "gene_therapy"),
+    (re.compile(r"\bcar.?t\b|cell therapy", re.I), "cell_therapy"),
+    (re.compile(r"antibod|mab\b|nanobody", re.I), "antibody"),
+    (re.compile(r"small.molecule", re.I), "small_molecule"),
+)
+
+
+def infer_modality(mechanism: str) -> str | None:
+    """The modality the mechanism text names, if it names one."""
+    return next((m for pattern, m in _MODALITY_WORDS if pattern.search(mechanism)), None)
+
+
+def ot_modality(drug_type: str | None) -> str | None:
+    return OT_MODALITY.get((drug_type or "").strip().lower())
 
 
 @dataclass
 class EfficacyInputs:
     genetic_score: float | None = None
+    somatic_score: float | None = None
+    cancer: bool = False
     association_score: float | None = None
     association_evidence_ids: list[str] = field(default_factory=list)
     chain: list[TranslationLink] = field(default_factory=list)
@@ -41,6 +74,8 @@ class SafetyInputs:
     claim_ids: list[str] = field(default_factory=list)
     twins: TwinStats | None = None
     fetched: bool = True
+    modality: str | None = None
+    drug_modalities: dict[str, str] = field(default_factory=dict)
 
 
 def _adjust(
@@ -97,32 +132,39 @@ def score_efficacy(
     told: list[str] = []
     threshold = conf["assessment"]["genetic_support_min_score"]["value"]
 
+    # in cancer the human genetic evidence for a target is somatic: driver mutations in tumours
+    somatic = x.somatic_score if x.cancer else None
+    kind = "somatic_mutation" if (somatic or 0) > (x.genetic_score or 0) else "genetic_association"
+    genetic = max((s for s in (x.genetic_score, somatic) if s is not None), default=None)
     if x.association_score is not None or x.association_evidence_ids:
         metrics.append(
             AssessmentMetric(
                 key="genetic_support",
-                label="Human genetic support (Open Targets genetic_association)",
-                value=x.genetic_score,
+                label=f"Human genetic support (Open Targets {kind})",
+                value=genetic,
                 unit="score 0-1",
                 note="no genetic association evidence"
-                if x.genetic_score is None
+                if genetic is None
                 else f"supported at >= {threshold} (our cut-off)",
                 basis="sourced",
                 citation=OT_RELEASE,
                 evidence_ids=x.association_evidence_ids,
             )
         )
-        if x.genetic_score is not None and x.genetic_score >= threshold:
+        if genetic is not None and genetic >= threshold:
             adjustments.append(
                 _adjust(
                     conf,
                     "efficacy.genetic_support",
                     "human genetic support for the target-disease link",
-                    {"genetic_association": round(x.genetic_score, 3), "min_score": threshold},
+                    {kind: round(genetic, 3), "min_score": threshold},
                     evidence_ids=x.association_evidence_ids,
                 )
             )
-            told.append(f"genetic support {x.genetic_score:.2f}")
+            told.append(
+                f"genetic support {genetic:.2f}"
+                + (" (somatic)" if kind != "genetic_association" else "")
+            )
         else:
             told.append("no human genetic support")
     else:
@@ -202,7 +244,8 @@ def score_efficacy(
 
     twins = x.twins
     stopped_eff = _twin_stops(twins, "efficacy")
-    if twins is not None:
+    # a base-rate prior has no programs behind it: nothing to say about precedent
+    if twins is not None and twins.n_programs:
         metrics.append(
             AssessmentMetric(
                 key="twin_efficacy_stops",
@@ -277,6 +320,16 @@ def score_safety(
         gaps.append("target safety liabilities were not fetched")
 
     labelled = [d for d in x.same_target_approved if d in x.labels_checked]
+    # an AAV gene therapy's liver warning says little about an antisense drug on the same gene
+    other = [
+        d for d in labelled if x.modality and x.drug_modalities.get(d) not in (None, x.modality)
+    ]
+    if other:
+        labelled = [d for d in labelled if d not in other]
+        told.append(
+            "not scored, different modality: "
+            + ", ".join(f"{d} ({x.drug_modalities[d]})" for d in other)
+        )
     if x.labels_checked:
         boxed_ids = [i for ids in x.boxed_warnings.values() for i in ids]
         metrics.append(
@@ -318,7 +371,7 @@ def score_safety(
         gaps.append("no FDA label for this drug or an approved same-target drug")
 
     stopped_safety = _twin_stops(x.twins, "safety")
-    if x.twins is not None:
+    if x.twins is not None and x.twins.n_programs:
         metrics.append(
             AssessmentMetric(
                 key="twin_safety_stops",

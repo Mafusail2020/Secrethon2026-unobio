@@ -27,6 +27,18 @@ EXCERPT_CHARS = 700
 # the gateway refuses inputs above a "conservative input limit"; calls of ~5.5k tokens went through
 # and ones of ~7k did not, so the evidence part of a message is capped by characters
 DIGEST_CHARS = 9000
+# reply caps per call; the model reasons inside the same budget, and a cap hit means an empty or
+# cut reply plus a paid repair call (seen live at 2000 for sections). Billing is per token used.
+# The gateway refuses caps above ~4k ("outside the supported range" at 5000).
+MAX_OUT_TOKENS = 4000
+OUT_TOKENS = {
+    "questions": 3000,
+    "queries": 1500,
+    "claims": 4000,
+    "extract": 4000,
+    "section": 4000,
+    "risks": 4000,
+}
 MIN_QUOTE_CHARS = 12
 QUOTE_MISSING = "quote not found verbatim in the cited evidence"
 
@@ -152,7 +164,7 @@ async def ask_full[M: BaseModel](
         system=system,
         user=user,
         schema=schema,
-        max_tokens=max(max_tokens, ctx.effort.max_tokens),
+        max_tokens=min(max(max_tokens, ctx.effort.max_tokens), MAX_OUT_TOKENS),
     )
     try:
         result = await ctx.llm.complete(task)
