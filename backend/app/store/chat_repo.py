@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 
 from app.contracts import ChatMessage, utcnow
 from app.store.db import Database
-from app.store.tables import ChatMessageRow
+from app.store.tables import ChatMessageRow, RunSummaryRow
 
 
 class ChatRepo:
@@ -47,4 +47,27 @@ class ChatRepo:
                     )
                 )
                 or 0
+            )
+
+    async def get_summary(self, run_id: str) -> ChatMessage | None:
+        async with self.db.session() as s:
+            row = await s.get(RunSummaryRow, run_id)
+            if row is None:
+                return None
+            return ChatMessage(
+                role="assistant",
+                content=row.content,
+                run_id=row.run_id,
+                cited_claim_ids=row.cited_claim_ids,
+            )
+
+    async def put_summary(self, run_id: str, message: ChatMessage) -> None:
+        async with self.db.session() as s, s.begin():
+            s.add(
+                RunSummaryRow(
+                    run_id=run_id,
+                    content=message.content,
+                    cited_claim_ids=message.cited_claim_ids,
+                    ts=utcnow(),
+                )
             )

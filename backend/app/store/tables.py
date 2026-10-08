@@ -95,6 +95,15 @@ class ChatMessageRow(Base):
     ts: Mapped[datetime] = mapped_column(UTCDateTime)
 
 
+class RunSummaryRow(Base):
+    __tablename__ = "run_summaries"
+
+    run_id: Mapped[str] = mapped_column(String, primary_key=True)
+    content: Mapped[str] = mapped_column(Text)
+    cited_claim_ids: Mapped[list[str]] = mapped_column(JSON)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
 class LLMCacheRow(Base):
     __tablename__ = "llm_cache"
 

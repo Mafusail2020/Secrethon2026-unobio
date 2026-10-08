@@ -15,6 +15,7 @@ import type {
   UnderwritingReport,
 } from "../types";
 import { TERMINAL_EVENTS } from "../types";
+import { briefing } from "./briefing";
 import { adjustDrafts, adjustReport, scenarioFromSearch, stepDelayFactor, type Draft, type Scenario } from "./scenarios";
 
 // Mirrors the backend stub run closely enough to demo with no server:
@@ -37,6 +38,7 @@ interface MockRun {
   scenario?: Scenario;
   report?: UnderwritingReport;
   chat: ChatMessage[];
+  readout?: ChatMessage;
 }
 
 const runs = new Map<string, MockRun>();
@@ -289,6 +291,15 @@ export const mockApi: Api = {
     const source = evidence && baseReport.sources[evidence.source_id];
     if (!evidence || !source) throw new ApiError(404, "evidence_not_found", `no evidence ${evidenceId}`);
     return wait({ evidence, source });
+  },
+  postSummary: (runId) => {
+    const run = need(runId);
+    if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    if (!run.readout) {
+      const { text, cited } = briefing(run.report);
+      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited };
+    }
+    return wait({ ...run.readout });
   },
   getMessages: (runId) => wait([...need(runId).chat]),
   postMessage: (runId, message) => {

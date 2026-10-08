@@ -3,7 +3,6 @@ import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../
 import { ErrorBoundary } from "../../../components/ErrorBoundary";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
-import { Tabs } from "../../../components/ui/Tabs";
 import { affectedSet, runnableNodes } from "../graphUtils";
 import type { RunStream } from "../reduceEvents";
 import { GraphView } from "./graph/GraphView";
@@ -16,14 +15,6 @@ import { isSyntheticReport } from "./report/synthetic";
 import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
-
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "report", label: "Report" },
-  { id: "graph", label: "Graph" },
-  { id: "sources", label: "Sources" },
-  { id: "logs", label: "Logs" },
-];
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted">{children}</div>;
@@ -41,7 +32,7 @@ function RerunBanner({ run, stream, total }: { run: RunSummary; stream: RunStrea
         ? "The re-run failed."
         : `Re-running: ${reused} steps reused, ${recompute} recomputing.`;
   return (
-    <p role="status" className="border-b border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-900">
+    <p role="status" className="border-b border-brand/30 bg-brand/10 px-3 py-1.5 text-xs text-royal">
       {text}
     </p>
   );
@@ -74,7 +65,7 @@ function GraphTab({
       {run && <VersionBar run={run} completed={canCorrect} />}
       {run && <RerunBanner run={run} stream={stream} total={total} />}
       {highlight && node && (
-        <p role="status" className="border-b border-violet-200 bg-violet-50 px-3 py-1 text-xs text-violet-900">
+        <p role="status" className="border-b border-brand/30 bg-brand/10 px-3 py-1 text-xs text-royal">
           Correcting {node.label} recomputes {highlight.size} of {total} steps (outlined); the rest are reused.
         </p>
       )}
@@ -105,22 +96,8 @@ function GraphTab({
   );
 }
 
-export function ArtifactPanel({
-  tab,
-  onTab,
-  run,
-  graph,
-  graphError,
-  onRetryGraph,
-  stream,
-  report,
-  canCorrect,
-  focusClaim,
-  sourceCounts,
-  onOpenClaim,
-}: {
-  tab: TabId | null;
-  onTab: (tab: TabId) => void;
+/** Everything a view needs from the run; the dock hands it to each panel through a context. */
+export interface ViewData {
   run: RunSummary | undefined;
   graph: GraphSpec | undefined;
   graphError?: unknown;
@@ -131,45 +108,58 @@ export function ArtifactPanel({
   focusClaim?: FocusClaim;
   sourceCounts: Record<string, number>;
   onOpenClaim: (claimId: string) => void;
-}) {
-  const active: TabId = tab ?? (report ? "report" : "graph");
+}
+
+/** One of the four views (report, graph, sources, logs), without any frame: the dock supplies tab and window. */
+export function ViewContent({
+  tab,
+  run,
+  graph,
+  graphError,
+  onRetryGraph,
+  stream,
+  report,
+  canCorrect,
+  focusClaim,
+  sourceCounts,
+  onOpenClaim,
+}: ViewData & { tab: TabId }) {
   const stubbed = stream.stubData || (!!report && isSyntheticReport(report));
   const failed = run?.status === "failed" || stream.status === "failed";
   const waiting = failed ? (
-    <Empty>This run failed before it produced a report. The Graph tab shows which step failed and why; the chat can run it again.</Empty>
+    <Empty>This run failed before it produced a report. The Graph view shows which step failed and why; the conversation can run it again.</Empty>
   ) : run ? (
     <Empty>
       <span className="flex items-center gap-2">
-        <Spinner /> The report appears here when the analysis finishes. Watch the Graph tab meanwhile.
+        <Spinner /> The report appears here when the analysis finishes. Open the Graph view to watch it run.
       </span>
     </Empty>
   ) : (
-    <Empty>Describe a drug program on the left to start an underwriting run.</Empty>
+    <Empty>Start an underwriting to see its report, sources and logs here.</Empty>
   );
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
-      <Tabs tabs={TABS} active={active} onChange={onTab} idPrefix="artifact" label="Underwriting artifact" />
-      {stubbed && active !== "report" && (
+    <div className="flex h-full min-h-0 flex-col bg-canvas">
+      {stubbed && tab !== "report" && (
         <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-1 text-xs text-amber-900">
           Synthetic data: parts of this run come from stub steps and contain placeholder content.
         </p>
       )}
-      <div role="tabpanel" id="artifact-panel" aria-labelledby={`artifact-${active}`} className="min-h-0 flex-1 overflow-auto">
-        <ErrorBoundary resetKey={`${active}:${run?.id ?? ""}`}>
-          {active === "report" &&
+      <div className="min-h-0 flex-1 overflow-auto" data-print-flow>
+        <ErrorBoundary resetKey={`${tab}:${run?.id ?? ""}`}>
+          {tab === "report" &&
             (report && run ? (
               <ReportView report={report} runId={run.id} graph={graph} canCorrect={canCorrect} focusClaim={focusClaim} />
             ) : (
               waiting
             ))}
-          {active === "graph" &&
+          {tab === "graph" &&
             (graph ? (
               <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} sourceCounts={sourceCounts} />
             ) : graphError ? (
               <div className="space-y-2 p-4">
                 <ErrorBox error={graphError} title="Could not load the pipeline graph" />
-                <button type="button" onClick={onRetryGraph} className="rounded-full border border-line bg-white px-3 py-1 text-sm">
+                <button type="button" onClick={onRetryGraph} className="rounded-full border border-line bg-surface px-3 py-1 text-sm">
                   Try again
                 </button>
               </div>
@@ -184,10 +174,10 @@ export function ArtifactPanel({
                 </div>
               </div>
             ))}
-          {active === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
-          {active === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
+          {tab === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
+          {tab === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
         </ErrorBoundary>
       </div>
-    </section>
+    </div>
   );
 }

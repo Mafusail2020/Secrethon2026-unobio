@@ -3306,6 +3306,56 @@
         "summary": "Get Report"
       }
     },
+    "/api/runs/{run_id}/summary": {
+      "post": {
+        "description": "The plain-language read-out of a finished run. Written once, then returned as stored.",
+        "operationId": "run_summary_api_runs__run_id__summary_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Run Summary"
+      }
+    },
     "/api/runs/{run_id}/trace": {
       "get": {
         "operationId": "get_trace_api_runs__run_id__trace_get",

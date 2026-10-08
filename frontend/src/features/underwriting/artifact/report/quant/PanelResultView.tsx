@@ -17,7 +17,7 @@ export function PanelResultView({ panel }: { panel: PanelResult }) {
       </div>
       <ul className="mt-2 grid gap-2 @xl:grid-cols-2">
         {panel.candidates.map((c) => (
-          <li key={c.model} className="rounded border border-line bg-white p-2 text-xs">
+          <li key={c.model} className="rounded border border-line bg-surface p-2 text-xs">
             <div className="font-medium">{c.model}</div>
             <p>{c.summary}</p>
             {c.decision_hint && <p className="mt-1 text-muted">Leans: {c.decision_hint}</p>}

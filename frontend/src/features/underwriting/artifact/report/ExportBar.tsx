@@ -4,7 +4,7 @@ import type { UnderwritingReport } from "../../../../api/types";
 import { toMarkdown } from "./markdown";
 
 const button =
-  "rounded-full border border-line bg-white px-2.5 py-1 text-xs hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand";
+  "rounded-full border border-line bg-surface px-2.5 py-1 text-xs hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand";
 
 export function ExportBar({ report }: { report: UnderwritingReport }) {
   const [copied, setCopied] = useState<"idle" | "ok" | "failed">("idle");

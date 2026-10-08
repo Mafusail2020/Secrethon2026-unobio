@@ -14,7 +14,7 @@ const STATUSES: [NodeStatus, string][] = [
 export function GraphLegend({ spec }: { spec: GraphSpec }) {
   const kinds = [...new Set(spec.nodes.map((n) => n.kind))].filter((k) => k in KIND_STYLE || k in spec.kind_colors);
   return (
-    <details className="rounded-lg border border-line bg-white/95 text-xs shadow-sm">
+    <details className="rounded-lg border border-line bg-surface/95 text-xs shadow-sm">
       <summary className="cursor-pointer px-2 py-1 font-medium">Legend</summary>
       <div className="max-w-64 space-y-2 border-t border-line p-2">
         <ul className="space-y-1">

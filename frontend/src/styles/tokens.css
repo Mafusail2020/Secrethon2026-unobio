@@ -1,13 +1,31 @@
 /* unobio.com's palette and fonts (graphite, slate, signal blue, paper, ink) */
 @theme {
-  --color-canvas: #f1ede4;
-  --color-ink: rgb(29, 29, 31);
-  --color-muted: rgb(110, 110, 115);
-  --color-line: #d8d2c5;
+  --color-canvas: #e5e9f3;
+  --color-surface: #f6f7fb;
+  --color-ink: #0b1130;
+  --color-muted: #4d5573;
+  --color-line: #cdd4e6;
   --color-navy: #04081a;
-  --color-brand: rgb(0, 113, 227);
+  --color-brand: #2f55b5;
+  --color-royal: #34489f;
+  --color-slate-50: #f2f4f9;
+  --color-slate-100: #e7eaf3;
+  --color-slate-200: #d5dae9;
+  --color-slate-300: #b9c1d8;
+  --color-slate-400: #7a86a8;
+  --color-slate-500: #505a82;
+  --color-slate-600: #414b73;
+  --color-slate-700: #313a5e;
+  --color-slate-800: #212946;
+  --color-slate-900: #121830;
   --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, ui-serif, serif;
+}
+
+/* where a jump lands: just under the report's sticky header (ReportView sets --report-header) */
+@utility report-anchor {
+  scroll-margin-top: calc(var(--report-header, 8rem) + 0.5rem);
 }
 
 body {

@@ -11,6 +11,6 @@ export function WhatChanged({ report, onJumpSection }: { report: UnderwritingRep
   const before = useReportOf(parentId);
   if (!parentId) return null;
   if (diff.isPending || before.isPending) return <div className="h-24 animate-pulse rounded-lg bg-line/40" aria-busy="true" aria-label="Loading what changed" />;
-  if (diff.error || !diff.data) return <p className="rounded-lg border border-line bg-white p-3 text-sm text-muted">Could not load what changed against the previous version.</p>;
+  if (diff.error || !diff.data) return <p className="rounded-lg border border-line bg-surface p-3 text-sm text-muted">Could not load what changed against the previous version.</p>;
   return <DiffSummaryFull view={buildDiffView(diff.data, before.data, report)} onJumpClaim={jumpToClaim} onJumpSection={onJumpSection} />;
 }

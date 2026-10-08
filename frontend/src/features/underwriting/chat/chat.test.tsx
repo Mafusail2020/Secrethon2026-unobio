@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import eventsRaw from "../../../../../contracts/fixtures/events_bace1_alzheimers.jsonl?raw";
 import graphSpecJson from "../../../../../contracts/fixtures/graph_spec.json";
-import type { GraphSpec, RunEvent, RunSummary } from "../../../api/types";
+import type { ChatMessage, GraphSpec, RunEvent, RunSummary } from "../../../api/types";
 import { applyEvent, initialStream } from "../reduceEvents";
 import { Composer } from "./Composer";
 import { ExampleCards } from "./ExampleCards";
@@ -105,5 +105,47 @@ describe("run thread", () => {
 
   it("shows how long a finished run took", () => {
     expect(thread()).toMatch(/Analysis complete \(23 steps\) · \d/);
+  });
+
+  it("keeps the step list folded and shows only what is being worked on", () => {
+    const running = html(
+      <RunThread run={run} spec={spec} stream={events.slice(0, 3).reduce(applyEvent, initialStream)} decision={undefined} report={undefined} onOpenReport={() => {}} onReconnect={() => {}} />,
+    );
+    expect(running).toContain('aria-expanded="false"');
+    expect(running).toMatch(/<div id="work-trace" hidden=""/);
+    expect(running).toContain("Understand the program: Input resolver");
+    expect(running).toContain("Show steps");
+  });
+
+  it("draws the summary as a Markdown briefing with numbered citations and a list of the claims cited", () => {
+    const message = {
+      role: "assistant",
+      run_id: "r1",
+      content: "## Verdict\n\n**Conditional** call [[c2]] and more [[c1]].\n\n- first risk [[c2]]\n- <b>not html</b>\n\n### Detail\n\nBody.",
+      cited_claim_ids: ["c2", "c1"],
+    } as ChatMessage;
+    const markup = html(
+      <RunThread run={run} spec={spec} stream={events.reduce(applyEvent, initialStream)} decision="conditional" report={undefined} summary={{ message, pending: false, failed: false, retry: () => {} }} onOpenReport={() => {}} onReconnect={() => {}} />,
+    );
+    expect(markup).toMatch(/<h2[^>]*>Verdict<\/h2>/);
+    expect(markup).toMatch(/<h3[^>]*>Detail<\/h3>/);
+    expect(markup).toContain("<strong");
+    expect(markup).toMatch(/<li>first risk/);
+    // c2 is cited first, so it is number 1; the marks themselves never show
+    expect(markup).toMatch(/aria-label="Open claim 1"[^>]*>1<\/button>/);
+    expect(markup).toMatch(/aria-label="Open claim 2"[^>]*>2<\/button>/);
+    expect(markup).not.toContain("[[");
+    expect(markup).toContain("Claims cited (2)");
+    expect(markup).not.toContain("<b>"); // raw HTML from the model is shown as text, never rendered
+  });
+
+  it("says when the summary is being written or could not be", () => {
+    const stream = events.reduce(applyEvent, initialStream);
+    const view = (summary: { message: ChatMessage | undefined; pending: boolean; failed: boolean }) =>
+      html(<RunThread run={run} spec={spec} stream={stream} decision="conditional" report={undefined} summary={{ ...summary, retry: () => {} }} onOpenReport={() => {}} onReconnect={() => {}} />);
+    expect(view({ message: undefined, pending: true, failed: false })).toContain("Writing the summary");
+    const failed = view({ message: undefined, pending: false, failed: true });
+    expect(failed).toContain("Could not write the summary");
+    expect(failed).toContain("Try again");
   });
 });

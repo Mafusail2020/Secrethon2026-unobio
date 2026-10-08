@@ -1,0 +1,43 @@
+@import "dockview-react/dist/styles/dockview.css";
+
+/* the dock in the workspace's own colours; only variables, dockview does the rest */
+.dockview-theme-uw {
+  color-scheme: light;
+  --dv-group-view-background-color: var(--color-canvas);
+  --dv-tabs-and-actions-container-background-color: var(--color-surface);
+  --dv-tabs-and-actions-container-height: 36px;
+  --dv-tabs-and-actions-container-font-size: 13px;
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-canvas);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-surface);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-canvas);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-surface);
+  --dv-tab-divider-color: var(--color-line);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-ink);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-muted);
+  --dv-separator-border: var(--color-line);
+  --dv-paneview-active-outline-color: var(--color-brand);
+  --dv-sash-color: var(--color-line);
+  --dv-active-sash-color: var(--color-brand);
+  --dv-drag-over-background-color: color-mix(in srgb, var(--color-brand) 16%, transparent);
+  --dv-drag-over-border-color: var(--color-brand);
+  --dv-edge-dock-indicator-color: color-mix(in srgb, var(--color-brand) 85%, transparent);
+  --dv-icon-hover-background-color: color-mix(in srgb, var(--color-brand) 14%, transparent);
+  --dv-scrollbar-background-color: var(--color-line);
+  --dv-tabs-container-scrollbar-color: var(--color-line);
+  --dv-tab-border-radius: 0px;
+  --dv-floating-box-shadow: 0 10px 30px rgba(11, 17, 48, 0.18), 0 2px 8px rgba(11, 17, 48, 0.1);
+  --dv-floating-border: 1px solid var(--color-line);
+  --dv-floating-titlebar-height: 28px;
+}
+
+/* a tab is a view's name: keep it readable and use the workspace font */
+.dockview-theme-uw .dv-tab {
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+.dockview-theme-uw .dv-tab:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+}

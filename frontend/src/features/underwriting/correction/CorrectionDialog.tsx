@@ -32,7 +32,7 @@ export function CorrectionDialog({
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && onClose()}
       aria-label={`Correct ${seed.node.label}`}
-      className="m-auto w-[min(32rem,92vw)] rounded-xl border border-line bg-white p-4 shadow-xl backdrop:bg-black/30"
+      className="m-auto w-[min(32rem,92vw)] rounded-xl border border-line bg-surface p-4 shadow-xl backdrop:bg-black/30"
     >
       <div className="mb-2 flex justify-end">
         <button type="button" onClick={onClose} aria-label="close" className="text-muted hover:text-ink">

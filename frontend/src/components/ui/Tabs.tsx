@@ -44,7 +44,7 @@ export function Tabs<T extends string>({
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className={variant === "underline" ? "flex gap-1 border-b border-line bg-white px-3" : "mt-2 flex gap-1"}
+      className={variant === "underline" ? "flex gap-1 border-b border-line bg-surface px-3" : "mt-2 flex gap-1"}
     >
       {tabs.map((tab) => {
         const selected = tab.id === active;

@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import reportJson from "../../../../../contracts/fixtures/report_bace1_alzheimers.json";
 import { ApiError } from "../../../api/client";
 import type { ChatMessage, UnderwritingReport } from "../../../api/types";
-import { FollowUp } from "./FollowUp";
+import { FollowUpInput, FollowUpMessages } from "./FollowUp";
+import { useFollowUp } from "./useFollowUp";
 
 const report = reportJson as unknown as UnderwritingReport;
 const claimId = Object.keys(report.claims)[0];
@@ -22,11 +23,21 @@ let root: Root;
 let host: HTMLElement;
 const flush = () => act(async () => void (await new Promise((r) => setTimeout(r, 0))));
 
-async function mount(onOpenClaim = vi.fn()) {
+function Harness({ ready, onOpenClaim }: { ready: boolean; onOpenClaim: (id: string) => void }) {
+  const follow = useFollowUp("r1", ready);
+  return (
+    <>
+      <FollowUpMessages follow={follow} report={report} onOpenClaim={onOpenClaim} />
+      <FollowUpInput follow={follow} ready={ready} />
+    </>
+  );
+}
+
+async function mount(ready = true, onOpenClaim = vi.fn()) {
   await act(async () => {
     root.render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <FollowUp runId="r1" report={report} onOpenClaim={onOpenClaim} />
+        <Harness ready={ready} onOpenClaim={onOpenClaim} />
       </QueryClientProvider>,
     );
   });
@@ -34,11 +45,12 @@ async function mount(onOpenClaim = vi.fn()) {
   return onOpenClaim;
 }
 
+const box = () => host.querySelector("textarea") as HTMLTextAreaElement;
+
 async function ask(text: string) {
-  const input = host.querySelector("input") as HTMLInputElement;
   await act(async () => {
-    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, text);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(box(), text);
+    box().dispatchEvent(new Event("input", { bubbles: true }));
   });
   await act(async () => host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
   await flush();
@@ -76,7 +88,28 @@ describe("follow-up chat", () => {
     expect(api.postMessage).toHaveBeenCalledWith("r1", expect.objectContaining({ role: "user", content: "What about safety?" }));
     expect(host.textContent).toContain("What about safety?");
     expect(host.textContent).toContain("Grounded answer.");
-    expect((host.querySelector("input") as HTMLInputElement).value).toBe("");
+    expect(box().value).toBe("");
+  });
+
+  it("sends on Enter and keeps Shift+Enter for a new line", async () => {
+    api.postMessage.mockResolvedValue({ role: "assistant", content: "ok", run_id: "r1", cited_claim_ids: [] });
+    await mount();
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(box(), "line one");
+      box().dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => void box().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true, cancelable: true })));
+    expect(api.postMessage).not.toHaveBeenCalled();
+    await act(async () => void box().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })));
+    await flush();
+    expect(api.postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays closed, and says why, until the analysis is complete", async () => {
+    await mount(false);
+    expect(box().disabled).toBe(true);
+    expect(box().placeholder).toContain("open when the analysis completes");
+    expect(api.getMessages).not.toHaveBeenCalled();
   });
 
   it("locks the input with a clear note when the question limit is reached", async () => {
@@ -84,7 +117,7 @@ describe("follow-up chat", () => {
     await mount();
     await ask("one more");
     expect(host.querySelector('[role="status"]')?.textContent).toContain("question limit");
-    expect((host.querySelector("input") as HTMLInputElement).disabled).toBe(true);
+    expect(box().disabled).toBe(true);
   });
 
   it("shows other errors without locking the input", async () => {
@@ -92,6 +125,6 @@ describe("follow-up chat", () => {
     await mount();
     await ask("hello");
     expect(host.querySelector('[role="alert"]')?.textContent).toContain("try again");
-    expect((host.querySelector("input") as HTMLInputElement).disabled).toBe(false);
+    expect(box().disabled).toBe(false);
   });
 });

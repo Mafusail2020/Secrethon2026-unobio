@@ -153,6 +153,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
 | GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
 | GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
+| POST | `/runs/{id}/summary` | the plain-language read-out of a completed run (`ChatMessage` with cited claim ids). Written once and stored in `run_summaries`; asking again returns the same text. 409 until the run completed |
 | GET | `/runs/{id}/messages` | chat history of the run, oldest first |
 | POST | `/runs/{id}/messages` | follow-up question (`role: user`, 1–2000 chars); returns the assistant `ChatMessage`. 409 until the run completed, 422 on a bad message, 429 after `MAX_CHAT_QUESTIONS`, 502 `chat_failed` if the model reply is unreadable |
 
@@ -165,6 +166,14 @@ data; the system prompt says to use only the report text. `gate_answer` drops ci
 answer marked supported with no valid citation is replaced by a fixed refusal, so the chat never states what it cannot tie
 to a claim. In `mock` mode the answer is canned from the verdict's reason claims. Live calls are logged to `llm_calls` with
 node id `chat`, so they count in the trace and cost.
+
+`summary.py` writes the briefing that sits under a finished run: a compact Markdown report of 400 to 650 words (Verdict, Why this
+call, What the report found with one subsection per report section, Funding to the next milestone, Risks and unknowns, What
+to do next). Each statement carries inline `[[claim_id]]` marks. The gate strikes marks whose id is not a usable claim, numbers
+the rest by first use (`cited_claim_ids` is that order), and a briefing that cites nothing real is replaced by
+`template_summary`, which composes the same structure from the report's own verdict, sections, valuation, risks and
+diligence questions with no model call. One model call per run, logged under node id `summary`. The frontend asks for it when
+the run completes; the endpoint is idempotent, so a reload shows the stored text.
 
 ## 7. Effort and panel [1b]
 
@@ -184,7 +193,7 @@ Panel never applies to data, processing or quant nodes. In 1b panel is an interf
 
 SQLite at `backend/data/app.db` via SQLAlchemy 2 async, `create_all` at startup, no migrations. Tables: `runs` (with
 report JSON), `run_events`, `node_executions` (compact output for the UI plus the full state delta for replay),
-`corrections`, `chat_messages`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
+`corrections`, `chat_messages`, `run_summaries`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
 real stores; until then `store/fakes.py` keeps them in memory (so `/evidence/{id}` only knows evidence from the running
 process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
 
@@ -194,13 +203,26 @@ The header, footer and home page are a copy of unobio.com (`frontend/src/unobio/
 compiled CSS scoped under one `.ub-site` class so it cannot clash with our Tailwind, its fonts and images, its
 server-rendered markup converted to JSX, and a port of its three behaviours (scroll reveal, hero parallax, header blur
 after scrolling). Every link and button is inert (no `href`); the exceptions are "Gravity" in the header, which opens
-`/underwriting`, and the header logo, which goes home. The chat page sits between the copied header and footer. The copied
+`/underwriting`, and the header logo, which goes home. The chat page has the copied header and no footer (`GravityShell`), so the workspace fills the viewport; only the home page shows the footer. The copied
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 
-The workspace (`features/underwriting/`) has a chat side and an artifact side. The chat shows the run as pipeline phases
-(`phases.ts` groups the 23 steps into eight collapsible blocks), live model usage, a verdict card, run history grouped by
-correction lineage, and a follow-up input backed by the chat endpoints (history is loaded per run; a 429 locks it with a note). The artifact
+The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
+lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
+`Composer`, example pills) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
+blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
+evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the briefing
+(`SummaryBlock`: Markdown through `react-markdown`, raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
+open the claim, and a "Claims cited" list) and a compact verdict card follow, then the follow-up thread (`FollowUpMessages`) with its reply box
+(`FollowUpInput`) docked at the bottom; both read `useFollowUp`, which is backed by the chat endpoints (history is loaded
+per run; a 429 locks the box with a note). `TopBar` has toggle buttons for the four views. Each view is a panel of a dock (`dock/`, on `dockview-react`): the reader can
+drag a tab to reorder it, drop it on the edge of another panel to split beside or under it, or float it, and drag the bar
+between the conversation and the dock to resize (arrow keys work on the bar too). The views read the run through
+`ViewDataContext`; `ViewContent` draws the content of one view with no frame. On a run page the arrangement is saved to
+localStorage (`uw.dock.v1`, read back only if `parseLayout` finds it names our four views) and restored on the next run;
+below 1280 px the dock covers the conversation. A correction or a version switch passes the view to open in router state.
+Printing hides every group but the one holding the report (`print.css`). The graph refits when its panel changes size,
+until the reader pans or zooms. The report view
 is the report as a document (sticky verdict, section navigator, a "What changed" banner for corrected runs, claim cards with
 evidence, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print), the graph (kind
 colours, follow mode, a tabbed step drawer, highlighting of what a correction would recompute), sources and logs. Pure

@@ -28,7 +28,7 @@ export function TranslationStepper({ chain }: { chain: TranslationLink[] }) {
   const claims = (open ? byStep.get(open)?.claim_ids : [])?.flatMap((id) => (report.claims[id] ? [report.claims[id]] : [])) ?? [];
 
   return (
-    <section className="rounded-lg border border-line bg-white p-3" aria-labelledby="chain-h">
+    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="chain-h">
       <h3 id="chain-h" className="text-sm font-semibold">
         Will it work in humans? The translation chain
       </h3>

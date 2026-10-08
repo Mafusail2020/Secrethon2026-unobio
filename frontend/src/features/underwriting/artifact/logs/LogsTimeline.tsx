@@ -8,12 +8,12 @@ const TYPE_STYLE: Record<string, string> = {
   "node.failed": "text-red-600",
   "run.failed": "text-red-600",
   "node.skipped": "text-amber-600",
-  "node.reused": "text-violet-600",
+  "node.reused": "text-brand",
   "run.completed": "text-emerald-600",
   "node.completed": "text-emerald-600",
 };
 
-const field = "rounded border border-line bg-white px-1.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand";
+const field = "rounded border border-line bg-surface px-1.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand";
 
 function Row({ event, first }: { event: RunEvent; first: string | undefined }) {
   const level = eventLevel(event);
@@ -60,7 +60,7 @@ export function LogsTimeline({ events, runId }: { events: RunEvent[]; runId: str
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-line bg-white px-4 py-2 text-xs" role="search" aria-label="Filter log">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-line bg-surface px-4 py-2 text-xs" role="search" aria-label="Filter log">
         <label className="flex items-center gap-1">
           Step
           <select className={field} value={filters.node} onChange={(e) => setFilters({ ...filters, node: e.target.value })}>

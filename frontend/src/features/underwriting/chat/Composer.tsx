@@ -4,11 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { getApi } from "../../../api/client";
 import { useHealth, useModels } from "../../../api/hooks";
 import type { CreateRunRequest, ProgramInput, RunOptions } from "../../../api/types";
-import { Badge } from "../../../components/ui/Badge";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
-import { Segmented, type SegmentOption } from "../../../components/ui/Segmented";
+import { ArrowUpIcon, PlusIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
-import { priceLabel } from "../../../lib/format";
 import { readPref, writePref } from "../../../lib/storage";
 import { fieldErrors } from "./fieldErrors";
 
@@ -35,7 +33,13 @@ const STAGES = [
 
 type Effort = NonNullable<RunOptions["effort"]>;
 
-const EFFORTS: SegmentOption<Effort>[] = [
+interface EffortOption {
+  value: Effort;
+  label: string;
+  hint: string;
+}
+
+const EFFORTS: EffortOption[] = [
   { value: "low", label: "Low", hint: "Quick pass: fewer sources and queries." },
   { value: "medium", label: "Medium", hint: "Balanced default." },
   { value: "high", label: "High", hint: "Deeper retrieval, and a stronger model tier when one is available." },
@@ -111,8 +115,10 @@ function toRequest(form: FormState): CreateRunRequest {
 }
 
 const input =
-  "w-full rounded-md border border-line bg-white px-2.5 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand aria-[invalid=true]:border-red-400";
-const label = "mb-1 block text-xs font-medium text-muted";
+  "w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand aria-[invalid=true]:border-red-400";
+const bigInput =
+  "uw-bare w-full bg-transparent text-lg placeholder:text-muted/60 aria-[invalid=true]:text-red-700";
+const label = "mb-0.5 block text-xs font-medium text-muted";
 
 function Field({
   id,
@@ -143,7 +149,37 @@ function Field({
   );
 }
 
-/** Chat-style input card. Mount with a `key` to refill it from an example. */
+function EffortPicker({ value, onChange }: { value: Effort; onChange: (value: Effort) => void }) {
+  const name = useId();
+  return (
+    <fieldset>
+      <legend className="sr-only">Effort</legend>
+      <div className="flex rounded-full bg-slate-100 p-0.5">
+        {EFFORTS.map((option) => (
+          <label
+            key={option.value}
+            title={option.hint}
+            className={`cursor-pointer rounded-full px-3 py-1 text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
+              option.value === value ? "bg-surface font-medium shadow-sm" : "text-muted hover:text-ink"
+            }`}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={option.value === value}
+              onChange={() => onChange(option.value)}
+              className="sr-only"
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** The big input card of a new chat. Mount with a `key` to refill it from an example. */
 export function Composer({ initial }: { initial?: { indication: string; mechanism: string } }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -151,6 +187,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
   const maxPanel = useHealth().data?.max_panel_size;
   const uid = useId();
   const [form, setForm] = useState<FormState>(() => initialState(initial));
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
@@ -166,7 +203,6 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
 
   const { fields: errors, general } = create.error ? fieldErrors(create.error) : { fields: {}, general: undefined };
   const list = models.data ?? [];
-  const chosen = list.find((m) => m.id === form.model) ?? list.find((m) => m.default);
   // a remembered model that is gone or unavailable falls back to the default
   const modelValue = list.some((m) => m.id === form.model && m.available) ? form.model : "";
 
@@ -182,38 +218,44 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
   };
 
   return (
-    <form onSubmit={submit} onKeyDown={onKeyDown} className="space-y-3 rounded-xl border border-line bg-white p-3 shadow-sm">
-      <Field id={`${uid}-indication`} name="indication" title="Indication" errors={errors}>
-        {(p) => (
-          <input
-            {...p}
-            required
-            autoFocus
-            className={input}
-            value={form.indication}
-            onChange={(e) => set("indication", e.target.value)}
-            placeholder="Alzheimer's disease"
-          />
-        )}
-      </Field>
-      <Field id={`${uid}-mechanism`} name="mechanism" title="Mechanism or target" errors={errors}>
-        {(p) => (
-          <input
-            {...p}
-            required
-            className={input}
-            value={form.mechanism}
-            onChange={(e) => set("mechanism", e.target.value)}
-            placeholder="BACE1 inhibition"
-          />
-        )}
-      </Field>
+    <form
+      onSubmit={submit}
+      onKeyDown={onKeyDown}
+      className="rounded-lg border border-line bg-surface shadow-lg shadow-royal/5 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20"
+    >
+      <div className="px-5 pt-4">
+        <Field id={`${uid}-indication`} name="indication" title="Indication" errors={errors}>
+          {(p) => (
+            <input
+              {...p}
+              required
+              autoFocus
+              className={bigInput}
+              value={form.indication}
+              onChange={(e) => set("indication", e.target.value)}
+              placeholder="Alzheimer's disease"
+            />
+          )}
+        </Field>
+      </div>
+      <div className="mx-5 mt-2 border-t border-line/70" />
+      <div className="px-5 pt-3">
+        <Field id={`${uid}-mechanism`} name="mechanism" title="Mechanism or target" errors={errors}>
+          {(p) => (
+            <input
+              {...p}
+              required
+              className={bigInput}
+              value={form.mechanism}
+              onChange={(e) => set("mechanism", e.target.value)}
+              placeholder="BACE1 inhibition"
+            />
+          )}
+        </Field>
+      </div>
 
-      <details className="group rounded-md border border-line">
-        <summary className="cursor-pointer select-none px-2.5 py-1.5 text-sm text-muted group-open:text-ink">
-          Add details
-        </summary>
-        <div className="grid grid-cols-2 gap-2 border-t border-line p-2.5">
+      {detailsOpen && (
+        <div id={`${uid}-details`} className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
           <Field id={`${uid}-drug`} name="drug_name" title="Drug name" errors={errors}>
             {(p) => <input {...p} className={input} value={form.drug_name} onChange={(e) => set("drug_name", e.target.value)} />}
           </Field>
@@ -265,70 +307,74 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
             </Field>
           </div>
         </div>
-      </details>
-
-      <Segmented label="Effort" options={EFFORTS} value={form.effort} onChange={(v) => set("effort", v)} />
-
-      {form.effort === "panel" && (
-        <Field id={`${uid}-panel`} name="panel_size" title="Panel size" errors={errors}>
-          {(p) => (
-            <input
-              {...p}
-              type="number"
-              min={2}
-              max={maxPanel}
-              title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
-              className={`${input} w-24`}
-              value={form.panel_size}
-              onChange={(e) => set("panel_size", Number(e.target.value))}
-            />
-          )}
-        </Field>
       )}
 
-      <div>
-        <label className={label} htmlFor={`${uid}-model`}>
-          Model
-        </label>
-        <select
-          id={`${uid}-model`}
-          className={input}
-          value={modelValue}
-          onChange={(e) => set("model", e.target.value)}
-        >
-          <option value="">Cheapest available</option>
-          {list.map((m) => (
-            <option key={m.id} value={m.id} disabled={!m.available}>
-              {m.label}
-              {m.available ? "" : " (unavailable)"}
-            </option>
-          ))}
-        </select>
-        {models.isError && <p className="mt-1 text-xs text-amber-700">Could not load the model list; the cheapest available model will be used.</p>}
-        {chosen && (
-          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted">
-            <Badge className="border-line text-muted">{chosen.tier}</Badge>
-            {priceLabel(chosen.price_in_per_mtok, chosen.price_out_per_mtok)}
-          </p>
-        )}
-      </div>
+      {general && (
+        <div className="px-4 pt-3">
+          <ErrorBox error={new Error(general)} title="Could not start the run" />
+        </div>
+      )}
 
-      {general && <ErrorBox error={new Error(general)} title="Could not start the run" />}
-
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted">
-          <kbd className="rounded border border-line px-1">⌘</kbd>
-          <kbd className="ml-0.5 rounded border border-line px-1">Enter</kbd> to run
-        </span>
+      <div className="flex flex-wrap items-center gap-2 px-3 pb-3 pt-3">
         <button
-          type="submit"
-          disabled={create.isPending}
-          className="inline-flex items-center gap-2 rounded-full bg-navy px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
+          type="button"
+          onClick={() => setDetailsOpen((o) => !o)}
+          aria-expanded={detailsOpen}
+          aria-controls={`${uid}-details`}
+          className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm text-muted hover:border-brand hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >
-          {create.isPending && <Spinner className="h-3 w-3" />}
-          Underwrite
+          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform" : "transition-transform"} />
+          Add details
         </button>
+        <EffortPicker value={form.effort} onChange={(v) => set("effort", v)} />
+        {form.effort === "panel" && (
+          <div className="flex items-center gap-1.5">
+            <Field id={`${uid}-panel`} name="panel_size" title="Panel size" errors={errors}>
+              {(p) => (
+                <input
+                  {...p}
+                  type="number"
+                  min={2}
+                  max={maxPanel}
+                  title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
+                  className={`${input} w-20`}
+                  value={form.panel_size}
+                  onChange={(e) => set("panel_size", Number(e.target.value))}
+                />
+              )}
+            </Field>
+          </div>
+        )}
+        <div className="ml-auto flex items-center gap-1.5">
+          <select
+            aria-label="Model"
+            className="max-w-[11rem] truncate rounded-full bg-transparent py-1.5 pl-2 pr-1 text-sm text-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+            value={modelValue}
+            onChange={(e) => set("model", e.target.value)}
+          >
+            <option value="">Cheapest available</option>
+            {list.map((m) => (
+              <option key={m.id} value={m.id} disabled={!m.available}>
+                {m.label}
+                {m.available ? "" : " (unavailable)"}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            aria-label="Underwrite"
+            title="Underwrite (⌘ Enter)"
+            disabled={create.isPending}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
+          >
+            {create.isPending ? <Spinner className="h-4 w-4" /> : <ArrowUpIcon />}
+          </button>
+        </div>
       </div>
+
+      {models.isError && (
+        <p className="px-5 pb-3 text-xs text-amber-700">Could not load the model list; the cheapest available model will be used.</p>
+      )}
     </form>
   );
 }
