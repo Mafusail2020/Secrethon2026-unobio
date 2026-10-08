@@ -4,6 +4,7 @@ import reportJson from "../../../../contracts/fixtures/report_bace1_alzheimers.j
 import { affectedSet, runnableNodes } from "../../features/underwriting/graphUtils";
 import { ApiError, type Api, type StreamState } from "../client";
 import type {
+  ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
   GraphSpec,
@@ -35,6 +36,7 @@ interface MockRun {
   reused: Set<string>;
   scenario?: Scenario;
   report?: UnderwritingReport;
+  chat: ChatMessage[];
 }
 
 const runs = new Map<string, MockRun>();
@@ -154,6 +156,7 @@ function create(body: CreateRunRequest, parent?: MockRun, correction?: MockRun["
       error: null,
     } as RunSummary,
     events: [],
+    chat: [],
     listeners: new Set(),
     scenario: parent?.scenario ?? scenarioFromSearch(window.location.search),
     corrections: [...(parent?.corrections ?? []), ...(correction ? [correction] : [])],
@@ -287,17 +290,22 @@ export const mockApi: Api = {
     if (!evidence || !source) throw new ApiError(404, "evidence_not_found", `no evidence ${evidenceId}`);
     return wait({ evidence, source });
   },
+  getMessages: (runId) => wait([...need(runId).chat]),
   postMessage: (runId, message) => {
-    const report = need(runId).report;
-    if (!report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    const run = need(runId);
+    if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    const question = message.content.trim();
+    if (!question) throw new ApiError(422, "validation_error", "send a question");
     // canned: point at the claims behind the verdict, which is what a real answer would cite
-    const cited = report.verdict.reason_codes.flatMap((r) => r.claim_ids).slice(0, 3);
-    return wait({
+    const cited = run.report.verdict.reason_codes.flatMap((r) => r.claim_ids).slice(0, 3);
+    const reply: ChatMessage = {
       role: "assistant",
       run_id: runId,
-      content: `Mock reply to "${message.content.slice(0, 80)}". The claims below are the ones the verdict rests on.`,
+      content: `Mock reply to "${question.slice(0, 80)}". The claims below are the ones the verdict rests on.`,
       cited_claim_ids: cited,
-    });
+    };
+    run.chat.push({ role: "user", content: question, run_id: runId, cited_claim_ids: [] }, reply);
+    return wait(reply);
   },
   subscribe(runId, onEvent, onState) {
     const run = need(runId);

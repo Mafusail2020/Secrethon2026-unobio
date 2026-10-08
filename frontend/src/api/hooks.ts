@@ -51,3 +51,10 @@ export const useDiff = (parentId: string | null | undefined, runId: string, read
     enabled: !!parentId && ready,
     retry: false,
   });
+
+export const useMessages = (runId: string) =>
+  useQuery({
+    queryKey: ["messages", runId],
+    queryFn: async () => (await getApi()).getMessages(runId),
+    retry: false,
+  });
