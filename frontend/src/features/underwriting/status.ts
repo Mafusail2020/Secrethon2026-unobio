@@ -6,7 +6,7 @@ export const STATUS_CLASS: Record<NodeStatus, string> = {
   done: "border-emerald-500 bg-surface",
   failed: "border-red-500 bg-red-50",
   skipped: "border-amber-500 bg-amber-50",
-  reused: "border-brand/60 border-dashed bg-brand/10",
+  reused: "border-brand/60 border-dashed bg-surface",
 };
 
 export const STATUS_ICON: Record<NodeStatus, string> = {
