@@ -143,3 +143,32 @@ async def test_interrupted_runs_get_a_terminal_event_on_startup(services):
     assert (await services.runs.get("run_stuck")).status == "failed"
     events = await services.events.after("run_stuck", 0)
     assert [e.type for e in events] == ["run.started", "run.failed"]
+
+
+async def test_ledger_steps_carry_pos_after_and_the_last_one_is_the_posterior(services):
+    report = await services.runs.get_report(await _run(services))
+    ledger = report.ledger
+    assert ledger and all(s.pos_after for s in ledger.steps)
+    assert ledger.steps[-1].pos_after == ledger.posterior == report.pos
+
+
+async def test_twin_sources_are_in_the_report_even_when_their_evidence_is_excluded(services):
+    from app.contracts import CorrectionRequest
+    from app.graph.lifecycle import create_correction_run
+
+    parent = await _run(services)
+    parent_report = await services.runs.get_report(parent)
+    trial_evidence = [
+        e.id for e in parent_report.evidence.values() if e.data and e.data.get("nct_id")
+    ]
+    child = await create_correction_run(
+        services,
+        parent,
+        "fetch_trials",
+        CorrectionRequest(text="ignore", exclude_evidence_ids=trial_evidence),
+    )
+    await run_to_end(services, child.id)
+    report = await services.runs.get_report(child.id)
+    assert not set(trial_evidence) & set(report.evidence)
+    twin_sources = {i for t in report.twin_stats.twins for i in t.source_ids}
+    assert twin_sources and twin_sources <= set(report.sources)
