@@ -64,20 +64,24 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
         aria-pressed={data.selected}
         aria-label={`${data.subtitle ? `${data.subtitle} ` : ""}${data.spec.label}, ${data.status}. Open details`}
         style={{ width: data.compact ? PANELIST_W : NODE_W, height: data.compact ? PANELIST_H : NODE_H, borderLeftColor: data.color }}
-        className={`flex flex-col justify-center gap-0.5 rounded-md border border-l-4 px-2.5 text-left text-xs shadow-sm transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
+        className={`flex flex-col items-center justify-center gap-0.5 rounded-md border border-l-4 px-2.5 text-center text-xs shadow-sm transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.selected ? "outline outline-2 outline-offset-2 outline-brand" : ""
         } ${data.affected ? "ring-2 ring-brand ring-offset-1" : ""} ${data.dim ? "opacity-30" : ""} ${
           data.entering || data.exiting ? "pointer-events-none scale-75 opacity-0" : ""
         }`}
       >
         <Handle type="target" position={Position.Top} className="!opacity-0" />
-        <span className="flex items-center gap-1">
+        <span className="flex max-w-full items-center justify-center gap-1">
           <span className={STATUS_TEXT[data.status]} aria-hidden="true">
             {STATUS_ICON[data.status]}
           </span>
-          <span className="truncate text-[13px] font-medium leading-tight" title={data.spec.label}>{data.spec.label}</span>
+          <span className="min-w-0 truncate text-[13px] font-medium leading-tight" title={data.spec.label}>{data.spec.label}</span>
+          {/* as wide as the status icon, so the name itself sits at the centre of the box */}
+          <span className="invisible" aria-hidden="true">
+            {STATUS_ICON[data.status]}
+          </span>
         </span>
-        {!data.compact && <span className="block truncate text-[10.5px] leading-tight text-muted">{meta}</span>}
+        {!data.compact && <span className="block max-w-full truncate text-[10.5px] leading-tight text-muted">{meta}</span>}
         <Handle type="source" position={Position.Bottom} className="!opacity-0" />
       </button>
       <div
@@ -153,21 +157,24 @@ export function PhaseGroupNodeView({ data }: NodeProps<PhaseFlowNode>) {
         aria-expanded={false}
         aria-label={`${data.group.label}, ${data.status}, ${data.done} of ${data.total} steps done. Show the steps`}
         style={{ width: GROUP_W, height: GROUP_H, borderLeftColor: data.color }}
-        className={`flex cursor-pointer flex-col justify-center rounded-md border border-l-4 px-2.5 text-left text-xs shadow-[3px_3px_0_-1px_var(--color-line),6px_6px_0_-2px_var(--color-line)] transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
+        className={`relative flex cursor-pointer flex-col items-center justify-center rounded-md border border-l-4 px-6 text-center text-xs shadow-[3px_3px_0_-1px_var(--color-line),6px_6px_0_-2px_var(--color-line)] transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.affected ? "ring-2 ring-brand ring-offset-1" : ""
         } ${data.dim ? "opacity-30" : ""} ${gone ? "pointer-events-none scale-90 opacity-0" : ""}`}
       >
         <Handle type="target" position={Position.Top} className="!opacity-0" />
-        <span className="flex items-center gap-1.5">
+        <span className="flex max-w-full items-center justify-center gap-1.5">
           <span className={STATUS_TEXT[data.status]} aria-hidden="true">
             {STATUS_ICON[data.status]}
           </span>
-          <span className="truncate text-[0.8rem] font-semibold">{data.group.label}</span>
-          <span className="ml-auto text-muted" aria-hidden="true">
-            ▸
+          <span className="min-w-0 truncate text-[0.8rem] font-semibold">{data.group.label}</span>
+          <span className="invisible" aria-hidden="true">
+            {STATUS_ICON[data.status]}
           </span>
         </span>
-        <span className="block truncate text-[10px] text-muted">
+        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true">
+          ▸
+        </span>
+        <span className="block max-w-full truncate text-[10px] text-muted">
           {data.done}/{data.total} steps
           {data.running.length ? ` · running ${data.running.join(", ")}` : ""}
         </span>

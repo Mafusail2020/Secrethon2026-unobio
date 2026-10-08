@@ -6,7 +6,7 @@ import { baseId, isPanelist } from "./panel";
 
 export const NODE_W = 196;
 export const NODE_H = 50;
-export const GROUP_W = 244;
+export const GROUP_W = 268;
 export const GROUP_H = 68;
 /** an analyst of a panel is a small step: its answer is the aggregator's to show */
 export const PANELIST_W = 112;

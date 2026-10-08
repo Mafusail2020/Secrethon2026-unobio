@@ -38,6 +38,11 @@ export function phaseGroups(spec: GraphSpec): PhaseGroup[] {
   });
 }
 
+/** The groups folded before and open after: what a click or a button just unfolded. */
+export function unfoldedGroups(groups: PhaseGroup[], before: ReadonlySet<string>, after: ReadonlySet<string>): string[] {
+  return groups.filter((g) => before.has(g.id) && !after.has(g.id)).map((g) => g.id);
+}
+
 export interface VisibleGraph {
   /** what is drawn as a node: a step, or a folded group standing in for its steps */
   nodes: { id: string; group?: PhaseGroup }[];

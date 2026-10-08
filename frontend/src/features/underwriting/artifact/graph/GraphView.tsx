@@ -6,7 +6,7 @@ import { readPref, writePref } from "../../../../lib/storage";
 import { containerIds } from "../../graphUtils";
 import type { RunStream } from "../../reduceEvents";
 import { GraphLegend } from "./GraphLegend";
-import { isGroupId, phaseGroups, visibleGraph, type PhaseGroup } from "./groups";
+import { isGroupId, phaseGroups, unfoldedGroups, visibleGraph, type PhaseGroup } from "./groups";
 import { kindColor } from "./kindStyle";
 import { GROUP_H, GROUP_W, NODE_H, NODE_W, PANELIST_H, PANELIST_W, layoutGraph, roundedPath, type Pos } from "./layout";
 import { baseId, isPanelist } from "./panel";
@@ -77,18 +77,28 @@ function FitOnResize({ touched }: { touched: RefObject<boolean> }) {
   return null;
 }
 
-/** Brings the whole graph back into view, smoothly, after groups fold or unfold (unless the reader has taken the camera). */
-function FitOnRegroup({ layoutKey, ready, touched }: { layoutKey: string; ready: boolean; touched: RefObject<boolean> }) {
+/**
+ * Moves the camera after groups fold or unfold. A group that was just unfolded is centred in view; otherwise the whole
+ * graph is brought back, unless the reader has taken the camera.
+ */
+function FitOnRegroup({ layoutKey, ready, touched, focus, onFocused }: { layoutKey: string; ready: boolean; touched: RefObject<boolean>; focus: string | undefined; onFocused: () => void }) {
   const { fitView } = useReactFlow();
   const done = useRef(layoutKey);
   useEffect(() => {
     // `ready`: the steps have left the group's position, so the bounds being fitted are the real ones
     if (!ready || done.current === layoutKey) return;
     done.current = layoutKey;
-    if (touched.current) return;
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    void fitView({ ...FIT, duration: calm ? 0 : SETTLE_MS - 60 });
-  }, [layoutKey, ready, fitView, touched]);
+    const duration = calm ? 0 : SETTLE_MS - 60;
+    if (focus) {
+      // the reader just opened this group to look inside it; from here the camera is theirs, so a resize leaves it alone
+      onFocused();
+      void fitView({ ...FIT, nodes: [{ id: `outline:${focus}` }], maxZoom: 1.1, duration });
+      return;
+    }
+    if (touched.current) return;
+    void fitView({ ...FIT, duration });
+  }, [layoutKey, ready, focus, fitView, touched, onFocused]);
   return null;
 }
 
@@ -121,6 +131,9 @@ export function GraphView({
   const [follow, setFollow] = useState(false);
   const touched = useRef(false);
   const gesture = useRef<{ x: number; y: number; zoom: number } | undefined>(undefined);
+  const takeCamera = useCallback(() => {
+    touched.current = true;
+  }, []);
 
   // The dissolve. Steps coming out of a group start at the box (and invisible), then move to their places; steps going
   // into one are drawn at the box while they fade; the old box stays for a moment and fades. Positions animate by CSS.
@@ -129,6 +142,8 @@ export function GraphView({
   const [ghosts, setGhosts] = useState<Record<string, Pos>>({});
   const [epoch, setEpoch] = useState(0);
   const [settling, setSettling] = useState(false);
+  // the one group a regroup just opened: the camera goes to it
+  const [focus, setFocus] = useState<string | undefined>();
   const regroup = useCallback(
     (next: ReadonlySet<string>, byButton = false) => {
       const before = drawing;
@@ -152,6 +167,8 @@ export function GraphView({
         }
       }
       if (byButton) touched.current = false;
+      const opened = unfoldedGroups(groups, collapsed, next);
+      setFocus(opened.length === 1 ? opened[0] : undefined);
       setSpawn(nextSpawn);
       setLeaving(nextLeaving);
       setGhosts(nextGhosts);
@@ -428,7 +445,7 @@ export function GraphView({
     >
       <Background />
       <FitOnResize touched={touched} />
-      <FitOnRegroup layoutKey={[...collapsed].sort().join(",")} ready={Object.keys(spawn).length === 0} touched={touched} />
+      <FitOnRegroup layoutKey={[...collapsed].sort().join(",")} ready={Object.keys(spawn).length === 0} touched={touched} focus={focus} onFocused={takeCamera} />
       <Controls showInteractive={false} />
       <Panel position="top-left">
         <div className="flex flex-wrap items-start gap-1.5">

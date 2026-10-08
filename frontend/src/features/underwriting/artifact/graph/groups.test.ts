@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import graphSpecJson from "../../../../../../contracts/fixtures/graph_spec.json";
 import type { GraphSpec } from "../../../../api/types";
-import { phaseGroups, visibleGraph } from "./groups";
+import { phaseGroups, unfoldedGroups, visibleGraph } from "./groups";
 import { layoutGraph } from "./layout";
 
 const spec = graphSpecJson as GraphSpec;
@@ -19,6 +19,15 @@ describe("phaseGroups", () => {
     ]);
     expect(groups.find((g) => g.phase === "cases")!.containers.sort()).toEqual(["bear_case", "bull_case"]);
     expect(groups.find((g) => g.phase === "fetch")!.label).toBe("Gather public evidence");
+  });
+});
+
+describe("unfoldedGroups", () => {
+  it("names the groups that went from folded to open, and only those", () => {
+    expect(unfoldedGroups(groups, all, new Set([...all].filter((id) => id !== "group:assess")))).toEqual(["group:assess"]);
+    expect(unfoldedGroups(groups, all, new Set())).toEqual(groups.map((g) => g.id));
+    expect(unfoldedGroups(groups, new Set(), all)).toEqual([]);
+    expect(unfoldedGroups(groups, all, all)).toEqual([]);
   });
 });
 
