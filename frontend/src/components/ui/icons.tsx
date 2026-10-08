@@ -73,10 +73,3 @@ export const ChevronDownIcon = (p: IconProps) => (
     <path d="m6 9 6 6 6-6" />
   </svg>
 );
-
-/** The eight-point burst used as the workspace mark. */
-export const SparkIcon = (p: IconProps) => (
-  <svg viewBox="0 0 24 24" width={20} height={20} fill="currentColor" aria-hidden="true" {...p}>
-    <path d="M12 1.5c.6 4.7 1.1 5.7 2.4 7.1 1.4 1.3 2.4 1.8 7.1 2.4-4.7.6-5.7 1.1-7.1 2.4-1.3 1.4-1.8 2.4-2.4 7.1-.6-4.7-1.1-5.7-2.4-7.1-1.4-1.3-2.4-1.8-7.1-2.4 4.7-.6 5.7-1.1 7.1-2.4C10.9 7.2 11.4 6.2 12 1.5Z" />
-  </svg>
-);
