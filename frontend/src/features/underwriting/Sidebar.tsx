@@ -41,7 +41,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
       </div>
 
       <h2 className="px-5 pb-1 pt-2 text-xs font-medium text-muted">Recents</h2>
-      <div className="min-h-0 flex-1 overflow-auto px-3 pb-3">
+      <div className="uw-scroll-quiet min-h-0 flex-1 overflow-auto px-3 pb-3">
         {runs.isPending && (
           <div className="space-y-2 px-1" aria-busy="true" aria-label="Loading earlier underwritings">
             {[0, 1, 2].map((i) => (

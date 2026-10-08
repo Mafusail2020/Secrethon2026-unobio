@@ -31,3 +31,22 @@
     backdrop-filter: none;
   }
 }
+
+/* The history list scrolls over the glyph field: a track of its own would be a pale strip down the edge, so it has none
+   and the thumb is a faint pill. */
+.uw-scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(77 85 115 / 0.32) transparent;
+}
+.uw-scroll-quiet::-webkit-scrollbar {
+  width: 10px;
+}
+.uw-scroll-quiet::-webkit-scrollbar-track {
+  background: transparent;
+}
+.uw-scroll-quiet::-webkit-scrollbar-thumb {
+  background: rgb(77 85 115 / 0.32);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
