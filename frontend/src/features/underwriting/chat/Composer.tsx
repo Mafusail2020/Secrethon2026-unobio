@@ -69,11 +69,11 @@ interface FormState {
   panel_size: number;
 }
 
-function initialState(initial?: { indication: string; mechanism: string }): FormState {
+function initialState(): FormState {
   const stored = readPref(PREF_EFFORT);
   return {
-    indication: initial?.indication ?? "",
-    mechanism: initial?.mechanism ?? "",
+    indication: "",
+    mechanism: "",
     drug_name: "",
     modality: "",
     stage: "",
@@ -179,14 +179,14 @@ function EffortPicker({ value, onChange }: { value: Effort; onChange: (value: Ef
   );
 }
 
-/** The big input card of a new chat. Mount with a `key` to refill it from an example. */
-export function Composer({ initial }: { initial?: { indication: string; mechanism: string } }) {
+/** The big input card of a new chat. */
+export function Composer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const models = useModels();
   const maxPanel = useHealth().data?.max_panel_size;
   const uid = useId();
-  const [form, setForm] = useState<FormState>(() => initialState(initial));
+  const [form, setForm] = useState<FormState>(initialState);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));

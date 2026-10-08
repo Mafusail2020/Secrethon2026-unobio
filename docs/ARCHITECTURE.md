@@ -209,7 +209,7 @@ Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is no
 
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
-`Composer`, example pills) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
+`Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
 blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
 evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the briefing
 (`SummaryBlock`: Markdown through `react-markdown`, raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
