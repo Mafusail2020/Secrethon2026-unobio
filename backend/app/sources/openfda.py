@@ -18,6 +18,13 @@ def _query(name: str) -> str:
     return f"(openfda.generic_name:{quoted} OR openfda.brand_name:{quoted})"
 
 
+def faers_search(name: str) -> str:
+    return 'patient.drug.openfda.generic_name:"' + name.replace('"', "") + '"'
+
+
+FAERS_COUNT = "patient.reaction.reactionmeddrapt.exact"
+
+
 def flatten_label(r: dict[str, Any]) -> dict[str, Any]:
     ofda = r.get("openfda") or {}
     return {
@@ -73,3 +80,14 @@ class OpenFDAClient(HttpSource):
             force_refresh=force_refresh,
         )
         return [flatten_application(r) for r in (body or {}).get("results", [])]
+
+    async def adverse_events(
+        self, drug_name: str, *, limit: int = 10, force_refresh: bool = False
+    ) -> list[dict[str, Any]]:
+        """Most reported reactions in FAERS for a generic name: [{term, count}]."""
+        body = await self.get_json(
+            "drug/event.json",
+            {"search": faers_search(drug_name), "count": FAERS_COUNT, "limit": limit},
+            force_refresh=force_refresh,
+        )
+        return [r for r in (body or {}).get("results", []) if r.get("term")]
