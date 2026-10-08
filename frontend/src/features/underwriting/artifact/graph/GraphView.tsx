@@ -1,4 +1,4 @@
-import { Background, Controls, MarkerType, Panel, ReactFlow, useReactFlow, useStore, type Edge, type Node } from "@xyflow/react";
+import { Background, Controls, MarkerType, Panel, ReactFlow, useReactFlow, useStore, type Node } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { GraphSpec, NodeStatus } from "../../../../api/types";
@@ -8,7 +8,7 @@ import type { RunStream } from "../../reduceEvents";
 import { GraphLegend } from "./GraphLegend";
 import { isGroupId, phaseGroups, visibleGraph, type PhaseGroup } from "./groups";
 import { kindColor } from "./kindStyle";
-import { NODE_H, NODE_W, layoutGraph, type Pos } from "./layout";
+import { GROUP_H, GROUP_W, NODE_H, NODE_W, layoutGraph, roundedPath, type Pos } from "./layout";
 import {
   ContainerNodeView,
   OutlineNodeView,
@@ -19,7 +19,10 @@ import {
   type PhaseFlowNode,
   type SpecFlowNode,
 } from "./SpecNodes";
+import { WireEdge } from "./WireEdge";
+import { WIRE_COLOR, wireState, type WireFlowEdge } from "./wires";
 
+const edgeTypes = { wire: WireEdge };
 const nodeTypes = { spec: SpecNodeView, container: ContainerNodeView, phase: PhaseGroupNodeView, outline: OutlineNodeView };
 
 const PREF_GROUPS = "uw.graphCollapsed";
@@ -233,6 +236,9 @@ export function GraphView({
             affected,
             w: box.w,
             h: box.h,
+            labelX: box.labelX,
+            labelW: box.labelW,
+            gate: box.gate,
           },
         };
         push(flow);
@@ -253,6 +259,9 @@ export function GraphView({
             status: groupStatus(group.members.map(statusOf)),
             w: box.w,
             h: box.h,
+            labelX: box.labelX,
+            labelW: box.labelW,
+            gate: box.gate,
             dim: !!lit && !affected,
             affected,
           },
@@ -296,8 +305,8 @@ export function GraphView({
         id: group.id,
         type: "phase",
         position: { x: at.x, y: at.y },
-        width: 236,
-        height: 66,
+        width: GROUP_W,
+        height: GROUP_H,
         zIndex: hovered === group.id ? 1000 : 0,
         draggable: false,
         data: {
@@ -331,26 +340,33 @@ export function GraphView({
     return out.sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0));
   }, [drawing, spec, groups, spawn, ghosts, leaving, viewKey, sourceKey, highlightKey, selected, hovered]);
 
-  const edges = useMemo<Edge[]>(() => {
+  const edges = useMemo<WireFlowEdge[]>(() => {
     const views = JSON.parse(viewKey) as Record<string, NodeView>;
     const lit = highlightKey ? new Set(highlightKey.split(",")) : undefined;
     const litReps = lit ? new Set([...lit].map(visible.repOf)) : undefined;
-    const running = (id: string) =>
-      isGroupId(id) ? groups.find((g) => g.id === id)!.members.some((m) => views[m]?.[0] === "running") : views[id]?.[0] === "running";
-    return visible.edges.map((e) => ({
-      id: `${e.source}->${e.target}`,
-      source: e.source,
-      target: e.target,
-      animated: running(e.target),
-      markerEnd: { type: MarkerType.ArrowClosed },
-      style: {
-        stroke: "#94a3b8",
-        // while boxes move the lines would run ahead of them, so they come back once everything has settled
-        opacity: settling ? 0 : litReps && !(litReps.has(e.source) && litReps.has(e.target)) ? 0.2 : 1,
-        transition: "opacity 250ms",
-      },
-    }));
-  }, [visible, groups, viewKey, highlightKey, settling]);
+    const statusOf = (id: string): NodeStatus => {
+      const group = isGroupId(id) ? groups.find((g) => g.id === id) : undefined;
+      return group ? groupStatus(group.members.map((m) => views[m]?.[0] ?? "pending")) : (views[id]?.[0] ?? "pending");
+    };
+    return drawing.wires.map((w) => {
+      const state = wireState(statusOf(w.source), statusOf(w.target));
+      return {
+        id: w.id,
+        type: "wire",
+        source: w.source,
+        target: w.target,
+        selectable: false,
+        focusable: false,
+        data: { path: w.paths.map((p) => roundedPath(p)).join(" "), state },
+        markerEnd: { type: MarkerType.ArrowClosed, color: WIRE_COLOR[state], width: 14, height: 14 },
+        style: {
+          // while boxes move the lines would run ahead of them, so they come back once everything has settled
+          opacity: settling ? 0 : litReps && !(litReps.has(w.source) && litReps.has(w.target)) ? 0.2 : 1,
+          transition: "opacity 250ms",
+        },
+      };
+    });
+  }, [drawing, visible, groups, viewKey, highlightKey, settling]);
 
   const runningId = spec.nodes.find((n) => stream.nodes[n.id]?.status === "running" && !containers.has(n.id))?.id;
   const runningRep = runningId ? visible.repOf(runningId) : undefined;
@@ -364,6 +380,7 @@ export function GraphView({
       nodes={flowNodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       onNodeClick={(event, node) => {
         if (node.type === "spec" || node.type === "container") return onSelect(node.id);
         const group = groups.find((g) => g.id === node.id || `outline:${g.id}` === node.id);

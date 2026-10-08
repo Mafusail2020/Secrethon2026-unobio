@@ -1,0 +1,22 @@
+/* wires: grey while waiting, inked once the step before them is done, flowing while the step after them runs */
+.uw-graph .uw-wire {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 300ms;
+}
+.uw-graph .uw-wire-pending { stroke: #8793b3; stroke-width: 1.5; }
+.uw-graph .uw-wire-done { stroke: #34489f; stroke-width: 1.75; }
+.uw-graph .uw-wire-reused { stroke: #5b7bd0; stroke-width: 1.5; stroke-dasharray: 3 4; }
+.uw-graph .uw-wire-failed { stroke: #dc2626; stroke-width: 1.75; }
+.uw-graph .uw-wire-active {
+  stroke: #2f55b5;
+  stroke-width: 2;
+  stroke-dasharray: 7 6;
+  animation: uw-wire-flow 900ms linear infinite;
+}
+@keyframes uw-wire-flow { to { stroke-dashoffset: -26; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .uw-graph .uw-wire-active { animation: none; }
+}
