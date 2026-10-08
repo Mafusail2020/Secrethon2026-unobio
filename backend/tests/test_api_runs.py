@@ -75,7 +75,7 @@ def test_run_lifecycle_endpoints(client: TestClient):
     run_id = start(client)
     detail = wait(client, run_id)
     assert detail.summary.status == "completed" and detail.summary.decision == "conditional"
-    assert detail.report is not None and len(detail.nodes) == 23
+    assert detail.report is not None and len(detail.nodes) == 32
     assert all(n.log == [] and n.llm_calls == [] for n in detail.nodes)  # compact list
 
     assert [r.id for r in map(RunSummary.model_validate, client.get("/api/runs").json())] == [
@@ -132,12 +132,12 @@ def test_correction_creates_child_run_and_diff(client: TestClient):
     done = wait(client, child.id)
     assert done.summary.decision == "do_not_invest"
     assert {n.node_id for n in done.nodes if n.status == "done"} == {"verdict", "report_assembler"}
-    assert sum(n.status == "reused" for n in done.nodes) == 21
+    assert sum(n.status == "reused" for n in done.nodes) == 30
 
     diff = ReportDiff.model_validate(client.get(f"/api/runs/{parent}/diff/{child.id}").json())
     assert (diff.decision_before, diff.decision_after) == ("conditional", "do_not_invest")
     events = sse(client, child.id)
-    assert sum(e.type == "node.reused" for e in events) == 21
+    assert sum(e.type == "node.reused" for e in events) == 30
 
     bad = client.post(f"/api/runs/{parent}/nodes/report_assembler/corrections", json={"text": "x"})
     assert bad.status_code == 422 and bad.json()["error"]["code"] == "node_not_correctable"
@@ -164,7 +164,7 @@ def test_trace_is_a_complete_download(client: TestClient):
     trace = json.loads(response.content)
     assert trace["run"]["id"] == run_id and trace["lineage"] == [run_id]
     assert trace["events"][-1]["type"] == "run.completed"
-    assert len(trace["nodes"]) == 23 and trace["llm_calls"]
+    assert len(trace["nodes"]) == 32 and trace["llm_calls"]
 
 
 def test_models_are_listed_with_one_default(client: TestClient):

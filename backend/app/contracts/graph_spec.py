@@ -4,8 +4,21 @@ from pydantic import Field
 
 from app.contracts.common import Contract
 
-NodeKind = Literal["data", "processing", "knowledge", "quant", "bull", "bear", "analysis", "output"]
-Phase = Literal["resolve", "plan", "fetch", "index", "cases", "analyse", "quant", "report"]
+NodeKind = Literal[
+    "data",
+    "processing",
+    "knowledge",
+    "quant",
+    "bull",
+    "bear",
+    "efficacy",
+    "safety",
+    "analysis",
+    "output",
+]
+Phase = Literal[
+    "resolve", "plan", "fetch", "index", "assess", "cases", "analyse", "quant", "report"
+]
 
 
 class NodeSpec(Contract):

@@ -12,92 +12,132 @@
 {"seq":12,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:04.800000Z","type":"node.started","node_id":"fetch_trials","data":{}}
 {"seq":13,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:05.200000Z","type":"node.started","node_id":"fetch_literature","data":{}}
 {"seq":14,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:05.600000Z","type":"node.started","node_id":"fetch_regulatory","data":{}}
-{"seq":15,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:06Z","type":"node.started","node_id":"ingest_user_input","data":{}}
-{"seq":16,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:06.400000Z","type":"node.started","node_id":"twin_stats","data":{}}
-{"seq":17,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:06.800000Z","type":"node.log","node_id":"fetch_opentargets","data":{"level":"info","message":"FIXTURE: fetch_opentargets started"}}
-{"seq":18,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:07.200000Z","type":"node.log","node_id":"fetch_opentargets","data":{"level":"info","message":"FIXTURE: fetch_opentargets finished"}}
-{"seq":19,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:07.600000Z","type":"node.log","node_id":"fetch_trials","data":{"level":"info","message":"FIXTURE: fetch_trials started"}}
-{"seq":20,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:08Z","type":"node.log","node_id":"fetch_trials","data":{"level":"info","message":"FIXTURE: fetch_trials finished"}}
-{"seq":21,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:08.400000Z","type":"node.log","node_id":"fetch_literature","data":{"level":"info","message":"FIXTURE: fetch_literature started"}}
-{"seq":22,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:08.800000Z","type":"node.log","node_id":"fetch_literature","data":{"level":"info","message":"FIXTURE: fetch_literature finished"}}
-{"seq":23,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:09.200000Z","type":"node.log","node_id":"fetch_regulatory","data":{"level":"info","message":"FIXTURE: fetch_regulatory started"}}
-{"seq":24,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:09.600000Z","type":"node.log","node_id":"fetch_regulatory","data":{"level":"info","message":"FIXTURE: fetch_regulatory finished"}}
-{"seq":25,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:10Z","type":"node.log","node_id":"ingest_user_input","data":{"level":"info","message":"FIXTURE: ingest_user_input started"}}
-{"seq":26,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:10.400000Z","type":"node.log","node_id":"ingest_user_input","data":{"level":"info","message":"FIXTURE: ingest_user_input finished"}}
-{"seq":27,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:10.800000Z","type":"node.log","node_id":"twin_stats","data":{"level":"info","message":"FIXTURE: twin_stats started"}}
-{"seq":28,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:11.200000Z","type":"node.log","node_id":"twin_stats","data":{"level":"info","message":"FIXTURE: twin_stats finished"}}
-{"seq":29,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:11.600000Z","type":"node.completed","node_id":"fetch_opentargets","data":{"duration_ms":400,"output":{}}}
-{"seq":30,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:12Z","type":"node.completed","node_id":"fetch_trials","data":{"duration_ms":400,"output":{}}}
-{"seq":31,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:12.400000Z","type":"node.completed","node_id":"fetch_literature","data":{"duration_ms":400,"output":{}}}
-{"seq":32,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:12.800000Z","type":"node.completed","node_id":"fetch_regulatory","data":{"duration_ms":400,"output":{}}}
-{"seq":33,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:13.200000Z","type":"node.completed","node_id":"ingest_user_input","data":{"duration_ms":400,"output":{}}}
-{"seq":34,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:13.600000Z","type":"node.completed","node_id":"twin_stats","data":{"duration_ms":400,"output":{}}}
-{"seq":35,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:14Z","type":"node.started","node_id":"evidence_normalizer","data":{}}
-{"seq":36,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:14.400000Z","type":"node.log","node_id":"evidence_normalizer","data":{"level":"info","message":"FIXTURE: evidence_normalizer started"}}
-{"seq":37,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:14.800000Z","type":"node.log","node_id":"evidence_normalizer","data":{"level":"info","message":"FIXTURE: evidence_normalizer finished"}}
-{"seq":38,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:15.200000Z","type":"node.completed","node_id":"evidence_normalizer","data":{"duration_ms":400,"output":{}}}
-{"seq":39,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:15.600000Z","type":"node.started","node_id":"knowledge_indexer","data":{}}
-{"seq":40,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:16Z","type":"node.log","node_id":"knowledge_indexer","data":{"level":"info","message":"FIXTURE: knowledge_indexer started"}}
-{"seq":41,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:16.400000Z","type":"llm.call","node_id":"knowledge_indexer","data":{"model":"mock","purpose":"knowledge_indexer.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":42,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:16.800000Z","type":"node.log","node_id":"knowledge_indexer","data":{"level":"info","message":"FIXTURE: knowledge_indexer finished"}}
-{"seq":43,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:17.200000Z","type":"node.completed","node_id":"knowledge_indexer","data":{"duration_ms":400,"output":{}}}
-{"seq":44,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:17.600000Z","type":"node.started","node_id":"bull_query_planner","data":{}}
-{"seq":45,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:18Z","type":"node.started","node_id":"bear_query_planner","data":{}}
-{"seq":46,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:18.400000Z","type":"node.log","node_id":"bull_query_planner","data":{"level":"info","message":"FIXTURE: bull_query_planner started"}}
-{"seq":47,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:18.800000Z","type":"llm.call","node_id":"bull_query_planner","data":{"model":"mock","purpose":"bull_query_planner.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":48,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:19.200000Z","type":"node.log","node_id":"bull_query_planner","data":{"level":"info","message":"FIXTURE: bull_query_planner finished"}}
-{"seq":49,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:19.600000Z","type":"node.log","node_id":"bear_query_planner","data":{"level":"info","message":"FIXTURE: bear_query_planner started"}}
-{"seq":50,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:20Z","type":"llm.call","node_id":"bear_query_planner","data":{"model":"mock","purpose":"bear_query_planner.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":51,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:20.400000Z","type":"node.log","node_id":"bear_query_planner","data":{"level":"info","message":"FIXTURE: bear_query_planner finished"}}
-{"seq":52,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:20.800000Z","type":"node.completed","node_id":"bull_query_planner","data":{"duration_ms":400,"output":{}}}
-{"seq":53,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:21.200000Z","type":"node.completed","node_id":"bear_query_planner","data":{"duration_ms":400,"output":{}}}
-{"seq":54,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:21.600000Z","type":"node.started","node_id":"bull_retriever","data":{}}
-{"seq":55,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:22Z","type":"node.started","node_id":"bear_retriever","data":{}}
-{"seq":56,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:22.400000Z","type":"node.log","node_id":"bull_retriever","data":{"level":"info","message":"FIXTURE: bull_retriever started"}}
-{"seq":57,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:22.800000Z","type":"llm.call","node_id":"bull_retriever","data":{"model":"mock","purpose":"bull_retriever.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":58,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:23.200000Z","type":"node.log","node_id":"bull_retriever","data":{"level":"info","message":"FIXTURE: bull_retriever finished"}}
-{"seq":59,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:23.600000Z","type":"node.log","node_id":"bear_retriever","data":{"level":"info","message":"FIXTURE: bear_retriever started"}}
-{"seq":60,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:24Z","type":"llm.call","node_id":"bear_retriever","data":{"model":"mock","purpose":"bear_retriever.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":61,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:24.400000Z","type":"node.log","node_id":"bear_retriever","data":{"level":"info","message":"FIXTURE: bear_retriever finished"}}
-{"seq":62,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:24.800000Z","type":"node.completed","node_id":"bull_retriever","data":{"duration_ms":400,"output":{}}}
-{"seq":63,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:25.200000Z","type":"node.completed","node_id":"bear_retriever","data":{"duration_ms":400,"output":{}}}
-{"seq":64,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:25.600000Z","type":"node.started","node_id":"bull_claim_writer","data":{}}
-{"seq":65,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:26Z","type":"node.started","node_id":"bear_claim_writer","data":{}}
-{"seq":66,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:26.400000Z","type":"node.log","node_id":"bull_claim_writer","data":{"level":"info","message":"FIXTURE: bull_claim_writer started"}}
-{"seq":67,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:26.800000Z","type":"llm.call","node_id":"bull_claim_writer","data":{"model":"mock","purpose":"bull_claim_writer.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":68,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:27.200000Z","type":"node.log","node_id":"bull_claim_writer","data":{"level":"info","message":"FIXTURE: bull_claim_writer finished"}}
-{"seq":69,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:27.600000Z","type":"node.log","node_id":"bear_claim_writer","data":{"level":"info","message":"FIXTURE: bear_claim_writer started"}}
-{"seq":70,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:28Z","type":"llm.call","node_id":"bear_claim_writer","data":{"model":"mock","purpose":"bear_claim_writer.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":71,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:28.400000Z","type":"node.log","node_id":"bear_claim_writer","data":{"level":"info","message":"FIXTURE: bear_claim_writer finished"}}
-{"seq":72,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:28.800000Z","type":"node.completed","node_id":"bull_claim_writer","data":{"duration_ms":400,"output":{}}}
-{"seq":73,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:29.200000Z","type":"node.completed","node_id":"bear_claim_writer","data":{"duration_ms":400,"output":{}}}
-{"seq":74,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:29.600000Z","type":"node.started","node_id":"bull_claim_gate","data":{}}
-{"seq":75,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:30Z","type":"node.started","node_id":"bear_claim_gate","data":{}}
-{"seq":76,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:30.400000Z","type":"node.log","node_id":"bull_claim_gate","data":{"level":"info","message":"FIXTURE: bull_claim_gate started"}}
-{"seq":77,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:30.800000Z","type":"node.log","node_id":"bull_claim_gate","data":{"level":"info","message":"FIXTURE: bull_claim_gate finished"}}
-{"seq":78,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:31.200000Z","type":"node.log","node_id":"bear_claim_gate","data":{"level":"info","message":"FIXTURE: bear_claim_gate started"}}
-{"seq":79,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:31.600000Z","type":"node.log","node_id":"bear_claim_gate","data":{"level":"info","message":"FIXTURE: bear_claim_gate finished"}}
-{"seq":80,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:32Z","type":"node.completed","node_id":"bull_claim_gate","data":{"duration_ms":400,"output":{}}}
-{"seq":81,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:32.400000Z","type":"node.completed","node_id":"bear_claim_gate","data":{"duration_ms":400,"output":{}}}
-{"seq":82,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:32.800000Z","type":"node.started","node_id":"section_analysts","data":{}}
-{"seq":83,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:33.200000Z","type":"node.log","node_id":"section_analysts","data":{"level":"info","message":"FIXTURE: section_analysts started"}}
-{"seq":84,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:33.600000Z","type":"llm.call","node_id":"section_analysts","data":{"model":"mock","purpose":"section_analysts.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
-{"seq":85,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:34Z","type":"node.log","node_id":"section_analysts","data":{"level":"info","message":"FIXTURE: section_analysts finished"}}
-{"seq":86,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:34.400000Z","type":"node.completed","node_id":"section_analysts","data":{"duration_ms":400,"output":{}}}
-{"seq":87,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:34.800000Z","type":"node.started","node_id":"evidence_ledger","data":{}}
-{"seq":88,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:35.200000Z","type":"node.log","node_id":"evidence_ledger","data":{"level":"info","message":"FIXTURE: evidence_ledger started"}}
-{"seq":89,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:35.600000Z","type":"node.log","node_id":"evidence_ledger","data":{"level":"info","message":"FIXTURE: evidence_ledger finished"}}
-{"seq":90,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:36Z","type":"node.completed","node_id":"evidence_ledger","data":{"duration_ms":400,"output":{}}}
-{"seq":91,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:36.400000Z","type":"node.started","node_id":"valuation","data":{}}
-{"seq":92,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:36.800000Z","type":"node.log","node_id":"valuation","data":{"level":"info","message":"FIXTURE: valuation started"}}
-{"seq":93,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:37.200000Z","type":"node.log","node_id":"valuation","data":{"level":"info","message":"FIXTURE: valuation finished"}}
-{"seq":94,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:37.600000Z","type":"node.completed","node_id":"valuation","data":{"duration_ms":400,"output":{}}}
-{"seq":95,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:38Z","type":"node.started","node_id":"verdict","data":{}}
-{"seq":96,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:38.400000Z","type":"node.log","node_id":"verdict","data":{"level":"info","message":"FIXTURE: verdict started"}}
-{"seq":97,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:38.800000Z","type":"node.log","node_id":"verdict","data":{"level":"info","message":"FIXTURE: verdict finished"}}
-{"seq":98,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:39.200000Z","type":"node.completed","node_id":"verdict","data":{"duration_ms":400,"output":{}}}
-{"seq":99,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:39.600000Z","type":"node.started","node_id":"report_assembler","data":{}}
-{"seq":100,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:40Z","type":"node.log","node_id":"report_assembler","data":{"level":"info","message":"FIXTURE: report_assembler started"}}
-{"seq":101,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:40.400000Z","type":"node.log","node_id":"report_assembler","data":{"level":"info","message":"FIXTURE: report_assembler finished"}}
-{"seq":102,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:40.800000Z","type":"node.completed","node_id":"report_assembler","data":{"duration_ms":400,"output":{}}}
-{"seq":103,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:41.200000Z","type":"run.completed","node_id":null,"data":{"decision":"conditional"}}
+{"seq":15,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:06Z","type":"node.started","node_id":"fetch_safety","data":{}}
+{"seq":16,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:06.400000Z","type":"node.started","node_id":"ingest_user_input","data":{}}
+{"seq":17,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:06.800000Z","type":"node.started","node_id":"twin_stats","data":{}}
+{"seq":18,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:07.200000Z","type":"node.log","node_id":"fetch_opentargets","data":{"level":"info","message":"FIXTURE: fetch_opentargets started"}}
+{"seq":19,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:07.600000Z","type":"node.log","node_id":"fetch_opentargets","data":{"level":"info","message":"FIXTURE: fetch_opentargets finished"}}
+{"seq":20,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:08Z","type":"node.log","node_id":"fetch_trials","data":{"level":"info","message":"FIXTURE: fetch_trials started"}}
+{"seq":21,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:08.400000Z","type":"node.log","node_id":"fetch_trials","data":{"level":"info","message":"FIXTURE: fetch_trials finished"}}
+{"seq":22,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:08.800000Z","type":"node.log","node_id":"fetch_literature","data":{"level":"info","message":"FIXTURE: fetch_literature started"}}
+{"seq":23,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:09.200000Z","type":"node.log","node_id":"fetch_literature","data":{"level":"info","message":"FIXTURE: fetch_literature finished"}}
+{"seq":24,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:09.600000Z","type":"node.log","node_id":"fetch_regulatory","data":{"level":"info","message":"FIXTURE: fetch_regulatory started"}}
+{"seq":25,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:10Z","type":"node.log","node_id":"fetch_regulatory","data":{"level":"info","message":"FIXTURE: fetch_regulatory finished"}}
+{"seq":26,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:10.400000Z","type":"node.log","node_id":"fetch_safety","data":{"level":"info","message":"FIXTURE: fetch_safety started"}}
+{"seq":27,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:10.800000Z","type":"node.log","node_id":"fetch_safety","data":{"level":"info","message":"FIXTURE: fetch_safety finished"}}
+{"seq":28,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:11.200000Z","type":"node.log","node_id":"ingest_user_input","data":{"level":"info","message":"FIXTURE: ingest_user_input started"}}
+{"seq":29,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:11.600000Z","type":"node.log","node_id":"ingest_user_input","data":{"level":"info","message":"FIXTURE: ingest_user_input finished"}}
+{"seq":30,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:12Z","type":"node.log","node_id":"twin_stats","data":{"level":"info","message":"FIXTURE: twin_stats started"}}
+{"seq":31,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:12.400000Z","type":"node.log","node_id":"twin_stats","data":{"level":"info","message":"FIXTURE: twin_stats finished"}}
+{"seq":32,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:12.800000Z","type":"node.completed","node_id":"fetch_opentargets","data":{"duration_ms":400,"output":{}}}
+{"seq":33,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:13.200000Z","type":"node.completed","node_id":"fetch_trials","data":{"duration_ms":400,"output":{}}}
+{"seq":34,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:13.600000Z","type":"node.completed","node_id":"fetch_literature","data":{"duration_ms":400,"output":{}}}
+{"seq":35,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:14Z","type":"node.completed","node_id":"fetch_regulatory","data":{"duration_ms":400,"output":{}}}
+{"seq":36,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:14.400000Z","type":"node.completed","node_id":"fetch_safety","data":{"duration_ms":400,"output":{}}}
+{"seq":37,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:14.800000Z","type":"node.completed","node_id":"ingest_user_input","data":{"duration_ms":400,"output":{}}}
+{"seq":38,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:15.200000Z","type":"node.completed","node_id":"twin_stats","data":{"duration_ms":400,"output":{}}}
+{"seq":39,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:15.600000Z","type":"node.started","node_id":"evidence_normalizer","data":{}}
+{"seq":40,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:16Z","type":"node.log","node_id":"evidence_normalizer","data":{"level":"info","message":"FIXTURE: evidence_normalizer started"}}
+{"seq":41,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:16.400000Z","type":"node.log","node_id":"evidence_normalizer","data":{"level":"info","message":"FIXTURE: evidence_normalizer finished"}}
+{"seq":42,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:16.800000Z","type":"node.completed","node_id":"evidence_normalizer","data":{"duration_ms":400,"output":{}}}
+{"seq":43,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:17.200000Z","type":"node.started","node_id":"knowledge_indexer","data":{}}
+{"seq":44,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:17.600000Z","type":"node.log","node_id":"knowledge_indexer","data":{"level":"info","message":"FIXTURE: knowledge_indexer started"}}
+{"seq":45,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:18Z","type":"llm.call","node_id":"knowledge_indexer","data":{"model":"mock","purpose":"knowledge_indexer.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":46,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:18.400000Z","type":"node.log","node_id":"knowledge_indexer","data":{"level":"info","message":"FIXTURE: knowledge_indexer finished"}}
+{"seq":47,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:18.800000Z","type":"node.completed","node_id":"knowledge_indexer","data":{"duration_ms":400,"output":{}}}
+{"seq":48,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:19.200000Z","type":"node.started","node_id":"efficacy_gather","data":{}}
+{"seq":49,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:19.600000Z","type":"node.started","node_id":"safety_gather","data":{}}
+{"seq":50,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:20Z","type":"node.started","node_id":"bull_query_planner","data":{}}
+{"seq":51,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:20.400000Z","type":"node.started","node_id":"bear_query_planner","data":{}}
+{"seq":52,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:20.800000Z","type":"node.log","node_id":"efficacy_gather","data":{"level":"info","message":"FIXTURE: efficacy_gather started"}}
+{"seq":53,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:21.200000Z","type":"llm.call","node_id":"efficacy_gather","data":{"model":"mock","purpose":"efficacy_gather.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":54,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:21.600000Z","type":"node.log","node_id":"efficacy_gather","data":{"level":"info","message":"FIXTURE: efficacy_gather finished"}}
+{"seq":55,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:22Z","type":"node.log","node_id":"safety_gather","data":{"level":"info","message":"FIXTURE: safety_gather started"}}
+{"seq":56,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:22.400000Z","type":"llm.call","node_id":"safety_gather","data":{"model":"mock","purpose":"safety_gather.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":57,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:22.800000Z","type":"node.log","node_id":"safety_gather","data":{"level":"info","message":"FIXTURE: safety_gather finished"}}
+{"seq":58,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:23.200000Z","type":"node.log","node_id":"bull_query_planner","data":{"level":"info","message":"FIXTURE: bull_query_planner started"}}
+{"seq":59,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:23.600000Z","type":"llm.call","node_id":"bull_query_planner","data":{"model":"mock","purpose":"bull_query_planner.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":60,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:24Z","type":"node.log","node_id":"bull_query_planner","data":{"level":"info","message":"FIXTURE: bull_query_planner finished"}}
+{"seq":61,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:24.400000Z","type":"node.log","node_id":"bear_query_planner","data":{"level":"info","message":"FIXTURE: bear_query_planner started"}}
+{"seq":62,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:24.800000Z","type":"llm.call","node_id":"bear_query_planner","data":{"model":"mock","purpose":"bear_query_planner.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":63,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:25.200000Z","type":"node.log","node_id":"bear_query_planner","data":{"level":"info","message":"FIXTURE: bear_query_planner finished"}}
+{"seq":64,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:25.600000Z","type":"node.completed","node_id":"efficacy_gather","data":{"duration_ms":400,"output":{}}}
+{"seq":65,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:26Z","type":"node.completed","node_id":"safety_gather","data":{"duration_ms":400,"output":{}}}
+{"seq":66,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:26.400000Z","type":"node.completed","node_id":"bull_query_planner","data":{"duration_ms":400,"output":{}}}
+{"seq":67,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:26.800000Z","type":"node.completed","node_id":"bear_query_planner","data":{"duration_ms":400,"output":{}}}
+{"seq":68,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:27.200000Z","type":"node.started","node_id":"efficacy_extract","data":{}}
+{"seq":69,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:27.600000Z","type":"node.started","node_id":"safety_extract","data":{}}
+{"seq":70,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:28Z","type":"node.started","node_id":"bull_retriever","data":{}}
+{"seq":71,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:28.400000Z","type":"node.started","node_id":"bear_retriever","data":{}}
+{"seq":72,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:28.800000Z","type":"node.log","node_id":"efficacy_extract","data":{"level":"info","message":"FIXTURE: efficacy_extract started"}}
+{"seq":73,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:29.200000Z","type":"llm.call","node_id":"efficacy_extract","data":{"model":"mock","purpose":"efficacy_extract.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":74,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:29.600000Z","type":"node.log","node_id":"efficacy_extract","data":{"level":"info","message":"FIXTURE: efficacy_extract finished"}}
+{"seq":75,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:30Z","type":"node.log","node_id":"safety_extract","data":{"level":"info","message":"FIXTURE: safety_extract started"}}
+{"seq":76,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:30.400000Z","type":"llm.call","node_id":"safety_extract","data":{"model":"mock","purpose":"safety_extract.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":77,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:30.800000Z","type":"node.log","node_id":"safety_extract","data":{"level":"info","message":"FIXTURE: safety_extract finished"}}
+{"seq":78,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:31.200000Z","type":"node.log","node_id":"bull_retriever","data":{"level":"info","message":"FIXTURE: bull_retriever started"}}
+{"seq":79,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:31.600000Z","type":"llm.call","node_id":"bull_retriever","data":{"model":"mock","purpose":"bull_retriever.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":80,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:32Z","type":"node.log","node_id":"bull_retriever","data":{"level":"info","message":"FIXTURE: bull_retriever finished"}}
+{"seq":81,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:32.400000Z","type":"node.log","node_id":"bear_retriever","data":{"level":"info","message":"FIXTURE: bear_retriever started"}}
+{"seq":82,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:32.800000Z","type":"llm.call","node_id":"bear_retriever","data":{"model":"mock","purpose":"bear_retriever.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":83,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:33.200000Z","type":"node.log","node_id":"bear_retriever","data":{"level":"info","message":"FIXTURE: bear_retriever finished"}}
+{"seq":84,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:33.600000Z","type":"node.completed","node_id":"efficacy_extract","data":{"duration_ms":400,"output":{}}}
+{"seq":85,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:34Z","type":"node.completed","node_id":"safety_extract","data":{"duration_ms":400,"output":{}}}
+{"seq":86,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:34.400000Z","type":"node.completed","node_id":"bull_retriever","data":{"duration_ms":400,"output":{}}}
+{"seq":87,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:34.800000Z","type":"node.completed","node_id":"bear_retriever","data":{"duration_ms":400,"output":{}}}
+{"seq":88,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:35.200000Z","type":"node.started","node_id":"efficacy_gate","data":{}}
+{"seq":89,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:35.600000Z","type":"node.started","node_id":"safety_gate","data":{}}
+{"seq":90,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:36Z","type":"node.started","node_id":"bull_claim_writer","data":{}}
+{"seq":91,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:36.400000Z","type":"node.started","node_id":"bear_claim_writer","data":{}}
+{"seq":92,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:36.800000Z","type":"node.log","node_id":"efficacy_gate","data":{"level":"info","message":"FIXTURE: efficacy_gate started"}}
+{"seq":93,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:37.200000Z","type":"node.log","node_id":"efficacy_gate","data":{"level":"info","message":"FIXTURE: efficacy_gate finished"}}
+{"seq":94,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:37.600000Z","type":"node.log","node_id":"safety_gate","data":{"level":"info","message":"FIXTURE: safety_gate started"}}
+{"seq":95,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:38Z","type":"node.log","node_id":"safety_gate","data":{"level":"info","message":"FIXTURE: safety_gate finished"}}
+{"seq":96,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:38.400000Z","type":"node.log","node_id":"bull_claim_writer","data":{"level":"info","message":"FIXTURE: bull_claim_writer started"}}
+{"seq":97,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:38.800000Z","type":"llm.call","node_id":"bull_claim_writer","data":{"model":"mock","purpose":"bull_claim_writer.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":98,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:39.200000Z","type":"node.log","node_id":"bull_claim_writer","data":{"level":"info","message":"FIXTURE: bull_claim_writer finished"}}
+{"seq":99,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:39.600000Z","type":"node.log","node_id":"bear_claim_writer","data":{"level":"info","message":"FIXTURE: bear_claim_writer started"}}
+{"seq":100,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:40Z","type":"llm.call","node_id":"bear_claim_writer","data":{"model":"mock","purpose":"bear_claim_writer.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":101,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:40.400000Z","type":"node.log","node_id":"bear_claim_writer","data":{"level":"info","message":"FIXTURE: bear_claim_writer finished"}}
+{"seq":102,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:40.800000Z","type":"node.completed","node_id":"efficacy_gate","data":{"duration_ms":400,"output":{}}}
+{"seq":103,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:41.200000Z","type":"node.completed","node_id":"safety_gate","data":{"duration_ms":400,"output":{}}}
+{"seq":104,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:41.600000Z","type":"node.completed","node_id":"bull_claim_writer","data":{"duration_ms":400,"output":{}}}
+{"seq":105,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:42Z","type":"node.completed","node_id":"bear_claim_writer","data":{"duration_ms":400,"output":{}}}
+{"seq":106,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:42.400000Z","type":"node.started","node_id":"efficacy_score","data":{}}
+{"seq":107,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:42.800000Z","type":"node.started","node_id":"safety_score","data":{}}
+{"seq":108,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:43.200000Z","type":"node.started","node_id":"bull_claim_gate","data":{}}
+{"seq":109,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:43.600000Z","type":"node.started","node_id":"bear_claim_gate","data":{}}
+{"seq":110,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:44Z","type":"node.log","node_id":"efficacy_score","data":{"level":"info","message":"FIXTURE: efficacy_score started"}}
+{"seq":111,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:44.400000Z","type":"node.log","node_id":"efficacy_score","data":{"level":"info","message":"FIXTURE: efficacy_score finished"}}
+{"seq":112,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:44.800000Z","type":"node.log","node_id":"safety_score","data":{"level":"info","message":"FIXTURE: safety_score started"}}
+{"seq":113,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:45.200000Z","type":"node.log","node_id":"safety_score","data":{"level":"info","message":"FIXTURE: safety_score finished"}}
+{"seq":114,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:45.600000Z","type":"node.log","node_id":"bull_claim_gate","data":{"level":"info","message":"FIXTURE: bull_claim_gate started"}}
+{"seq":115,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:46Z","type":"node.log","node_id":"bull_claim_gate","data":{"level":"info","message":"FIXTURE: bull_claim_gate finished"}}
+{"seq":116,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:46.400000Z","type":"node.log","node_id":"bear_claim_gate","data":{"level":"info","message":"FIXTURE: bear_claim_gate started"}}
+{"seq":117,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:46.800000Z","type":"node.log","node_id":"bear_claim_gate","data":{"level":"info","message":"FIXTURE: bear_claim_gate finished"}}
+{"seq":118,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:47.200000Z","type":"node.completed","node_id":"efficacy_score","data":{"duration_ms":400,"output":{}}}
+{"seq":119,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:47.600000Z","type":"node.completed","node_id":"safety_score","data":{"duration_ms":400,"output":{}}}
+{"seq":120,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:48Z","type":"node.completed","node_id":"bull_claim_gate","data":{"duration_ms":400,"output":{}}}
+{"seq":121,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:48.400000Z","type":"node.completed","node_id":"bear_claim_gate","data":{"duration_ms":400,"output":{}}}
+{"seq":122,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:48.800000Z","type":"node.started","node_id":"section_analysts","data":{}}
+{"seq":123,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:49.200000Z","type":"node.log","node_id":"section_analysts","data":{"level":"info","message":"FIXTURE: section_analysts started"}}
+{"seq":124,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:49.600000Z","type":"llm.call","node_id":"section_analysts","data":{"model":"mock","purpose":"section_analysts.fixture","tokens_in":0,"tokens_out":0,"cost_usd":null,"cached":false,"latency_ms":0}}
+{"seq":125,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:50Z","type":"node.log","node_id":"section_analysts","data":{"level":"info","message":"FIXTURE: section_analysts finished"}}
+{"seq":126,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:50.400000Z","type":"node.completed","node_id":"section_analysts","data":{"duration_ms":400,"output":{}}}
+{"seq":127,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:50.800000Z","type":"node.started","node_id":"evidence_ledger","data":{}}
+{"seq":128,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:51.200000Z","type":"node.log","node_id":"evidence_ledger","data":{"level":"info","message":"FIXTURE: evidence_ledger started"}}
+{"seq":129,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:51.600000Z","type":"node.log","node_id":"evidence_ledger","data":{"level":"info","message":"FIXTURE: evidence_ledger finished"}}
+{"seq":130,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:52Z","type":"node.completed","node_id":"evidence_ledger","data":{"duration_ms":400,"output":{}}}
+{"seq":131,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:52.400000Z","type":"node.started","node_id":"valuation","data":{}}
+{"seq":132,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:52.800000Z","type":"node.log","node_id":"valuation","data":{"level":"info","message":"FIXTURE: valuation started"}}
+{"seq":133,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:53.200000Z","type":"node.log","node_id":"valuation","data":{"level":"info","message":"FIXTURE: valuation finished"}}
+{"seq":134,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:53.600000Z","type":"node.completed","node_id":"valuation","data":{"duration_ms":400,"output":{}}}
+{"seq":135,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:54Z","type":"node.started","node_id":"verdict","data":{}}
+{"seq":136,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:54.400000Z","type":"node.log","node_id":"verdict","data":{"level":"info","message":"FIXTURE: verdict started"}}
+{"seq":137,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:54.800000Z","type":"node.log","node_id":"verdict","data":{"level":"info","message":"FIXTURE: verdict finished"}}
+{"seq":138,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:55.200000Z","type":"node.completed","node_id":"verdict","data":{"duration_ms":400,"output":{}}}
+{"seq":139,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:55.600000Z","type":"node.started","node_id":"report_assembler","data":{}}
+{"seq":140,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:56Z","type":"node.log","node_id":"report_assembler","data":{"level":"info","message":"FIXTURE: report_assembler started"}}
+{"seq":141,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:56.400000Z","type":"node.log","node_id":"report_assembler","data":{"level":"info","message":"FIXTURE: report_assembler finished"}}
+{"seq":142,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:56.800000Z","type":"node.completed","node_id":"report_assembler","data":{"duration_ms":400,"output":{}}}
+{"seq":143,"run_id":"run_fixture_bace1_ad","ts":"2026-10-05T12:00:57.200000Z","type":"run.completed","node_id":null,"data":{"decision":"conditional"}}

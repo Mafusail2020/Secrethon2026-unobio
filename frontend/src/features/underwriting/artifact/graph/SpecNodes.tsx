@@ -4,7 +4,7 @@ import { formatDuration } from "../../../../lib/format";
 import { STATUS_CLASS, STATUS_ICON, STATUS_TEXT } from "../../status";
 import { kindLabel } from "./kindStyle";
 import type { PhaseGroup } from "./groups";
-import { GROUP_H, GROUP_W, NODE_H, NODE_W } from "./layout";
+import { CHIP_H, GROUP_H, GROUP_W, NODE_H, NODE_W, PANELIST_H, PANELIST_W } from "./layout";
 
 export type SpecData = {
   spec: NodeSpec;
@@ -22,6 +22,10 @@ export type SpecData = {
   entering?: boolean;
   /** a group is folding: this step is on its way into the group box */
   exiting?: boolean;
+  /** an analyst of a panel: small, with no detail line */
+  compact?: boolean;
+  /** what to say first on the detail line instead of the kind, e.g. the step an aggregator stands for */
+  subtitle?: string;
 } & Record<string, unknown>;
 
 export type GroupData = {
@@ -33,6 +37,11 @@ export type GroupData = {
   affected: boolean;
   w: number;
   h: number;
+  /** where the title chip sits on the top border */
+  labelX: number;
+  labelW: number;
+  /** the chip is centred on the wire that runs through it */
+  gate: boolean;
 } & Record<string, unknown>;
 
 export type SpecFlowNode = Node<SpecData, "spec">;
@@ -41,7 +50,7 @@ export type GroupFlowNode = Node<GroupData, "container">;
 
 export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
   const meta = [
-    kindLabel(data.spec.kind),
+    data.subtitle ?? kindLabel(data.spec.kind),
     data.durationMs ? formatDuration(data.durationMs) : undefined,
     data.sources ? `${data.sources} src` : undefined,
     data.llmCalls ? `${data.llmCalls} llm` : undefined,
@@ -53,22 +62,26 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
       <button
         type="button"
         aria-pressed={data.selected}
-        aria-label={`${data.spec.label}, ${data.status}. Open details`}
-        style={{ width: NODE_W, height: NODE_H, borderLeftColor: data.color }}
-        className={`flex flex-col justify-center rounded-md border border-l-4 px-2 text-left text-xs shadow-sm transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
+        aria-label={`${data.subtitle ? `${data.subtitle} ` : ""}${data.spec.label}, ${data.status}. Open details`}
+        style={{ width: data.compact ? PANELIST_W : NODE_W, height: data.compact ? PANELIST_H : NODE_H, borderLeftColor: data.color }}
+        className={`flex flex-col items-center justify-center gap-0.5 rounded-md border border-l-4 px-2.5 text-center text-xs shadow-sm transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.selected ? "outline outline-2 outline-offset-2 outline-brand" : ""
         } ${data.affected ? "ring-2 ring-brand ring-offset-1" : ""} ${data.dim ? "opacity-30" : ""} ${
           data.entering || data.exiting ? "pointer-events-none scale-75 opacity-0" : ""
         }`}
       >
         <Handle type="target" position={Position.Top} className="!opacity-0" />
-        <span className="flex items-center gap-1">
+        <span className="flex max-w-full items-center justify-center gap-1">
           <span className={STATUS_TEXT[data.status]} aria-hidden="true">
             {STATUS_ICON[data.status]}
           </span>
-          <span className="truncate font-medium">{data.spec.label}</span>
+          <span className="min-w-0 truncate text-[13px] font-medium leading-tight" title={data.spec.label}>{data.spec.label}</span>
+          {/* as wide as the status icon, so the name itself sits at the centre of the box */}
+          <span className="invisible" aria-hidden="true">
+            {STATUS_ICON[data.status]}
+          </span>
         </span>
-        <span className="block truncate text-[10px] text-muted">{meta}</span>
+        {!data.compact && <span className="block max-w-full truncate text-[10.5px] leading-tight text-muted">{meta}</span>}
         <Handle type="source" position={Position.Bottom} className="!opacity-0" />
       </button>
       <div
@@ -82,11 +95,23 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
   );
 }
 
+/** The estimated width only places the chip; the chip itself is as wide as its text, so a gate is centred by the browser. */
+function chipPlace(d: { labelX: number; labelW: number; gate: boolean }) {
+  return d.gate
+    ? { left: d.labelX + d.labelW / 2, top: -CHIP_H / 2, height: CHIP_H, transform: "translateX(-50%)" }
+    : { left: d.labelX, top: -CHIP_H / 2, height: CHIP_H };
+}
+
 export function ContainerNodeView({ data }: NodeProps<GroupFlowNode>) {
   return (
     <div
-      style={{ width: data.w, height: data.h, borderColor: data.color }}
-      className={`rounded-lg border-2 border-dashed bg-surface/40 transition-opacity ${data.selected ? "outline outline-2 outline-brand" : ""} ${
+      style={{
+        width: data.w,
+        height: data.h,
+        borderColor: `color-mix(in srgb, ${data.color} 50%, transparent)`,
+        background: `color-mix(in srgb, ${data.color} 6%, transparent)`,
+      }}
+      className={`relative rounded-xl border transition-opacity ${data.selected ? "outline outline-2 outline-brand" : ""} ${
         data.affected ? "ring-2 ring-brand" : ""
       } ${data.dim ? "opacity-30" : ""}`}
     >
@@ -94,8 +119,8 @@ export function ContainerNodeView({ data }: NodeProps<GroupFlowNode>) {
         type="button"
         aria-pressed={data.selected}
         aria-label={`${data.spec.label}, ${data.status}. Open details`}
-        className="flex items-center gap-1 rounded px-2 pt-1 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-        style={{ color: data.color }}
+        style={{ ...chipPlace(data), color: data.color, borderColor: `color-mix(in srgb, ${data.color} 50%, transparent)` }}
+        className="absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-surface px-2.5 text-[11px] font-semibold leading-none shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
       >
         <span className={STATUS_TEXT[data.status]} aria-hidden="true">
           {STATUS_ICON[data.status]}
@@ -132,21 +157,24 @@ export function PhaseGroupNodeView({ data }: NodeProps<PhaseFlowNode>) {
         aria-expanded={false}
         aria-label={`${data.group.label}, ${data.status}, ${data.done} of ${data.total} steps done. Show the steps`}
         style={{ width: GROUP_W, height: GROUP_H, borderLeftColor: data.color }}
-        className={`flex cursor-pointer flex-col justify-center rounded-md border border-l-4 px-2.5 text-left text-xs shadow-[3px_3px_0_-1px_var(--color-line),6px_6px_0_-2px_var(--color-line)] transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
+        className={`relative flex cursor-pointer flex-col items-center justify-center rounded-md border border-l-4 px-6 text-center text-xs shadow-[3px_3px_0_-1px_var(--color-line),6px_6px_0_-2px_var(--color-line)] transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.affected ? "ring-2 ring-brand ring-offset-1" : ""
         } ${data.dim ? "opacity-30" : ""} ${gone ? "pointer-events-none scale-90 opacity-0" : ""}`}
       >
         <Handle type="target" position={Position.Top} className="!opacity-0" />
-        <span className="flex items-center gap-1.5">
+        <span className="flex max-w-full items-center justify-center gap-1.5">
           <span className={STATUS_TEXT[data.status]} aria-hidden="true">
             {STATUS_ICON[data.status]}
           </span>
-          <span className="truncate text-[0.8rem] font-semibold">{data.group.label}</span>
-          <span className="ml-auto text-muted" aria-hidden="true">
-            ▸
+          <span className="min-w-0 truncate text-[0.8rem] font-semibold">{data.group.label}</span>
+          <span className="invisible" aria-hidden="true">
+            {STATUS_ICON[data.status]}
           </span>
         </span>
-        <span className="block truncate text-[10px] text-muted">
+        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true">
+          ▸
+        </span>
+        <span className="block max-w-full truncate text-[10px] text-muted">
           {data.done}/{data.total} steps
           {data.running.length ? ` · running ${data.running.join(", ")}` : ""}
         </span>
@@ -170,6 +198,9 @@ export type OutlineData = {
   status: NodeStatus;
   w: number;
   h: number;
+  labelX: number;
+  labelW: number;
+  gate: boolean;
   dim: boolean;
   affected: boolean;
 } & Record<string, unknown>;
@@ -181,14 +212,15 @@ export function OutlineNodeView({ data }: NodeProps<OutlineFlowNode>) {
   return (
     <div
       style={{ width: data.w, height: data.h }}
-      className={`uw-fade rounded-lg border border-line transition-opacity ${data.affected ? "ring-2 ring-brand/50" : ""} ${data.dim ? "opacity-30" : ""}`}
+      className={`uw-fade relative rounded-2xl border border-slate-300 bg-white/30 transition-opacity ${data.affected ? "ring-2 ring-brand/50" : ""} ${data.dim ? "opacity-30" : ""}`}
     >
       <button
         type="button"
         aria-expanded={true}
         aria-label={`${data.group.label}. Fold these steps into one box`}
         data-fold
-        className="flex items-center gap-1 rounded px-2 pt-1 text-[11px] font-semibold text-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+        style={{ ...chipPlace(data) }}
+        className="absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-300 bg-surface px-2.5 text-[11px] font-semibold leading-none text-slate-600 shadow-sm hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
       >
         <span className={STATUS_TEXT[data.status]} aria-hidden="true">
           {STATUS_ICON[data.status]}

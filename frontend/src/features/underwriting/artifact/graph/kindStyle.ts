@@ -12,6 +12,8 @@ export const KIND_STYLE: Record<NodeKind, KindStyle> = {
   processing: { color: "#64748b", label: "Processing", meaning: "Cleans, dedupes or checks material; no judgement." },
   knowledge: { color: "#0d9488", label: "Knowledge", meaning: "Indexes and retrieves the frozen evidence set." },
   quant: { color: "#34489f", label: "Quant", meaning: "Computes probabilities, values and the decision." },
+  efficacy: { color: "#0891b2", label: "Efficacy check", meaning: "Tests whether the drug should do what it is meant to do in people." },
+  safety: { color: "#be185d", label: "Safety check", meaning: "Tests whether the drug is likely to be toxic or poorly tolerated." },
   bull: { color: "#16a34a", label: "Bull case", meaning: "Builds the strongest supported reasons to invest." },
   bear: { color: "#dc2626", label: "Bear case", meaning: "Builds the strongest supported reasons not to invest." },
   analysis: { color: "#d97706", label: "Analysis", meaning: "A model reasons over the evidence." },

@@ -29,22 +29,77 @@ flowchart LR
   QP --> RG[fetch_regulatory]
   QP --> UI[ingest_user_input]
   QP --> TW[twin_stats]
+  QP --> SF[fetch_safety]
   OT --> EN[evidence_normalizer]
   TR --> EN
   LI --> EN
   RG --> EN
   UI --> EN
   TW --> EN
+  SF --> EN
   EN --> KI[knowledge_indexer]
   KI --> BQ[bull_query_planner] --> BR[bull_retriever] --> BW[bull_claim_writer] --> BG[bull_claim_gate]
   KI --> RQ[bear_query_planner] --> RR[bear_retriever] --> RW[bear_claim_writer] --> RGt[bear_claim_gate]
+  KI --> EGa[efficacy_gather] --> EX[efficacy_extract] --> EGt[efficacy_gate] --> ES[efficacy_score]
+  KI --> SGa[safety_gather] --> SX[safety_extract] --> SGt[safety_gate] --> SS[safety_score]
   BG --> SA[section_analysts]
   RGt --> SA
+  ES --> SA
+  SS --> SA
   SA --> EL[evidence_ledger] --> VA[valuation] --> VE[verdict] --> RA[report_assembler]
 ```
 
-25 nodes in `GET /api/graph`: 17 from the product table plus 8 bull/bear inner nodes. `bull_case` and `bear_case` are
-**containers**: spec-only nodes that group their four inner nodes in the UI (`parent` field). They have no `run`.
+36 nodes in `GET /api/graph`, 32 of them runnable: 18 top-level steps plus 4 inner nodes for each of the bull case, the
+bear case and the efficacy and safety lanes. `bull_case`, `bear_case`, `efficacy_assessment` and `safety_assessment`
+are **containers**: spec-only nodes that group their four inner nodes in the UI (`parent` field). They have no `run`.
+
+### 2a. Efficacy and safety lanes [1a contract, later bodies]
+
+Industry data (ASBMB Today, citing a 2016 analysis it does not name) puts the reasons programs stop at roughly 40-50%
+lack of efficacy, 30% unmanageable toxicity, 10-15% poor drug-like properties (exposure) and 10% commercial or
+strategic. The old graph had no step that asked the two biggest questions directly. Each lane is the same four steps:
+
+| Step | Kind | Does |
+|---|---|---|
+| `<lane>_gather` | knowledge, code | Pulls what bears on this cause from the frozen evidence and the precedent base (section 2c): association evidence by data type, same-target trial outcomes, class history, tissue expression, label warnings, safety-tagged stop reasons. No model. |
+| `<lane>_extract` | analysis, **one model call** | Reads the gathered material and writes claims (and, for efficacy, the five-step translation chain). Every claim cites evidence ids. |
+| `<lane>_gate` | processing, code | `gate_claims` as for the cases; writes the accepted `claims` and `translation_chain`. |
+| `<lane>_score` | quant, code | Turns the gathered numbers and the accepted claims into `RiskAdjustment`s and an `AssessmentResult` (rating, headline, metrics, gaps). Formulas only. |
+
+The efficacy lane speaks to the `efficacy` and `pk_exposure` causes, the safety lane to `safety`. `fetch_safety` (target
+liabilities, tissue expression, label warnings, adverse-event counts) is a new data source feeding the safety lane, and
+`question_planner` asks a safety question. The model reads and writes; every number comes from a function.
+
+### 2b. The evidence ledger is a cause-specific hazard ledger [1a contract, later bodies]
+
+The old ledger multiplied odds by likelihood ratios, which treats every piece of evidence as if it moved all of the
+risk. The new one splits risk by cause (`backend/app/quant/hazard.py` is the reference implementation, with tests).
+
+1. Prior `p` (from twin stats). Cumulative hazard `H = -ln p`.
+2. Split `H` by the failure mix: `H_i = share_i * H`. The mix comes from the twins' own stop reasons when at least
+   `failure_mix.min_stopped_twins` stopped, otherwise from the literature split in `config/ledger.yaml`
+   (`FailureMix.source` says which, with the citation).
+3. A `RiskAdjustment` multiplies one cause's hazard: `H_i <- H_i * risk_ratio`. Below 1 lowers that risk, above 1 raises it.
+4. `posterior = exp(-sum(H_i))`, clamped to `posterior_clamp`.
+
+Each `LedgerStep` carries its `cause`, its `risk_ratio` and the running `pos_after`, so the UI draws a waterfall without
+doing any maths. `EvidenceLedger.by_cause` shows how each cause's hazard moved. The low end of a probability range is the
+pessimistic end (lower prior, higher ratios); hazards and ratios run the other way. The order of adjustments does not
+change the posterior, only the picture of the steps.
+
+### 2c. Two knowledge stores [later]
+
+Today `knowledge_indexer` builds a word-overlap vector index (a stand-in for LanceDB) and a trivial graph (disease, target
+and drug nodes with `mentioned_in` edges to every source); the retrievers ignore the graph. The plan is two stores with
+different jobs, not one graph:
+
+| Store | Scope | Built | Used by |
+|---|---|---|---|
+| Evidence graph | one run | by `knowledge_indexer`, in code, from normalised evidence: typed nodes (target, disease, drug, trial, tissue, adverse event) and typed edges (`associated_with`, `expressed_in`, `tested_in`, `stopped_for`), each pointing at evidence ids | `*_gather` and the retrievers, to answer "what do we know about this target in this tissue" without reading everything |
+| Precedent base | global, read-only | offline, by a script, from Open Targets bulk data into DuckDB tables: `clinical_report`, `clinical_indication`, `clinical_target`, `target_safety_event`, with stop reasons categorised safety / efficacy / business / other | `twin_stats`, `efficacy_gather`, `safety_gather`: same-target and same-class history and the failure mix |
+
+The precedent base is what gives the lanes "similar drugs that came before"; it is shipped as a file and never written
+during a run. The evidence graph is optional for the demo; the precedent base is not.
 
 ## 3. Implementing a node [1a]
 
@@ -70,7 +125,8 @@ outputs.
 ## 4. State [1a]
 
 `GraphState` (TypedDict, `backend/app/graph/state.py`) holds typed contract models. Parallel writers use reducers
-(`source_ids`, `evidence_ids` union; `claims`, `sections`, `scratch` dict merge). `dump_delta` / `load_delta`
+(`source_ids`, `evidence_ids` union; `claims`, `sections`, `scratch`, `risk_adjustments` and `assessments` dict merge).
+`risk_adjustments` is keyed `cause:factor` and written by the lane `score` nodes; `assessments` is keyed by cause. `dump_delta` / `load_delta`
 round-trip a delta through JSON, which is what replay stores.
 
 ## 5. Run lifecycle [1b]
@@ -216,20 +272,35 @@ top so the heading does not move as it grows; the effort picker is four equal co
 thread content, history rows and the finished call rise or flash once (`uw-rise`, `uw-fade`, `uw-flash`, `uw-ring`,
 `uw-stagger` for the briefing). Nothing loops. `prefers-reduced-motion` removes all of it, and printing does too.
 
-The graph folds its 23 steps into the pipeline phases (`graph/groups.ts`: every phase with two or more executing steps is a
-group, so Gather public evidence, Freeze and index, Argue both sides and Quantify and decide), which leaves eight boxes in one
-column. A folded group is one larger box with its progress ("2/6 steps", and which steps are running); clicking it unfolds
+The graph folds its 32 steps into the pipeline phases (`graph/groups.ts`: every phase with two or more executing steps is a
+group, so Gather public evidence, Freeze and index, Check efficacy and safety, Argue both sides and Quantify and decide), which
+leaves nine boxes: a column with the assess and cases groups side by side, because they run in parallel. A folded group is one larger box with its progress ("2/7 steps", and which steps are running); clicking it unfolds
 it, and clicking the title of an unfolded frame folds it again. Edges are rewired onto the boxes (no self-links, no
 duplicates), a group that holds a failed or running step shows that status, and a correction draft rings every group it
 would recompute. Group all and Ungroup all sit beside the legend, and the arrangement is remembered
 (`uw.graphCollapsed`). Unfolding is a dissolve: the steps start at the box and glide to their places (CSS transitions on
-the node wrappers) while the box fades, and the camera refits once they have left it, unless the reader panned or zoomed.
+the node wrappers) while the box fades, and once the steps have left it the camera centres on the group that was just unfolded (zoom at most 1.1) and then counts as the
+reader's, so a resize leaves it alone; Group all and Ungroup all refit the whole graph unless the reader panned or zoomed. Box names
+are centred; the status icon is balanced by a hidden spacer so the name itself sits at the centre.
 Nodes are always handed to React Flow in one fixed order, because React moving a node in the list restarts its style and
 the transition never plays.
 
+Layout is dagre for ranks and order, with the rest done in `graph/layout.ts`: each frame reserves room above its first
+step and below its last, a fork's branches start on the same row, and every wire is routed square through the gaps
+between rows, so no wire crosses a step or a frame title (`layout.test.ts` checks this for all 32 fold states). A frame
+with a single way in has its title chip on that wire; a frame with several puts the chip where none enters. Wires carry
+the run: grey while waiting, inked once the step before them has finished, dashed and moving while the step after them
+runs, red when a step failed, dashed blue when reused (`graph/wires.ts`, `styles/graph.css`).
+
+In a panel-mode run the graph draws the panel (`graph/panel.ts`). Every step that makes a model call (kind `analysis`, the
+same rule the backend uses to run a panel) gets the run's panel size of small "Analyst" steps in a row before it, and the
+step itself is renamed "Aggregator" and keeps its id, so its status, drawer and corrections stay the step's own; its detail
+line names the step it aggregates for. An analyst opens that step's drawer. The analysts' status mirrors the step's: the
+backend reports one call per panel, not one per candidate. A step whose log says panel mode is unavailable stays single.
+
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
-`Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
+`Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 32 steps into nine collapsible
 blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
 evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the briefing
 (`SummaryBlock`: Markdown through `react-markdown`, raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
@@ -256,6 +327,19 @@ builds corrected runs the same way the backend does, so the whole UI works with 
 it, and a page reload rebuilds them by replaying the stream. The report drill-down (claim, evidence, source) reads from the
 report itself.
 
+`components/glyph-field` draws a flowing field of colour as text, in two WebGL2 passes: a domain-warped noise field at half
+resolution, stretched upward so it rises like flame, then one letter per cell (DNA bases A T C G plus `/` and `\`) chosen by
+the cell's darkness with a random per-cell threshold, so letters of one density mix like a read sequence, over the soft
+field. The pointer pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written
+from scratch (not Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. The `mist` preset
+(pale blue into grey, strokes only lighter than the ground, slow, shy of the pointer, with `detail` 3.2 so the same colours
+change often, over short stretches, down the panel) sits behind the history sidebar; its
+darkest stop is the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as
+the graph, spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.
+The history rows are frosted glass over it (`styles/glass.css`): the picked row a strong, blue-tinted blur that stays, a hovered
+row a whiter, more opaque blur; neither has an outline, the blur, tint and soft shadow are the edge; both are lighter than the field, so text only gains contrast, and reduced transparency turns the
+blur off. There is no arrival flash on the row, because an animated background hides the glass while it runs.
+
 ## 9c. Implementing and testing a node [1b]
 
 1. Edit the node module; keep `SPEC` and the `run(state, ctx)` signature. Return only keys listed in `SPEC.writes`
@@ -269,8 +353,11 @@ report itself.
 
 - Every claim cites evidence ids that exist in the run; the claim gate rejects or downgrades the rest, keeping the
   rejected claim visible with a `rejection_reason`.
-- Ledger steps and valuation assumptions are `sourced` (with a citation) or `assumption`. The models enforce
-  "sourced needs a citation".
+- Ledger steps, risk adjustments, assessment metrics, the failure mix and valuation assumptions are `sourced` (with a
+  citation) or `assumption`. The models enforce "sourced needs a citation".
+- The two lanes run in parallel, so a risk adjustment or assessment may cite only claims written by its own lane's
+  extractor, or evidence ids. Citing the bull or bear case would point at claims that may not exist yet when the lane
+  scores; an adjustment that had support and lost all of it to a correction is dropped.
 - Assumptions live in `backend/config/*.yaml` with a `citation` or `assumption: true`.
 - Fixtures contain no invented facts: placeholders are prefixed `FIXTURE:` and use example.org. The only real
   identifiers are ClinicalTrials.gov `NCT01739348` and `NCT01953601` (verubecestat, Alzheimer's, TERMINATED).
@@ -281,6 +368,10 @@ Cost per call = tokens × registry price (`config/models.yaml`). Prices are unkn
 tokens are always logged. Guards: `MAX_RUN_COST_USD` (when prices are known) and `MAX_RUN_TOKENS` (always). Before each
 call the guard first downgrades panel to single, then skips the node fail-soft with reason `budget`. The team budget is
 $67 including development, so deliverable numbers come from a few real `live` runs with the cache on.
+
+Added by the efficacy and safety lanes (estimate, not measured): one model call per lane, each reading a gathered digest
+rather than raw evidence, roughly 17k extra tokens per run in total. There is no separate judging call: `section_analysts`
+reads `assessments` and weighs them. Gathering and scoring are code and cost nothing.
 
 ## 12. Ownership
 
@@ -301,6 +392,15 @@ $67 including development, so deliverable numbers come from a few real `live` ru
 
 ## 14. Decisions log
 
+- **Cause-specific hazards, not odds ratios.** Evidence about toxicity should not move the efficacy risk. Splitting the
+  prior's cumulative hazard by failure cause makes each adjustment local, order-independent and explainable per cause, and
+  the failure mix is a citable number (ASBMB Today, primary study unverified) until twin stats have enough stopped trials.
+- **Model reads, code computes.** In the lanes the model only extracts claims; ratings and risk ratios come from formulas
+  over the gathered numbers, so the numbers are reproducible, cheap and not a model's opinion.
+- **Old stored runs are upgraded on read, not migrated.** A contract change must not make earlier chats unreadable. Reports and
+  stored node deltas are passed through `core/legacy_report.py` when loaded, which today turns the old ledger step (a
+  likelihood ratio on odds) into the cause-specific one; the database is never rewritten. A change that cannot be upgraded
+  that way needs a note in its contract PR.
 - **Replay, not checkpoint forking.** A correction creates a child run that re-executes only the affected set and
   reuses stored deltas elsewhere. Forking LangGraph checkpoints would need to handle parallel branches and
   subgraphs; replay is deterministic, inspectable in the DB, and gives `node.reused` events for free.

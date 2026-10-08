@@ -26,7 +26,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
   const groups = useMemo(() => groupRuns(runs.data ?? []), [runs.data]);
 
   return (
-    <nav aria-label="Underwritings" className="flex h-full min-h-0 flex-col">
+    <nav aria-label="Underwritings" className="relative flex h-full min-h-0 flex-col">
       <div className="p-3">
         <Link
           to="/underwriting"
@@ -41,7 +41,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
       </div>
 
       <h2 className="px-5 pb-1 pt-2 text-xs font-medium text-muted">Recents</h2>
-      <div className="min-h-0 flex-1 overflow-auto px-3 pb-3">
+      <div className="uw-scroll-quiet min-h-0 flex-1 overflow-auto px-3 pb-3">
         {runs.isPending && (
           <div className="space-y-2 px-1" aria-busy="true" aria-label="Loading earlier underwritings">
             {[0, 1, 2].map((i) => (
@@ -61,7 +61,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
                   to={`/underwriting/runs/${group.latest.id}`}
                   onClick={onNavigate}
                   aria-current={inGroup ? "page" : undefined}
-                  className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors hover:bg-slate-100 aria-[current=page]:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${inGroup ? "uw-flash" : ""}`}
+                  className="uw-history-row flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
                 >
                   <StatusDot run={group.latest} />
                   <span className="min-w-0 flex-1">

@@ -1,4 +1,4 @@
-import { Background, Controls, MarkerType, Panel, ReactFlow, useReactFlow, useStore, type Edge, type Node } from "@xyflow/react";
+import { Background, Controls, MarkerType, Panel, ReactFlow, useReactFlow, useStore, type Node } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { GraphSpec, NodeStatus } from "../../../../api/types";
@@ -6,9 +6,10 @@ import { readPref, writePref } from "../../../../lib/storage";
 import { containerIds } from "../../graphUtils";
 import type { RunStream } from "../../reduceEvents";
 import { GraphLegend } from "./GraphLegend";
-import { isGroupId, phaseGroups, visibleGraph, type PhaseGroup } from "./groups";
+import { isGroupId, phaseGroups, unfoldedGroups, visibleGraph, type PhaseGroup } from "./groups";
 import { kindColor } from "./kindStyle";
-import { NODE_H, NODE_W, layoutGraph, type Pos } from "./layout";
+import { GROUP_H, GROUP_W, NODE_H, NODE_W, PANELIST_H, PANELIST_W, layoutGraph, roundedPath, type Pos } from "./layout";
+import { baseId, isPanelist } from "./panel";
 import {
   ContainerNodeView,
   OutlineNodeView,
@@ -19,7 +20,10 @@ import {
   type PhaseFlowNode,
   type SpecFlowNode,
 } from "./SpecNodes";
+import { WireEdge } from "./WireEdge";
+import { WIRE_COLOR, wireState, type WireFlowEdge } from "./wires";
 
+const edgeTypes = { wire: WireEdge };
 const nodeTypes = { spec: SpecNodeView, container: ContainerNodeView, phase: PhaseGroupNodeView, outline: OutlineNodeView };
 
 const PREF_GROUPS = "uw.graphCollapsed";
@@ -73,18 +77,28 @@ function FitOnResize({ touched }: { touched: RefObject<boolean> }) {
   return null;
 }
 
-/** Brings the whole graph back into view, smoothly, after groups fold or unfold (unless the reader has taken the camera). */
-function FitOnRegroup({ layoutKey, ready, touched }: { layoutKey: string; ready: boolean; touched: RefObject<boolean> }) {
+/**
+ * Moves the camera after groups fold or unfold. A group that was just unfolded is centred in view; otherwise the whole
+ * graph is brought back, unless the reader has taken the camera.
+ */
+function FitOnRegroup({ layoutKey, ready, touched, focus, onFocused }: { layoutKey: string; ready: boolean; touched: RefObject<boolean>; focus: string | undefined; onFocused: () => void }) {
   const { fitView } = useReactFlow();
   const done = useRef(layoutKey);
   useEffect(() => {
     // `ready`: the steps have left the group's position, so the bounds being fitted are the real ones
     if (!ready || done.current === layoutKey) return;
     done.current = layoutKey;
-    if (touched.current) return;
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    void fitView({ ...FIT, duration: calm ? 0 : SETTLE_MS - 60 });
-  }, [layoutKey, ready, fitView, touched]);
+    const duration = calm ? 0 : SETTLE_MS - 60;
+    if (focus) {
+      // the reader just opened this group to look inside it; from here the camera is theirs, so a resize leaves it alone
+      onFocused();
+      void fitView({ ...FIT, nodes: [{ id: `outline:${focus}` }], maxZoom: 1.1, duration });
+      return;
+    }
+    if (touched.current) return;
+    void fitView({ ...FIT, duration });
+  }, [layoutKey, ready, focus, fitView, touched, onFocused]);
   return null;
 }
 
@@ -95,8 +109,12 @@ export function GraphView({
   onSelect,
   sourceCounts,
   highlight,
+  base,
 }: {
+  /** what is drawn: the pipeline, with a run's panel analysts added */
   spec: GraphSpec;
+  /** the pipeline itself, to name the step an aggregator or an analyst stands for */
+  base?: GraphSpec;
   stream: RunStream;
   selected: string | undefined;
   onSelect: (id: string | undefined) => void;
@@ -113,6 +131,9 @@ export function GraphView({
   const [follow, setFollow] = useState(false);
   const touched = useRef(false);
   const gesture = useRef<{ x: number; y: number; zoom: number } | undefined>(undefined);
+  const takeCamera = useCallback(() => {
+    touched.current = true;
+  }, []);
 
   // The dissolve. Steps coming out of a group start at the box (and invisible), then move to their places; steps going
   // into one are drawn at the box while they fade; the old box stays for a moment and fades. Positions animate by CSS.
@@ -121,6 +142,8 @@ export function GraphView({
   const [ghosts, setGhosts] = useState<Record<string, Pos>>({});
   const [epoch, setEpoch] = useState(0);
   const [settling, setSettling] = useState(false);
+  // the one group a regroup just opened: the camera goes to it
+  const [focus, setFocus] = useState<string | undefined>();
   const regroup = useCallback(
     (next: ReadonlySet<string>, byButton = false) => {
       const before = drawing;
@@ -144,6 +167,8 @@ export function GraphView({
         }
       }
       if (byButton) touched.current = false;
+      const opened = unfoldedGroups(groups, collapsed, next);
+      setFocus(opened.length === 1 ? opened[0] : undefined);
       setSpawn(nextSpawn);
       setLeaving(nextLeaving);
       setGhosts(nextGhosts);
@@ -196,11 +221,17 @@ export function GraphView({
   const sourceKey = JSON.stringify(sourceCounts);
   const highlightKey = highlight ? [...highlight].sort().join(",") : "";
 
+  // the steps a correction would recompute, with the analysts of any panel in front of them
+  const lit = useMemo(() => {
+    if (!highlightKey) return undefined;
+    const ids = new Set(highlightKey.split(","));
+    return new Set(spec.nodes.filter((n) => ids.has(baseId(n.id))).map((n) => n.id));
+  }, [highlightKey, spec]);
+
   const flowNodes = useMemo(() => {
     const views = JSON.parse(viewKey) as Record<string, NodeView>;
     const sources = JSON.parse(sourceKey) as Record<string, number>;
-    const lit = highlightKey ? new Set(highlightKey.split(",")) : undefined;
-    const statusOf = (id: string): NodeStatus => views[id]?.[0] ?? "pending";
+    const statusOf = (id: string): NodeStatus => views[baseId(id)]?.[0] ?? "pending";
     const labelOf = (id: string) => spec.nodes.find((n) => n.id === id)?.label ?? id;
     const out: Node[] = [];
     const used = new Set<string>();
@@ -233,6 +264,9 @@ export function GraphView({
             affected,
             w: box.w,
             h: box.h,
+            labelX: box.labelX,
+            labelW: box.labelW,
+            gate: box.gate,
           },
         };
         push(flow);
@@ -253,6 +287,9 @@ export function GraphView({
             status: groupStatus(group.members.map(statusOf)),
             w: box.w,
             h: box.h,
+            labelX: box.labelX,
+            labelW: box.labelW,
+            gate: box.gate,
             dim: !!lit && !affected,
             affected,
           },
@@ -263,14 +300,16 @@ export function GraphView({
 
     const specNode = (id: string, at: Pos, flags: { entering?: boolean; exiting?: boolean }): SpecFlowNode => {
       const node = spec.nodes.find((n) => n.id === id)!;
-      const view = views[id];
+      const panelist = isPanelist(id);
+      const view = panelist ? undefined : views[id];
       const affected = !!lit && lit.has(id);
+      const baseNode = base?.nodes.find((n) => n.id === baseId(id));
       return {
         id,
         type: "spec",
         position: { x: at.x, y: at.y },
-        width: NODE_W,
-        height: NODE_H,
+        width: panelist ? PANELIST_W : NODE_W,
+        height: panelist ? PANELIST_H : NODE_H,
         zIndex: hovered === id ? 1000 : 0,
         draggable: false,
         data: {
@@ -283,6 +322,8 @@ export function GraphView({
           selected: selected === id,
           dim: !!lit && !affected,
           affected,
+          compact: panelist,
+          subtitle: baseNode && baseNode.label !== node.label ? baseNode.label : undefined,
           ...flags,
         },
       };
@@ -296,8 +337,8 @@ export function GraphView({
         id: group.id,
         type: "phase",
         position: { x: at.x, y: at.y },
-        width: 236,
-        height: 66,
+        width: GROUP_W,
+        height: GROUP_H,
         zIndex: hovered === group.id ? 1000 : 0,
         draggable: false,
         data: {
@@ -329,28 +370,34 @@ export function GraphView({
     // one fixed order whatever is drawn: a node that React has to move in the list loses its transition
     const rank = new Map([...groups.map((g) => `outline:${g.id}`), ...spec.nodes.map((n) => n.id), ...groups.map((g) => g.id)].map((id, i) => [id, i]));
     return out.sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0));
-  }, [drawing, spec, groups, spawn, ghosts, leaving, viewKey, sourceKey, highlightKey, selected, hovered]);
+  }, [drawing, spec, base, groups, spawn, ghosts, leaving, viewKey, sourceKey, lit, selected, hovered]);
 
-  const edges = useMemo<Edge[]>(() => {
+  const edges = useMemo<WireFlowEdge[]>(() => {
     const views = JSON.parse(viewKey) as Record<string, NodeView>;
-    const lit = highlightKey ? new Set(highlightKey.split(",")) : undefined;
     const litReps = lit ? new Set([...lit].map(visible.repOf)) : undefined;
-    const running = (id: string) =>
-      isGroupId(id) ? groups.find((g) => g.id === id)!.members.some((m) => views[m]?.[0] === "running") : views[id]?.[0] === "running";
-    return visible.edges.map((e) => ({
-      id: `${e.source}->${e.target}`,
-      source: e.source,
-      target: e.target,
-      animated: running(e.target),
-      markerEnd: { type: MarkerType.ArrowClosed },
-      style: {
-        stroke: "#94a3b8",
-        // while boxes move the lines would run ahead of them, so they come back once everything has settled
-        opacity: settling ? 0 : litReps && !(litReps.has(e.source) && litReps.has(e.target)) ? 0.2 : 1,
-        transition: "opacity 250ms",
-      },
-    }));
-  }, [visible, groups, viewKey, highlightKey, settling]);
+    const statusOf = (id: string): NodeStatus => {
+      const group = isGroupId(id) ? groups.find((g) => g.id === id) : undefined;
+      return group ? groupStatus(group.members.map((m) => views[baseId(m)]?.[0] ?? "pending")) : (views[baseId(id)]?.[0] ?? "pending");
+    };
+    return drawing.wires.map((w) => {
+      const state = wireState(statusOf(w.source), statusOf(w.target));
+      return {
+        id: w.id,
+        type: "wire",
+        source: w.source,
+        target: w.target,
+        selectable: false,
+        focusable: false,
+        data: { path: w.paths.map((p) => roundedPath(p)).join(" "), state },
+        markerEnd: { type: MarkerType.ArrowClosed, color: WIRE_COLOR[state], width: 14, height: 14 },
+        style: {
+          // while boxes move the lines would run ahead of them, so they come back once everything has settled
+          opacity: settling ? 0 : litReps && !(litReps.has(w.source) && litReps.has(w.target)) ? 0.2 : 1,
+          transition: "opacity 250ms",
+        },
+      };
+    });
+  }, [drawing, visible, groups, viewKey, lit, settling]);
 
   const runningId = spec.nodes.find((n) => stream.nodes[n.id]?.status === "running" && !containers.has(n.id))?.id;
   const runningRep = runningId ? visible.repOf(runningId) : undefined;
@@ -364,8 +411,10 @@ export function GraphView({
       nodes={flowNodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       onNodeClick={(event, node) => {
-        if (node.type === "spec" || node.type === "container") return onSelect(node.id);
+        // an analyst of a panel opens the step it answers for
+        if (node.type === "spec" || node.type === "container") return onSelect(baseId(node.id));
         const group = groups.find((g) => g.id === node.id || `outline:${g.id}` === node.id);
         if (!group) return;
         if (node.type === "phase") regroup(new Set([...collapsed].filter((id) => id !== group.id)));
@@ -396,7 +445,7 @@ export function GraphView({
     >
       <Background />
       <FitOnResize touched={touched} />
-      <FitOnRegroup layoutKey={[...collapsed].sort().join(",")} ready={Object.keys(spawn).length === 0} touched={touched} />
+      <FitOnRegroup layoutKey={[...collapsed].sort().join(",")} ready={Object.keys(spawn).length === 0} touched={touched} focus={focus} onFocused={takeCamera} />
       <Controls showInteractive={false} />
       <Panel position="top-left">
         <div className="flex flex-wrap items-start gap-1.5">

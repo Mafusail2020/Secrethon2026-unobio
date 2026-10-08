@@ -93,7 +93,7 @@ describe("run thread", () => {
   });
 
   it("shows how long a finished run took", () => {
-    expect(thread()).toMatch(/Analysis complete \(23 steps\) · \d/);
+    expect(thread()).toMatch(/Analysis complete \(32 steps\) · \d/);
   });
 
   it("keeps the step list folded and shows only what is being worked on", () => {

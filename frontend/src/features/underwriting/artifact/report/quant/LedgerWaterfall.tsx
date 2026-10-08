@@ -7,6 +7,14 @@ import { Measured } from "./Measured";
 
 const H = 22;
 
+const CAUSE_LABEL: Record<string, string> = {
+  efficacy: "Efficacy",
+  safety: "Safety",
+  pk_exposure: "Exposure",
+  commercial: "Commercial",
+  other: "Other",
+};
+
 function Row({
   label,
   detail,
@@ -28,8 +36,8 @@ function Row({
 }
 
 /**
- * Prior, each evidence step, posterior. The posterior is drawn from the data; step bars chain the base
- * likelihood ratios and are labelled indicative when they do not land on it.
+ * Prior, each evidence step, posterior. Every step multiplies one failure cause's risk and carries the
+ * running probability the backend computed after it, so nothing is chained in the browser.
  */
 export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
   const uid = useId();
@@ -70,11 +78,11 @@ export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
           const colour = up ? "emerald" : "red";
           return (
             <Row
-              key={step.factor}
+              key={`${step.cause}:${step.factor}`}
               label={step.factor}
               detail={
                 <span className="text-muted">
-                  ×{step.likelihood_ratio.base.toFixed(2)} ({step.likelihood_ratio.low.toFixed(2)} to {step.likelihood_ratio.high.toFixed(2)}){" "}
+                  {CAUSE_LABEL[step.cause] ?? step.cause} risk ×{step.risk_ratio.base.toFixed(2)} ({step.risk_ratio.low.toFixed(2)} to {step.risk_ratio.high.toFixed(2)}){" "}
                   {step.basis === "sourced" ? (
                     <Badge className="border-emerald-300 text-emerald-800" >sourced</Badge>
                   ) : (
@@ -90,7 +98,7 @@ export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
                   return (
                     <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} className="max-w-full" role="img" aria-label={`${step.factor}: ${up ? "raises" : "lowers"} the probability from ${pct(start)} to ${pct(end)}, ${step.basis}${step.citation ? `, ${step.citation}` : ""}`}>
                       <title>
-                        {step.factor}: ×{step.likelihood_ratio.base.toFixed(2)}, {step.basis}
+                        {step.factor}: {step.cause} risk ×{step.risk_ratio.base.toFixed(2)}, {step.basis}
                         {step.citation ? ` (${step.citation})` : ""}
                       </title>
                       <defs>
@@ -139,17 +147,11 @@ export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
       <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">
         <span>Solid: sourced</span>
         <span>Hatched: assumption</span>
-        <span>
-          {w.exact
-            ? "Whisker: the running low and high range after each step"
-            : "Whisker: this step's own low and high ratio; prior and posterior show their ranges"}
-        </span>
+        <span>Whisker: the running low and high range after each step</span>
       </p>
       {w.driftNotable && (
         <p role="note" className="mt-2 rounded-md bg-amber-50 p-2 text-xs text-amber-900">
-          {w.exact
-            ? `The last step ends at ${pct(w.chainedEnd)} but the posterior is ${pct(w.posterior.base)}; the ledger's own numbers disagree, so trust the posterior.`
-            : `The step bars chain the base ratios and end at ${pct(w.chainedEnd)}; the posterior is ${pct(w.posterior.base)}. The range is propagated with low and high ratios, so the steps are indicative.`}
+          {`The last step ends at ${pct(w.chainedEnd)} but the posterior is ${pct(w.posterior.base)}; the ledger's own numbers disagree, so trust the posterior.`}
         </p>
       )}
     </section>

@@ -9,9 +9,18 @@ from tests.conftest import run_to_end
 
 PROGRAM = ProgramInput(indication="Alzheimer's disease", mechanism="BACE1 inhibition")
 DOWNSTREAM_OF_FETCH = {
-    "evidence_normalizer", "knowledge_indexer", *CONTAINERS["bull_case"], *CONTAINERS["bear_case"],
-    "section_analysts", "evidence_ledger", "valuation", "verdict", "report_assembler",
-}  # fmt: skip
+    "evidence_normalizer",
+    "knowledge_indexer",
+    *CONTAINERS["bull_case"],
+    *CONTAINERS["bear_case"],
+    *CONTAINERS["efficacy_assessment"],
+    *CONTAINERS["safety_assessment"],
+    "section_analysts",
+    "evidence_ledger",
+    "valuation",
+    "verdict",
+    "report_assembler",
+}
 
 
 def test_affected_set_is_node_plus_descendants():

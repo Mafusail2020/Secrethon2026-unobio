@@ -13,12 +13,12 @@ const events = eventsRaw
 const after = (n: number) => events.slice(0, n).reduce(applyEvent, initialStream);
 
 describe("groupPhases", () => {
-  it("groups the 23 executing nodes into the pipeline phases in order", () => {
+  it("groups the 32 executing nodes into the pipeline phases in order", () => {
     const phases = groupPhases(spec, {});
     expect(phases.map((p) => p.id)).toEqual([
-      "resolve", "plan", "fetch", "index", "cases", "analyse", "quant", "report",
+      "resolve", "plan", "fetch", "index", "assess", "cases", "analyse", "quant", "report",
     ]); // fmt: skip
-    expect(phases.reduce((n, p) => n + p.nodes.length, 0)).toBe(23);
+    expect(phases.reduce((n, p) => n + p.nodes.length, 0)).toBe(32);
     expect(phases.every((p) => p.status === "pending")).toBe(true);
   });
 

@@ -22,7 +22,7 @@ async def test_run_completes_with_a_valid_synthetic_report(services):
     report = await services.runs.get_report(run_id)
     assert report.run_id == run_id and report.meta.synthetic is True
     assert report.meta.cost_usd == 0.0 and report.meta.tokens_in == 0
-    assert len(report.sections) == 8 and report.meta.failed_nodes == []
+    assert len(report.sections) == 9 and report.meta.failed_nodes == []
     # every accepted claim cites evidence that is in the report, and every evidence has its source
     for claim in report.claims.values():
         if claim.status != "rejected":
@@ -172,3 +172,17 @@ async def test_twin_sources_are_in_the_report_even_when_their_evidence_is_exclud
     assert not set(trial_evidence) & set(report.evidence)
     twin_sources = {i for t in report.twin_stats.twins for i in t.source_ids}
     assert twin_sources and twin_sources <= set(report.sources)
+
+
+async def test_both_assessment_lanes_feed_the_chain_the_ledger_and_the_report(services):
+    report = await services.runs.get_report(await _run(services))
+    assert {a.cause for a in report.assessments} == {"efficacy", "safety"}
+    assert (
+        len(report.translation_chain) == 5
+    )  # the efficacy lane settled it, not the section analysts
+    assert report.sections["safety"].key_points
+    ledger = report.ledger
+    assert ledger and {s.cause for s in ledger.steps} == {"efficacy", "safety", "pk_exposure"}
+    assert ledger.failure_mix and len(ledger.by_cause) == 5
+    produced = {c.produced_by for c in report.claims.values()}
+    assert {"efficacy_extract", "safety_extract"} <= produced

@@ -11,12 +11,21 @@ SPEC = NodeSpec(
     label="Section analysts",
     kind="analysis",
     phase="analyse",
-    description="Writes each report section plus the translation chain, risks, unknowns and diligence questions.",
-    reads=["program", "entities", "questions", "claims", "twin_stats", "evidence_ids"],
+    description="Writes each report section plus the risks, unknowns and diligence questions, using the efficacy and safety lanes' claims and scores.",
+    reads=[
+        "program",
+        "entities",
+        "questions",
+        "claims",
+        "twin_stats",
+        "translation_chain",
+        "assessments",
+        "scratch",
+        "evidence_ids",
+    ],
     writes=[
         "sections",
         "claims",
-        "translation_chain",
         "key_risks",
         "critical_unknowns",
         "diligence_questions",
@@ -60,17 +69,6 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
             }
         )
 
-    chain = [
-        link.model_copy(
-            update={
-                "claim_ids": [c for c in link.claim_ids if c in usable],
-                "status": "missing"
-                if link.claim_ids and not any(c in usable for c in link.claim_ids)
-                else link.status,
-            }
-        )
-        for link in fixture.translation_chain
-    ]
     risks = [
         r.model_copy(update={"claim_ids": [c for c in r.claim_ids if c in usable]})
         for r in fixture.key_risks
@@ -83,7 +81,6 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     return {
         "sections": sections,
         "claims": own,
-        "translation_chain": chain,
         "key_risks": [r for r in risks if r.claim_ids],
         "critical_unknowns": fixture.critical_unknowns,
         "diligence_questions": questions,

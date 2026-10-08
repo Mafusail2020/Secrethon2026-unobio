@@ -10,6 +10,8 @@ KIND_COLORS: dict[NodeKind, str] = {
     "quant": "#7c3aed",
     "bull": "#16a34a",
     "bear": "#dc2626",
+    "efficacy": "#0891b2",
+    "safety": "#be185d",
     "analysis": "#d97706",
     "output": "#0f172a",
 }

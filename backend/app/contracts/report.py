@@ -2,6 +2,7 @@ from datetime import datetime
 
 from pydantic import Field
 
+from app.contracts.assessment import AssessmentResult
 from app.contracts.claims import (
     Claim,
     DiligenceQuestion,
@@ -41,6 +42,9 @@ class UnderwritingReport(Contract):
     translation_chain: list[TranslationLink] = Field(default_factory=list)
     twin_stats: TwinStats | None = None
     ledger: EvidenceLedger | None = None
+    assessments: list[AssessmentResult] = Field(
+        default_factory=list, description="The efficacy and safety lanes' results."
+    )
     valuation: Valuation | None = None
     key_risks: list[Risk] = Field(default_factory=list)
     critical_unknowns: list[str] = Field(default_factory=list)

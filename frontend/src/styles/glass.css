@@ -1,0 +1,52 @@
+/* History rows as frosted glass over the glyph field: lighter than what is behind them, so text on them only gains
+   contrast. No outline: the blur, the tint and the soft shadow are the edge. Hover is the lighter, whiter version. */
+.uw-history-row {
+  border: 1px solid transparent;
+  transition:
+    background-color 200ms,
+    border-color 200ms,
+    box-shadow 200ms,
+    backdrop-filter 200ms;
+}
+.uw-history-row:hover {
+  background: color-mix(in srgb, white 58%, transparent);
+  box-shadow: 0 4px 14px -8px rgb(47 85 181 / 0.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  backdrop-filter: blur(12px) saturate(1.3);
+}
+.uw-history-row[aria-current="page"],
+.uw-history-row[aria-current="page"]:hover {
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.62), rgb(198 211 245 / 0.42));
+  box-shadow: 0 8px 20px -10px rgb(47 85 181 / 0.42);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .uw-history-row:hover,
+  .uw-history-row[aria-current="page"],
+  .uw-history-row[aria-current="page"]:hover {
+    background: rgb(246 247 251 / 0.95);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* The history list scrolls over the glyph field: a track of its own would be a pale strip down the edge, so it has none
+   and the thumb is a faint pill. */
+.uw-scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(77 85 115 / 0.32) transparent;
+}
+.uw-scroll-quiet::-webkit-scrollbar {
+  width: 10px;
+}
+.uw-scroll-quiet::-webkit-scrollbar-track {
+  background: transparent;
+}
+.uw-scroll-quiet::-webkit-scrollbar-thumb {
+  background: rgb(77 85 115 / 0.32);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}

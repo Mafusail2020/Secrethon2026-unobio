@@ -4,6 +4,7 @@ from typing import Annotated, Any, TypedDict, get_type_hints
 from pydantic import TypeAdapter
 
 from app.contracts import (
+    AssessmentResult,
     Claim,
     Correction,
     DiligenceQuestion,
@@ -12,6 +13,7 @@ from app.contracts import (
     ProgramInput,
     ResolvedEntities,
     Risk,
+    RiskAdjustment,
     RunOptions,
     SectionId,
     SectionResult,
@@ -21,6 +23,7 @@ from app.contracts import (
     Valuation,
     Verdict,
 )
+from app.core.legacy_report import upgrade_delta
 
 
 def merge_dicts(left: dict | None, right: dict | None) -> dict:
@@ -41,6 +44,10 @@ class GraphState(TypedDict, total=False):
     evidence_ids: Annotated[list[str], union_lists]
     claims: Annotated[dict[str, Claim], merge_dicts]
     twin_stats: TwinStats | None
+    # evidence that moves one failure cause's risk, keyed 'cause:factor'; written by the lanes
+    risk_adjustments: Annotated[dict[str, RiskAdjustment], merge_dicts]
+    # what the efficacy and safety lanes found, keyed by cause
+    assessments: Annotated[dict[str, AssessmentResult], merge_dicts]
     sections: Annotated[dict[SectionId, SectionResult], merge_dicts]
     translation_chain: list[TranslationLink]
     key_risks: list[Risk]
@@ -67,4 +74,4 @@ def dump_delta(delta: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def load_delta(raw: Mapping[str, Any]) -> dict[str, Any]:
-    return {k: _ADAPTERS[k].validate_python(v) for k, v in raw.items()}
+    return {k: _ADAPTERS[k].validate_python(v) for k, v in upgrade_delta(dict(raw)).items()}

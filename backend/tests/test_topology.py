@@ -23,7 +23,7 @@ def test_registry_covers_every_node_once():
     registry = get_registry()
     expected = {n for n in TOP_LEVEL} | {i for inner in CONTAINERS.values() for i in inner}
     assert set(registry) == expected
-    assert len(registry) == 25
+    assert len(registry) == 36
     for node_id, entry in registry.items():
         assert entry.spec.id == node_id
 
@@ -74,7 +74,7 @@ def test_subgraph_parents_are_valid():
             continue
         assert parent in CONTAINERS, node_id
         assert node_id in CONTAINERS[parent]
-        assert registry[parent].spec.kind in ("bull", "bear")
+        assert registry[parent].spec.kind in ("bull", "bear", "efficacy", "safety")
     for container, inner in CONTAINERS.items():
         for node_id in inner:
             assert registry[node_id].spec.parent == container

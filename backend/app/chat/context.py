@@ -68,10 +68,26 @@ def build_context(report: UnderwritingReport) -> tuple[str, set[str]]:
         t = report.twin_stats
         lines.append(f"TWINS: {t.n_programs} similar programs, prior {t.prior_pos.base:.3f}")
     if report.ledger:
+        if report.ledger.failure_mix:
+            mix = report.ledger.failure_mix
+            parts = ", ".join(f"{x.cause} {x.share.base:.0%}" for x in mix.shares)
+            lines.append(f"FAILURE MIX ({mix.source}): {parts}")
         steps = "; ".join(
-            f"{s.factor} x{s.likelihood_ratio.base:.2f} ({s.basis})" for s in report.ledger.steps
+            f"{s.factor} [{s.cause}] x{s.risk_ratio.base:.2f} on that risk ({s.basis})"
+            for s in report.ledger.steps
         )
         lines.append(f"LEDGER: {steps or 'no steps'}")
+    for result in report.assessments:
+        metrics = "; ".join(
+            f"{m.label} {m.value:g}{(' ' + m.unit) if m.unit else ''}"
+            for m in result.metrics
+            if m.value is not None
+        )
+        lines.append(f"ASSESSMENT {result.cause} ({result.rating}): {_clip(result.headline, 240)}")
+        if metrics:
+            lines.append(f"    metrics: {_clip(metrics, 300)}")
+        if result.gaps:
+            lines.append(f"    could not check: {_clip('; '.join(result.gaps), 200)}")
     if report.valuation:
         v = report.valuation
         lines.append(
