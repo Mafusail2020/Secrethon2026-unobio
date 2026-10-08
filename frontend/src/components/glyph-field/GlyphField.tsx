@@ -30,7 +30,7 @@ export interface GlyphFieldProps {
  * A flowing field of colour drawn in text. The pointer pushes it around; with reduced motion it is one still frame.
  * Draws nothing where there is no WebGL2, so whatever is behind the canvas stays.
  */
-export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [8, 13], strokeContrast = 1, speed = 1, push = 1, backdrop = 0.92, glow = false, lattice = 0, className }: GlyphFieldProps) {
+export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14], strokeContrast = 1, speed = 1, push = 1, backdrop = 0.92, glow = false, lattice = 0, className }: GlyphFieldProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const paletteKey = palette.join(",");
   const [cellW, cellH] = cell;

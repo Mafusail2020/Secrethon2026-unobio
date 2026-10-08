@@ -290,6 +290,12 @@ with a single way in has its title chip on that wire; a frame with several puts 
 the run: grey while waiting, inked once the step before them has finished, dashed and moving while the step after them
 runs, red when a step failed, dashed blue when reused (`graph/wires.ts`, `styles/graph.css`).
 
+In a panel-mode run the graph draws the panel (`graph/panel.ts`). Every step that makes a model call (kind `analysis`, the
+same rule the backend uses to run a panel) gets the run's panel size of small "Analyst" steps in a row before it, and the
+step itself is renamed "Aggregator" and keeps its id, so its status, drawer and corrections stay the step's own; its detail
+line names the step it aggregates for. An analyst opens that step's drawer. The analysts' status mirrors the step's: the
+backend reports one call per panel, not one per candidate. A step whose log says panel mode is unavailable stays single.
+
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 32 steps into nine collapsible
@@ -320,11 +326,12 @@ it, and a page reload rebuilds them by replaying the stream. The report drill-do
 report itself.
 
 `components/glyph-field` draws a flowing field of colour as text, in two WebGL2 passes: a domain-warped noise field at half
-resolution, then one glyph per cell chosen by the cell's darkness with a Bayer dither, over the soft field. The pointer
+resolution, then one letter per cell (DNA bases A T C G) chosen by the cell's darkness with a random per-cell threshold, so letters of one
+density mix like a read sequence, over the soft field. The pointer
 pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written from scratch (not
 Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. A lattice of small tall rhombi with soft gaussian edges, bent by the
-same noise, lies over the field in patches; the second pass colours each line from the average of the cells around it,
-lighter than that neighbourhood and never darker than the field. The `mist` preset (pale blue into grey, strokes only lighter than the ground, slow, shy of the
+same noise, lies over the field in patches; the second pass colours each line from the average of the cells around it
+mixed with a tint that floats along the palette with time and across the screen (with glow, never darker than the field). The `mist` preset (pale blue into grey, strokes only lighter than the ground, slow, shy of the
 pointer) sits behind the history sidebar; its darkest stop is
 the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as the graph,
 spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.

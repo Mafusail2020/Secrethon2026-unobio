@@ -131,6 +131,8 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
     gl.uniform1f(loc(glyphProg, "uBackdrop"), opts.backdrop);
     gl.uniform1f(loc(glyphProg, "uStroke"), opts.stroke);
     gl.uniform1f(loc(glyphProg, "uLattice"), opts.lattice);
+    gl.uniform1f(loc(glyphProg, "uTime"), seconds);
+    gl.uniform3fv(loc(glyphProg, "uPal"), palFlat);
     gl.uniform1f(loc(glyphProg, "uNear"), size.cw * 2.5);
     gl.uniform1f(loc(glyphProg, "uGlow"), opts.glow ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
