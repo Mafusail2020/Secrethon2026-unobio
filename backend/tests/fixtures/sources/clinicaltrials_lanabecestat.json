@@ -1,0 +1,195 @@
+{
+ "studies": [
+  {
+   "protocolSection": {
+    "identificationModule": {
+     "nctId": "NCT02126514",
+     "briefTitle": "A Phase I, Open-Label, Single-Center Study to Assess the Absorption, Metabolism, and Excretion of [14C]-AZD3293",
+     "officialTitle": "A Phase I, Open-Label, Single-Center Study to Assess the Absorption, Metabolism, and Excretion After Oral Administration of [14C]-AZD3293 to Healthy Male Subjects"
+    },
+    "statusModule": {
+     "overallStatus": "COMPLETED",
+     "startDateStruct": {
+      "date": "2014-05"
+     },
+     "primaryCompletionDateStruct": {
+      "date": "2014-05"
+     },
+     "completionDateStruct": {
+      "date": "2014-05"
+     }
+    },
+    "sponsorCollaboratorsModule": {
+     "leadSponsor": {
+      "name": "AstraZeneca"
+     }
+    },
+    "conditionsModule": {
+     "conditions": [
+      "Healthy Volunteers",
+      "Mass Balance Study"
+     ]
+    },
+    "designModule": {
+     "phases": [
+      "PHASE1"
+     ],
+     "enrollmentInfo": {
+      "count": 12
+     }
+    },
+    "armsInterventionsModule": {
+     "interventions": [
+      {
+       "type": "DRUG",
+       "name": "AZD3293"
+      }
+     ]
+    },
+    "outcomesModule": {
+     "primaryOutcomes": [
+      {
+       "measure": "PK parameters measured by assessment of AUC over time and Maximum observed concentration (Cmax)",
+       "description": "Maximum observed concentration (Cmax) parameters will be calculated, for AZD3293, its metabolite; and \\[14C\\]-AZD3293-derived total radioactivity.",
+       "timeFrame": "Up to Day 25"
+      }
+     ]
+    }
+   },
+   "hasResults": false
+  },
+  {
+   "protocolSection": {
+    "identificationModule": {
+     "nctId": "NCT02783573",
+     "briefTitle": "A Study of Lanabecestat (LY3314814) in Participants With Mild Alzheimer's Disease Dementia",
+     "officialTitle": "A Randomized, Double-Blind, Placebo-Controlled and Delayed-Start Study of LY3314814 in Mild Alzheimer's Disease Dementia"
+    },
+    "statusModule": {
+     "overallStatus": "TERMINATED",
+     "whyStopped": "An independent assessment concluded the trial was not likely to meet the primary endpoint upon completion and therefore, trial stopped for futility.",
+     "startDateStruct": {
+      "date": "2016-07-01"
+     },
+     "primaryCompletionDateStruct": {
+      "date": "2018-09-28"
+     },
+     "completionDateStruct": {
+      "date": "2018-09-28"
+     }
+    },
+    "sponsorCollaboratorsModule": {
+     "leadSponsor": {
+      "name": "AstraZeneca"
+     }
+    },
+    "conditionsModule": {
+     "conditions": [
+      "Alzheimer's Disease"
+     ]
+    },
+    "designModule": {
+     "phases": [
+      "PHASE3"
+     ],
+     "enrollmentInfo": {
+      "count": 1722
+     }
+    },
+    "armsInterventionsModule": {
+     "interventions": [
+      {
+       "type": "DRUG",
+       "name": "Lanabecestat"
+      },
+      {
+       "type": "DRUG",
+       "name": "Placebo"
+      }
+     ]
+    },
+    "outcomesModule": {
+     "primaryOutcomes": [
+      {
+       "measure": "Change From Baseline in Alzheimer\u00b4s Disease Assessment Scale- Cognitive Subscale (ADAS-Cog13) Score",
+       "description": "ADAS-Cog13 (13-item version of ADAS Cog) is a psychometric instrument that evaluates word recall, ability to follow commands, constructional praxis, naming, ideational praxis, orientation, word recognition, memory, comprehension of spoken language, word-finding, and language ability, with a measure of delayed word recall and concentration/ distractibility. The total score of the 13-item scale ranges from 0 to 85, with an increase in score indicating cognitive worsening. Least Squares (LS) mean was determined by mixed-model repeated measures (MMRM) model with factors for treatment, visit, treatment-by-visit interaction, acetylcholinesterase Inhibitor (AChEI) use at baseline, pooled site, and covariates for baseline ADAS-Cog13 total score, age at baseline, and baseline ADAS-Cog13 total score-by-visit interaction.",
+       "timeFrame": "Baseline, Week 78"
+      }
+     ]
+    }
+   },
+   "hasResults": true
+  },
+  {
+   "protocolSection": {
+    "identificationModule": {
+     "nctId": "NCT02039180",
+     "briefTitle": "Relative Bioavailability Study to Assess Two Solid Formulations Compared to an Oral Solution of AZD3293 in Healthy Male and Non-Fertile Female Subjects",
+     "officialTitle": "A Phase 1, Open-label, Randomized, Single-dose, 3-period Cross-over, Relative Bioavailability Study to Assess Two Solid Formulations Compared to an Oral Solution of AZD3293 in Healthy Male and Non-Fertile Female Subjects"
+    },
+    "statusModule": {
+     "overallStatus": "COMPLETED",
+     "startDateStruct": {
+      "date": "2014-02"
+     },
+     "primaryCompletionDateStruct": {
+      "date": "2014-03"
+     },
+     "completionDateStruct": {
+      "date": "2014-03"
+     }
+    },
+    "sponsorCollaboratorsModule": {
+     "leadSponsor": {
+      "name": "AstraZeneca"
+     }
+    },
+    "conditionsModule": {
+     "conditions": [
+      "Healthy Volunteers",
+      "Pharmacologic Action"
+     ]
+    },
+    "designModule": {
+     "phases": [
+      "PHASE1"
+     ],
+     "enrollmentInfo": {
+      "count": 1
+     }
+    },
+    "armsInterventionsModule": {
+     "interventions": [
+      {
+       "type": "DRUG",
+       "name": "AZD3293 oral solution"
+      },
+      {
+       "type": "DRUG",
+       "name": "AZD3293 tablet formulation A"
+      },
+      {
+       "type": "DRUG",
+       "name": "AZD3293 tablet formulation B"
+      }
+     ]
+    },
+    "outcomesModule": {
+     "primaryOutcomes": [
+      {
+       "measure": "The relative bioavailability of AZD3293 after administration via 2 tablet formulations compared with oral solution by assessment of the area under the plasma concentration-time curve from zero to infinity for the tablet formulations and the oral solutio",
+       "description": "Blood samples for determination of plasma concentrations of AZD3293 and its active metabolite will be collected at pre-dose (15 or 30 min) and 30 min, 1h, 1.5, 2, 3, 4, 6, 8, 12, 24, 36, 48, 56 and 72 hours post-dose starting on Days 1, 8 \\& 15 and analyzed according to fully validated methods.",
+       "timeFrame": "up to day 18 (Day 1 - 72 hrs post-dose on Day 15)"
+      },
+      {
+       "measure": "To compare the tablet formulations of AZD3293 with the oral solution of AZD3293 by evaluation of the basic pharmacokinetic parameters for each formulation",
+       "description": "Blood samples for determination of plasma concentrations of AZD3293 and its active metabolite will be collected at pre-dose (15 or 30 min) and 30 min, 1h, 1.5, 2, 3, 4, 6, 8, 12, 24, 36, 48, 56 and 72 hours post-dose starting on Days 1, 8 \\& 15 and analyzed according to fully validated methods.",
+       "timeFrame": "up to day 18 (Day 1 - 72 hrs post-dose on Day 15)"
+      }
+     ]
+    }
+   },
+   "hasResults": false
+  }
+ ]
+}

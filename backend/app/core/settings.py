@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     max_run_tokens: int = 400_000
     max_panel_size: int = 4
     cache_ttl_days: int = 7
+    sources_mode: Literal["live", "fixture"] = "live"  # fixture: no API clients, stub data
     sec_user_agent: str = ""
     data_dir: Path = Path("backend/data")
     max_concurrent_runs: int = 2
