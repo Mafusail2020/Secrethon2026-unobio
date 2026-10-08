@@ -341,25 +341,26 @@ export function Composer() {
           Add details
         </button>
         <EffortPicker value={form.effort} onChange={(v) => set("effort", v)} />
-        {form.effort === "panel" && (
-          <div className="flex items-center gap-1.5">
-            <Field id={`${uid}-panel`} name="panel_size" title="Panel size" errors={errors}>
-              {(p) => (
-                <input
-                  {...p}
-                  type="number"
-                  min={2}
-                  max={maxPanel}
-                  title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
-                  className={`${input} w-20`}
-                  value={form.panel_size}
-                  onChange={(e) => set("panel_size", Number(e.target.value))}
-                />
-              )}
-            </Field>
-          </div>
-        )}
         <div className="ml-auto flex items-center gap-1.5">
+          {form.effort === "panel" && (
+            <label
+              className="uw-fade inline-flex h-9 items-center gap-2 rounded-full bg-slate-100 pl-3 pr-1 text-sm text-muted"
+              title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
+            >
+              Panel size
+              <input
+                id={`${uid}-panel`}
+                type="number"
+                min={2}
+                max={maxPanel}
+                aria-invalid={!!errors.panel_size}
+                aria-describedby={errors.panel_size ? `${uid}-panel-error` : undefined}
+                className="uw-bare h-7 w-14 rounded-full bg-surface px-2 text-center text-ink focus-visible:ring-2 focus-visible:ring-brand aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-400"
+                value={form.panel_size}
+                onChange={(e) => set("panel_size", Number(e.target.value))}
+              />
+            </label>
+          )}
           <select
             aria-label="Model"
             className="max-w-[11rem] truncate rounded-full bg-transparent py-1.5 pl-2 pr-1 text-sm text-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
@@ -386,6 +387,11 @@ export function Composer() {
         </div>
       </div>
 
+      {errors.panel_size && (
+        <p id={`${uid}-panel-error`} role="alert" className="px-5 pb-2 text-right text-xs text-red-700">
+          {errors.panel_size}
+        </p>
+      )}
       {models.isError && (
         <p className="px-5 pb-3 text-xs text-amber-700">Could not load the model list; the cheapest available model will be used.</p>
       )}
