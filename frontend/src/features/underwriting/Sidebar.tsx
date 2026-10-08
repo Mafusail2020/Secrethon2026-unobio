@@ -61,7 +61,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
                   to={`/underwriting/runs/${group.latest.id}`}
                   onClick={onNavigate}
                   aria-current={inGroup ? "page" : undefined}
-                  className={`flex items-start gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-sm transition-colors hover:bg-slate-100 aria-[current=page]:border-white/70 aria-[current=page]:bg-white/45 aria-[current=page]:shadow-[inset_0_1px_0_rgb(255_255_255/0.8),0_6px_18px_-8px_rgb(47_85_181/0.35)] aria-[current=page]:backdrop-blur-md aria-[current=page]:hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${inGroup ? "uw-flash" : ""}`}
+                  className="uw-history-row flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
                 >
                   <StatusDot run={group.latest} />
                   <span className="min-w-0 flex-1">

@@ -5,6 +5,7 @@
 @import "./dock.css";
 @import "./motion.css";
 @import "./graph.css";
+@import "./glass.css";
 
 /* the copied unobio.com pages ship their own compiled CSS; Tailwind must not build from them */
 @source not "../unobio";

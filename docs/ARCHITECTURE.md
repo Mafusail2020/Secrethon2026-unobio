@@ -336,6 +336,9 @@ from scratch (not Unicorn Studio's scene) and is previewed at `/lab/glyph-field`
 change often, over short stretches, down the panel) sits behind the history sidebar; its
 darkest stop is the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as
 the graph, spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.
+The history rows are frosted glass over it (`styles/glass.css`): the picked row a strong, blue-tinted blur that stays, a hovered
+row the same look fainter; both are lighter than the field, so text only gains contrast, and reduced transparency turns the
+blur off. There is no arrival flash on the row, because an animated background hides the glass while it runs.
 
 ## 9c. Implementing and testing a node [1b]
 
