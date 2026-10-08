@@ -69,11 +69,11 @@ interface FormState {
   panel_size: number;
 }
 
-function initialState(initial?: { indication: string; mechanism: string }): FormState {
+function initialState(): FormState {
   const stored = readPref(PREF_EFFORT);
   return {
-    indication: initial?.indication ?? "",
-    mechanism: initial?.mechanism ?? "",
+    indication: "",
+    mechanism: "",
     drug_name: "",
     modality: "",
     stage: "",
@@ -151,16 +151,23 @@ function Field({
 
 function EffortPicker({ value, onChange }: { value: Effort; onChange: (value: Effort) => void }) {
   const name = useId();
+  const index = Math.max(0, EFFORTS.findIndex((o) => o.value === value));
   return (
     <fieldset>
       <legend className="sr-only">Effort</legend>
-      <div className="flex rounded-full bg-slate-100 p-0.5">
+      <div className="relative grid grid-cols-4 rounded-full bg-slate-100 p-0.5">
+        {/* one highlight behind the labels; it slides to the chosen level (the columns are equal, so its step is its own width) */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/4)] rounded-full bg-surface shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+          style={{ transform: `translateX(${index * 100}%)` }}
+        />
         {EFFORTS.map((option) => (
           <label
             key={option.value}
             title={option.hint}
-            className={`cursor-pointer rounded-full px-3 py-1 text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
-              option.value === value ? "bg-surface font-medium shadow-sm" : "text-muted hover:text-ink"
+            className={`relative z-10 cursor-pointer rounded-full px-3 py-1 text-center text-sm transition-colors duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
+              option.value === value ? "font-medium text-ink" : "text-muted hover:text-ink"
             }`}
           >
             <input
@@ -179,14 +186,14 @@ function EffortPicker({ value, onChange }: { value: Effort; onChange: (value: Ef
   );
 }
 
-/** The big input card of a new chat. Mount with a `key` to refill it from an example. */
-export function Composer({ initial }: { initial?: { indication: string; mechanism: string } }) {
+/** The big input card of a new chat. */
+export function Composer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const models = useModels();
   const maxPanel = useHealth().data?.max_panel_size;
   const uid = useId();
-  const [form, setForm] = useState<FormState>(() => initialState(initial));
+  const [form, setForm] = useState<FormState>(initialState);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -254,8 +261,14 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
         </Field>
       </div>
 
-      {detailsOpen && (
-        <div id={`${uid}-details`} className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
+      <div
+        id={`${uid}-details`}
+        inert={!detailsOpen}
+        data-open={detailsOpen}
+        className="uw-collapse"
+      >
+        <div className="min-h-0 overflow-hidden">
+        <div className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
           <Field id={`${uid}-drug`} name="drug_name" title="Drug name" errors={errors}>
             {(p) => <input {...p} className={input} value={form.drug_name} onChange={(e) => set("drug_name", e.target.value)} />}
           </Field>
@@ -307,7 +320,8 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
             </Field>
           </div>
         </div>
-      )}
+        </div>
+      </div>
 
       {general && (
         <div className="px-4 pt-3">
@@ -323,29 +337,30 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
           aria-controls={`${uid}-details`}
           className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm text-muted hover:border-brand hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >
-          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform" : "transition-transform"} />
+          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform duration-300" : "transition-transform duration-300"} />
           Add details
         </button>
         <EffortPicker value={form.effort} onChange={(v) => set("effort", v)} />
-        {form.effort === "panel" && (
-          <div className="flex items-center gap-1.5">
-            <Field id={`${uid}-panel`} name="panel_size" title="Panel size" errors={errors}>
-              {(p) => (
-                <input
-                  {...p}
-                  type="number"
-                  min={2}
-                  max={maxPanel}
-                  title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
-                  className={`${input} w-20`}
-                  value={form.panel_size}
-                  onChange={(e) => set("panel_size", Number(e.target.value))}
-                />
-              )}
-            </Field>
-          </div>
-        )}
         <div className="ml-auto flex items-center gap-1.5">
+          {form.effort === "panel" && (
+            <label
+              className="uw-fade inline-flex h-9 items-center gap-2 rounded-full bg-slate-100 pl-3 pr-1 text-sm text-muted"
+              title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
+            >
+              Panel size
+              <input
+                id={`${uid}-panel`}
+                type="number"
+                min={2}
+                max={maxPanel}
+                aria-invalid={!!errors.panel_size}
+                aria-describedby={errors.panel_size ? `${uid}-panel-error` : undefined}
+                className="uw-bare h-7 w-14 rounded-full bg-surface px-2 text-center text-ink focus-visible:ring-2 focus-visible:ring-brand aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-red-400"
+                value={form.panel_size}
+                onChange={(e) => set("panel_size", Number(e.target.value))}
+              />
+            </label>
+          )}
           <select
             aria-label="Model"
             className="max-w-[11rem] truncate rounded-full bg-transparent py-1.5 pl-2 pr-1 text-sm text-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
@@ -365,13 +380,18 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
             aria-label="Underwrite"
             title="Underwrite (⌘ Enter)"
             disabled={create.isPending}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition hover:opacity-90 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
           >
             {create.isPending ? <Spinner className="h-4 w-4" /> : <ArrowUpIcon />}
           </button>
         </div>
       </div>
 
+      {errors.panel_size && (
+        <p id={`${uid}-panel-error`} role="alert" className="px-5 pb-2 text-right text-xs text-red-700">
+          {errors.panel_size}
+        </p>
+      )}
       {models.isError && (
         <p className="px-5 pb-3 text-xs text-amber-700">Could not load the model list; the cheapest available model will be used.</p>
       )}

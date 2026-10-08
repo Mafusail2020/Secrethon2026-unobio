@@ -3,15 +3,16 @@
 /* the dock in the workspace's own colours; only variables, dockview does the rest */
 .dockview-theme-uw {
   color-scheme: light;
+  --uw-bar: var(--color-canvas);
   --dv-group-view-background-color: var(--color-canvas);
-  --dv-tabs-and-actions-container-background-color: var(--color-surface);
+  --dv-tabs-and-actions-container-background-color: var(--uw-bar);
   --dv-tabs-and-actions-container-height: 36px;
   --dv-tabs-and-actions-container-font-size: 13px;
-  --dv-activegroup-visiblepanel-tab-background-color: var(--color-canvas);
-  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-surface);
-  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-canvas);
-  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-surface);
-  --dv-tab-divider-color: var(--color-line);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--uw-bar);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--uw-bar);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--uw-bar);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--uw-bar);
+  --dv-tab-divider-color: transparent;
   --dv-activegroup-visiblepanel-tab-color: var(--color-ink);
   --dv-activegroup-hiddenpanel-tab-color: var(--color-muted);
   --dv-inactivegroup-visiblepanel-tab-color: var(--color-muted);
@@ -40,4 +41,9 @@
 .dockview-theme-uw .dv-tab:focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: -2px;
+}
+
+/* one grey strip; the open tab is marked by its text and a blue underline instead of a different fill */
+.dockview-theme-uw .dv-tab.dv-active-tab {
+  box-shadow: inset 0 -2px 0 var(--color-brand);
 }

@@ -23,8 +23,8 @@ The screen is laid out like a chat app: history on the left, the conversation in
 again, or the ✕ on the tab, to close it). The views are draggable, see section 6b. Below 1280 px the panel area covers
 the conversation; below 768 px the history is a drawer.
 
-1. Open `/underwriting`. Click the **BACE1 inhibition for Alzheimer's disease** pill under the input. Fields fill; nothing
-   runs. Report, Sources and Logs are greyed out until there is a run; **Graph** already works.
+1. Open `/underwriting`. Type **Alzheimer's disease** as the indication and **BACE1 inhibition** as the mechanism. Nothing
+   runs yet. Report, Sources and Logs are greyed out until there is a run; **Graph** already works.
 2. Effort: hover **Panel** and read the hint ("Several models analyse independently…"), then click back to **Medium**.
 3. Press **⌘/Ctrl+Enter** or the arrow button. The URL becomes `/underwriting/runs/<id>`; the run appears in the
    history on the left.
@@ -32,7 +32,10 @@ the conversation; below 768 px the history is a drawer.
    openFDA, Europe PMC …") with steps done and elapsed time. Click **Show steps** for the full list of phases; the usage
    line (model calls, tokens, cost; "mock model, no spend" in mock) is inside it. A **stub data** chip is expected: the
    nodes are still fixtures.
-5. Click **Graph** in the top bar while it runs: turn on **Follow running step**; the camera follows. Open **Legend**.
+5. Click **Graph** in the top bar while it runs: the 23 steps are folded into eight boxes, each showing its progress and
+   which steps are running. Click **Gather public evidence**: its six steps glide out of the box. Click the title of the
+   opened frame to fold them again; **Ungroup all** and **Group all** do every box at once (and the choice is
+   remembered). Turn on **Follow running step**; the camera follows. Open **Legend**.
 6. When it completes, a structured briefing appears in the thread (a smaller version of the report: Verdict, Why this
    call, What the report found, Funding, Risks and unknowns, What to do next). The small numbers are citations: a number
    opens the report at that claim, and **Claims cited** at the end lists them. Under it, the verdict card: click **Open
@@ -65,7 +68,8 @@ the conversation; below 768 px the history is a drawer.
 3. Report view: the **What changed after your correction** banner shows Conditional → Do not invest, the PoS change,
    the changed sections and the added and removed claims (click to jump).
 4. Graph view: version bar switches between v1 and v2; reused steps are dashed blue.
-5. Alternative path: **Graph** → click **Verdict** → **Correct** tab. While the form is open the steps that would
+5. Alternative path: **Graph** → click **Quantify and decide** to open it → click **Verdict** → **Correct** tab. (Folded boxes
+   ring in blue when the draft would recompute any step inside.) While the form is open the steps that would
    recompute are outlined and the rest dim.
 
 ## 4. Export
@@ -93,7 +97,9 @@ Add `?scenario=` to `/underwriting` before starting a run:
 - The correction dialog traps focus; Esc closes it and returns focus to **This is wrong**.
 - 1024 px: the view panel covers the conversation; ✕ brings it back. Below 768 px: the history is a drawer (the sidebar
   button in the top bar), no horizontal scrolling.
-- With "reduce motion" on, spinners and transitions in the workspace stop animating; the home page is unaffected.
+- Motion: the history slides in and out, views slide in from the right, **Add details** opens smoothly, and new messages,
+  history rows and the finished call rise in once. With "reduce motion" on, all of it (and the spinners) stops; the home
+  page is unaffected.
 
 ## 6b. Arrange the views
 

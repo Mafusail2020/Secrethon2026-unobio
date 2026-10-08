@@ -66,7 +66,7 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 
 1. `make dev`, open http://localhost:5173. This is the Unobio home page; every link on it is inert except "Gravity" in the
    header, which opens the chat page, and the header logo, which returns here.
-2. Click the BACE1 example pill, then the arrow button (Underwrite). The conversation streams the steps; the **Graph** and **Logs** buttons in the top bar open those views live.
+2. Enter an indication and a mechanism (for example Alzheimer's disease and BACE1 inhibition), then press the arrow button (Underwrite). The conversation streams the steps; the **Graph** and **Logs** buttons in the top bar open those views live.
 3. When it completes, the **Report** button opens the verdict. Expand a claim to see its evidence and the source link.
 4. **Graph**, click `verdict` (or any node), write a correction containing "terminated", and re-run. Only the affected
    nodes recompute, the rest show as reused, and the version bar shows the decision change.

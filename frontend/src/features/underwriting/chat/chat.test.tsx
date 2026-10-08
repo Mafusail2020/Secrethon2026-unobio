@@ -8,7 +8,6 @@ import graphSpecJson from "../../../../../contracts/fixtures/graph_spec.json";
 import type { ChatMessage, GraphSpec, RunEvent, RunSummary } from "../../../api/types";
 import { applyEvent, initialStream } from "../reduceEvents";
 import { Composer } from "./Composer";
-import { ExampleCards } from "./ExampleCards";
 import { RunThread } from "./RunThread";
 
 const html = (node: ReactElement) =>
@@ -41,21 +40,11 @@ describe("composer", () => {
     expect(markup).toContain("Mechanism or target");
     for (const label of ["Low", "Medium", "High", "Panel"]) expect(markup).toContain(label);
     expect(markup).toContain("Add details");
+    expect(markup).toMatch(/aria-expanded="false"[^>]*aria-controls="[^"]+-details"/);
+    expect(markup).toMatch(/id="[^"]+-details" inert=""/); // folded away, so its fields cannot take focus
     expect(markup).toContain("Balanced default.");
+    expect(markup).toContain("translateX(100%)"); // the highlight sits on the second level, Medium
     expect(markup).not.toContain("Panel size"); // only for panel effort
-  });
-
-  it("starts from an example", () => {
-    const markup = html(<Composer initial={{ indication: "Hypercholesterolemia", mechanism: "PCSK9 inhibition" }} />);
-    expect(markup).toContain('value="PCSK9 inhibition"');
-  });
-});
-
-describe("example cards", () => {
-  it("lists the examples with their hints", () => {
-    const markup = html(<ExampleCards onPick={() => {}} />);
-    expect(markup).toContain("BACE1 inhibition for Alzheimer&#x27;s disease");
-    expect(markup).toContain("Expected: strong human genetics");
   });
 });
 

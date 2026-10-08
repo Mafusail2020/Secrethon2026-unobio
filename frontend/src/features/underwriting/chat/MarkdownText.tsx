@@ -50,7 +50,7 @@ export function MarkdownText({
               onClick={() => onOpenClaim(id)}
               title={claim?.text}
               aria-label={`Open claim ${children}${claim ? `: ${claim.text}` : ""}`}
-              className="mx-0.5 inline-block rounded bg-brand/10 px-1 text-[0.7rem] font-medium leading-4 text-brand hover:bg-brand/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              className="mx-0.5 inline-block rounded bg-brand/10 px-1 transition-colors text-[0.7rem] font-medium leading-4 text-brand hover:bg-brand/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
             >
               {children}
             </button>

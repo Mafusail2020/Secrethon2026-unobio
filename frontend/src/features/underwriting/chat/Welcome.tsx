@@ -1,19 +1,10 @@
-import { useState } from "react";
 import { Composer } from "./Composer";
-import { ExampleCards } from "./ExampleCards";
 
-interface Prefill {
-  indication: string;
-  mechanism: string;
-  nonce: number;
-}
-
-/** The new-chat screen: a short greeting, the big composer, and a few examples to start from. */
+/** The new-chat screen: a short greeting and the big composer. */
 export function Welcome() {
-  const [prefill, setPrefill] = useState<Prefill | undefined>();
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-4 py-10">
-      <div className="mb-8 text-center">
+    <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 pb-10 pt-[max(2.5rem,18vh)]">
+      <div className="uw-rise mb-8 text-center">
         {/* inline: the unlayered h2 rule in tokens.css beats a font-serif utility */}
         <h2 className="text-3xl leading-tight tracking-tight sm:text-4xl md:text-5xl" style={{ fontFamily: "var(--font-serif)" }}>
           Underwrite a <em className="text-royal">drug program</em>
@@ -23,11 +14,8 @@ export function Welcome() {
           is worth it, with every claim traceable to its sources.
         </p>
       </div>
-      <Composer key={prefill?.nonce ?? 0} initial={prefill} />
-      <div className="mt-5">
-        <ExampleCards
-          onPick={(e) => setPrefill((p) => ({ indication: e.indication, mechanism: e.mechanism, nonce: (p?.nonce ?? 0) + 1 }))}
-        />
+      <div className="uw-rise" style={{ animationDelay: "90ms" }}>
+        <Composer />
       </div>
     </div>
   );

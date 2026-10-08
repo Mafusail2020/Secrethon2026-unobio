@@ -28,7 +28,7 @@ function ProgramMessage({ run }: { run: RunSummary }) {
     .filter(Boolean)
     .join(" · ");
   return (
-    <div className="ml-auto max-w-[85%] rounded-lg bg-slate-100 px-4 py-3 text-[0.95rem]">
+    <div className="uw-rise ml-auto max-w-[85%] rounded-lg bg-slate-100 px-4 py-3 text-[0.95rem]">
       <div className="font-medium">{p.indication}</div>
       <div>{p.mechanism}</div>
       {extras && <div className="mt-1 text-xs text-muted">{extras}</div>}
@@ -65,7 +65,7 @@ function SummaryBlock({
 }) {
   if (summary.pending) {
     return (
-      <div role="status" aria-busy="true" className="space-y-2.5">
+      <div role="status" aria-busy="true" className="uw-fade space-y-2.5">
         <p className="flex items-center gap-2 text-sm text-muted">
           <Spinner className="h-3.5 w-3.5" /> Writing the summary…
         </p>
@@ -88,7 +88,7 @@ function SummaryBlock({
   if (!summary.message) return null;
   const { content, cited_claim_ids: ids } = summary.message;
   return (
-    <div className="text-[0.95rem] leading-relaxed">
+    <div className="uw-stagger text-[0.95rem] leading-relaxed">
       <MarkdownText text={content} ids={ids} report={report} onOpenClaim={onOpenClaim} />
       {ids.length > 0 && (
         <details className="mt-4 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
@@ -118,7 +118,7 @@ function VerdictCard({
   onOpenReport: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-3 py-2.5">
+    <div className="uw-rise uw-ring flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-3 py-2.5">
       <Badge className={`px-3 py-1 text-sm ${DECISION_STYLE[decision]}`}>{DECISION_LABEL[decision]}</Badge>
       {report && (
         <span className="text-sm text-muted">
