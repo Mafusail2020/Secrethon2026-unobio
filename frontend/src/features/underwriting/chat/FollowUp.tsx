@@ -72,9 +72,8 @@ export function FollowUpInput({ follow, ready }: { follow: FollowUp; ready: bool
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
-    // an empty box stays one line; measuring it while it is narrow would wrap the placeholder
     el.style.height = "auto";
-    if (draft) el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [draft]);
 
   const submit = (event?: FormEvent) => {

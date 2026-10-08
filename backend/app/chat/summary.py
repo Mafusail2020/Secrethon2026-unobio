@@ -11,7 +11,7 @@ SYSTEM = """You write a compact Markdown briefing of ONE drug-program underwriti
 Rules:
 - Use only the report text inside <report>. No outside knowledge, no guessing, no numbers that are not in the report.
 - Structure, in this order, with ## headings:
-  ## Verdict - the call in bold and one or two sentences of why. The probability of success and its range are shown right above this briefing, so do not repeat them here.
+  ## Verdict - the call in bold, the probability of success with its range, the confidence, one sentence of why.
   ## Why this call - 3 to 5 bullets: the strongest reasons for and against, each saying what it rests on.
   ## What the report found - one ### subsection per report section that has content (disease need, scientific thesis, translation, clinical plan, competition, commercial adoption, capital), each with one or two sentences or 2 to 3 short bullets.
   ## Funding to the next milestone - only if the report has a valuation: the milestone, capital, time and risk-adjusted value, with their ranges.
@@ -40,6 +40,10 @@ class SummaryDraft(BaseModel):
     cited_claim_ids: list[str] = Field(default_factory=list)
 
 
+def _pct(x: float) -> str:
+    return f"{x * 100:.0f}%"
+
+
 def _usd(x: float) -> str:
     sign, x = ("-", -x) if x < 0 else ("", x)
     for size, unit in ((1e9, "B"), (1e6, "M"), (1e3, "K")):
@@ -62,10 +66,11 @@ def template_summary(report: UnderwritingReport, run_id: str) -> ChatMessage:
 
     Used in mock mode and whenever a model draft cannot be tied to a real claim."""
     _, valid = build_context(report)
-    verdict = report.verdict
+    verdict, pos = report.verdict, report.pos
     out = [
         "## Verdict",
-        f"**{DECISION[verdict.decision]}** at {verdict.confidence} confidence. {verdict.rationale}",
+        f"**{DECISION[verdict.decision]}** at {verdict.confidence} confidence. Probability of success "
+        f"about **{_pct(pos.base)}** (range {_pct(pos.low)} to {_pct(pos.high)}).\n\n{verdict.rationale}",
     ]
     if verdict.reason_codes:
         out.append("## Why this call")

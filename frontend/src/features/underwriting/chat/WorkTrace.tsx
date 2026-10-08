@@ -41,7 +41,7 @@ export function WorkTrace({
         {progress && <span className="shrink-0 text-xs text-muted">{progress}</span>}
         {stubData && <Badge className="border-amber-300 bg-amber-50 text-amber-800">stub data</Badge>}
         <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs text-muted group-hover:text-ink">
-          <span className="hidden sm:inline">{open ? "Hide steps" : "Show steps"}</span>
+          {open ? "Hide steps" : "Show steps"}
           <ChevronDownIcon width={14} height={14} className={open ? "rotate-180" : ""} />
         </span>
       </button>

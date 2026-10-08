@@ -21,16 +21,6 @@
   --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Newsreader", Georgia, ui-serif, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-/* a measurement or a label, as opposed to prose: ids, numbers, durations, field names */
-@utility label-mono {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  line-height: 1rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 /* where a jump lands: just under the report's sticky header (ReportView sets --report-header) */

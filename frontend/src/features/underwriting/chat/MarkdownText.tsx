@@ -5,7 +5,7 @@ import { withCitationLinks } from "./citations";
 
 const urlTransform = (url: string) => (url.startsWith("claim:") ? url : defaultUrlTransform(url));
 
-const SERIF = { fontFamily: "var(--font-serif)" } as const; // inline: the unlayered h1-h3 rule beats a utility
+const heading = "font-semibold first:mt-0";
 
 /** Markdown the model wrote, drawn with the workspace's own styles. Raw HTML is never rendered. */
 export function MarkdownText({
@@ -20,18 +20,10 @@ export function MarkdownText({
   onOpenClaim: (claimId: string) => void;
 }) {
   const components: Components = {
-    h1: ({ children }) => (
-      <h2 className="mb-2 mt-8 text-[1.3rem] font-medium leading-snug first:mt-0" style={SERIF}>
-        {children}
-      </h2>
-    ),
-    h2: ({ children }) => (
-      <h2 className="mb-2 mt-8 text-[1.3rem] font-medium leading-snug first:mt-0" style={SERIF}>
-        {children}
-      </h2>
-    ),
-    h3: ({ children }) => <h3 className="label-mono mb-1 mt-5 border-l-2 border-brand/50 pl-2 font-medium text-muted">{children}</h3>,
-    h4: ({ children }) => <h4 className="label-mono mb-1 mt-3 font-medium text-muted">{children}</h4>,
+    h1: ({ children }) => <h2 className={`mb-2 mt-6 border-b border-line pb-1 text-base ${heading}`}>{children}</h2>,
+    h2: ({ children }) => <h2 className={`mb-2 mt-6 border-b border-line pb-1 text-base ${heading}`}>{children}</h2>,
+    h3: ({ children }) => <h3 className={`mb-1 mt-4 text-sm ${heading}`}>{children}</h3>,
+    h4: ({ children }) => <h4 className={`mb-1 mt-3 text-sm ${heading}`}>{children}</h4>,
     p: ({ children }) => <p className="my-2">{children}</p>,
     ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
     ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
@@ -58,7 +50,7 @@ export function MarkdownText({
               onClick={() => onOpenClaim(id)}
               title={claim?.text}
               aria-label={`Open claim ${children}${claim ? `: ${claim.text}` : ""}`}
-              className="mx-0.5 inline-block rounded bg-brand/10 px-1 font-mono text-[0.65rem] font-medium leading-4 text-brand hover:bg-brand/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              className="mx-0.5 inline-block rounded bg-brand/10 px-1 text-[0.7rem] font-medium leading-4 text-brand hover:bg-brand/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
             >
               {children}
             </button>

@@ -236,10 +236,7 @@ def test_template_summary_is_a_structured_markdown_briefing_that_cites_real_clai
     ]
     assert message.role == "assistant" and message.run_id == "r1"
     assert text.startswith("## Verdict") and f"**{label}**" in text
-    verdict_section = text.split("## Why this call")[0]
-    assert (
-        verdict.rationale in verdict_section and "%" not in verdict_section
-    )  # the numbers sit above the briefing
+    assert f"**{REPORT.pos.base * 100:.0f}%**" in text and verdict.rationale in text
     for heading in (
         "## Why this call",
         "## What the report found",

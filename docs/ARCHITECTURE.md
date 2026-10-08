@@ -207,22 +207,13 @@ after scrolling). Every link and button is inert (no `href`); the exceptions are
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 
-Type has three roles in the workspace: Newsreader (the face of the home page's italic accent) for judgement, meaning the
-decision, the probability and the briefing's section titles; Plus Jakarta Sans for prose; JetBrains Mono, already shipped
-with the copied site, for measurements and labels (the `label-mono` utility: field names, ids, durations, scale captions).
-An h1 to h3 rule in `tokens.css` is unlayered and beats utilities, so the serif is set inline on those headings.
-
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
 blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
-evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the thread leads with
-the call (`VerdictSlip`: the decision and the probability of success, and `PosStrip` under them, the one visual the
-product is built around: the probability's range as a band on a scale from 0 to a round figure, the best estimate as a
-tick and the prior from similar programs as a dashed mark, so how far the evidence moved the answer is visible at a
-glance; `posScale` picks the scale). The briefing follows (`SummaryBlock`: Markdown through `react-markdown`, raw HTML
-never rendered, `[[id]]` marks drawn as numbered buttons that open the claim, and a "Claims cited" list), then the
-follow-up thread (`FollowUpMessages`) with its reply box
+evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the briefing
+(`SummaryBlock`: Markdown through `react-markdown`, raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
+open the claim, and a "Claims cited" list) and a compact verdict card follow, then the follow-up thread (`FollowUpMessages`) with its reply box
 (`FollowUpInput`) docked at the bottom; both read `useFollowUp`, which is backed by the chat endpoints (history is loaded
 per run; a 429 locks the box with a note). `TopBar` has toggle buttons for the four views. Each view is a panel of a dock (`dock/`, on `dockview-react`): the reader can
 drag a tab to reorder it, drop it on the edge of another panel to split beside or under it, or float it, and drag the bar
