@@ -283,6 +283,13 @@ the node wrappers) while the box fades, and the camera refits once they have lef
 Nodes are always handed to React Flow in one fixed order, because React moving a node in the list restarts its style and
 the transition never plays.
 
+Layout is dagre for ranks and order, with the rest done in `graph/layout.ts`: each frame reserves room above its first
+step and below its last, a fork's branches start on the same row, and every wire is routed square through the gaps
+between rows, so no wire crosses a step or a frame title (`layout.test.ts` checks this for all 32 fold states). A frame
+with a single way in has its title chip on that wire; a frame with several puts the chip where none enters. Wires carry
+the run: grey while waiting, inked once the step before them has finished, dashed and moving while the step after them
+runs, red when a step failed, dashed blue when reused (`graph/wires.ts`, `styles/graph.css`).
+
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 32 steps into nine collapsible
