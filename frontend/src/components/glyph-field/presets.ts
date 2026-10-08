@@ -7,5 +7,5 @@ export const PRESETS = {
   flame: { palette: FLAME },
   brand: { palette: BRAND },
   /** a background to read over: pale blue into grey, strokes lighter than the ground and never darker, slow and shy of the pointer */
-  mist: { palette: MIST, strokeContrast: 0.6, glow: true, speed: 0.3, push: 0.5, backdrop: 1, cell: [7, 11] },
+  mist: { palette: MIST, strokeContrast: 0.6, glow: true, detail: 1.8, speed: 0.3, push: 0.5, backdrop: 1, cell: [7, 11] },
 } satisfies Record<string, Partial<GlyphFieldProps>>;

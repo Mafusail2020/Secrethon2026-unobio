@@ -19,6 +19,8 @@ export interface GlyphFieldProps {
   push?: number;
   /** strokes only lighter than the ground, never darker: the field's darkest stop is then the worst case for text over it */
   glow?: boolean;
+  /** 1 is the natural size of the colour changes; more packs the same colours closer, so they change more often */
+  detail?: number;
   /** 1 shows the field's colours as they are; less dims them between the strokes */
   backdrop?: number;
   className?: string;
@@ -28,7 +30,7 @@ export interface GlyphFieldProps {
  * A flowing field of colour drawn in text. The pointer pushes it around; with reduced motion it is one still frame.
  * Draws nothing where there is no WebGL2, so whatever is behind the canvas stays.
  */
-export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14], strokeContrast = 1, speed = 0.5, push = 1, backdrop = 0.92, glow = false, className }: GlyphFieldProps) {
+export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14], strokeContrast = 1, speed = 0.5, push = 1, backdrop = 0.92, glow = false, detail = 1, className }: GlyphFieldProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const paletteKey = palette.join(",");
   const [cellW, cellH] = cell;
@@ -46,6 +48,7 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14
       backdrop,
       stroke: strokeContrast,
       glow,
+      detail,
     });
     // a canvas that failed to start is opaque black: hide it so whatever is behind it shows
     canvas.hidden = !field;
@@ -121,7 +124,7 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14
       document.removeEventListener("visibilitychange", onVisible);
       field.destroy();
     };
-  }, [paletteKey, ramp, cellW, cellH, strokeContrast, speed, push, backdrop, glow]);
+  }, [paletteKey, ramp, cellW, cellH, strokeContrast, speed, push, backdrop, glow, detail]);
 
   return <canvas ref={ref} aria-hidden="true" className={className} />;
 }

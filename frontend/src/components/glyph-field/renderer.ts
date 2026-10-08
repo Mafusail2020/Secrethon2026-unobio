@@ -17,6 +17,8 @@ export interface GlyphFieldOptions {
   stroke: number;
   /** strokes only ever lighter than the field, so the field's darkest colour stays the darkest thing on screen */
   glow: boolean;
+  /** 1 is the natural size of the colour changes; more packs them closer, so they change more often */
+  detail: number;
 }
 
 export interface GlyphFieldHandle {
@@ -114,6 +116,7 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
     gl.uniform1f(loc(fieldProg, "uTime"), seconds);
     gl.uniform2f(loc(fieldProg, "uPointer"), pointerX, pointerY);
     gl.uniform1f(loc(fieldProg, "uPush"), push);
+    gl.uniform1f(loc(fieldProg, "uDetail"), opts.detail);
     gl.uniform3fv(loc(fieldProg, "uPal"), palFlat);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 

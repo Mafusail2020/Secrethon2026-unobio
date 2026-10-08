@@ -330,7 +330,8 @@ resolution, stretched upward so it rises like flame, then one letter per cell (D
 the cell's darkness with a random per-cell threshold, so letters of one density mix like a read sequence, over the soft
 field. The pointer pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written
 from scratch (not Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. The `mist` preset
-(pale blue into grey, strokes only lighter than the ground, slow, shy of the pointer) sits behind the history sidebar; its
+(pale blue into grey, strokes only lighter than the ground, slow, shy of the pointer, with `detail` 1.8 so the same colours
+change more often down the panel) sits behind the history sidebar; its
 darkest stop is the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as
 the graph, spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.
 

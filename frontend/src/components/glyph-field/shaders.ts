@@ -15,6 +15,7 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uPush;
+uniform float uDetail;
 uniform vec3 uPal[6];
 out vec4 o;
 
@@ -52,13 +53,15 @@ void main() {
   float t = uTime * 0.05;
 
   // tall, narrow structures that rise: squeeze the noise across and stretch it up, and let it climb
-  vec2 p = vec2(uv.x * 2.2 + uv.y * 0.35, uv.y * 0.95 - t * 0.9);
+  // uDetail packs the same colours into shorter stretches: they change more often, and a finer layer rides on top
+  vec2 p = vec2(uv.x * 2.2 + uv.y * 0.35, uv.y * 0.95) * uDetail - vec2(0.0, t * 0.9);
   vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3) - t));
   vec2 r = vec2(fbm(p + 3.0 * q + vec2(1.7, 9.2) + 0.5 * t), fbm(p + 3.0 * q + vec2(8.3, 2.8) - 0.4 * t));
   float f = fbm(p + 3.0 * r);
 
   // light mist upper left, deeper colour lower right
   float v = f * 1.35 - 0.12 + (1.0 - frag.x) * 0.3 + frag.y * 0.35 - 0.3;
+  v += (fbm(p * 2.6 + 3.0 * q) - 0.5) * 0.22 * (uDetail - 1.0);
   v = smoothstep(0.08, 0.92, v);
 
   o = vec4(ramp(v), 1.0);
