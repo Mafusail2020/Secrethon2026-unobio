@@ -61,7 +61,7 @@ void main() {
 
   // light mist upper left, deeper colour lower right
   float v = f * 1.35 - 0.12 + (1.0 - frag.x) * 0.3 + frag.y * 0.35 - 0.3;
-  v += (fbm(p * 2.6 + 3.0 * q) - 0.5) * 0.22 * (uDetail - 1.0);
+  v += (fbm(p * 2.6 + 3.0 * q) - 0.5) * 0.22 * min(uDetail - 1.0, 1.2);
   v = smoothstep(0.08, 0.92, v);
 
   o = vec4(ramp(v), 1.0);

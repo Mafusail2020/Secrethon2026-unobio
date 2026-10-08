@@ -279,7 +279,9 @@ it, and clicking the title of an unfolded frame folds it again. Edges are rewire
 duplicates), a group that holds a failed or running step shows that status, and a correction draft rings every group it
 would recompute. Group all and Ungroup all sit beside the legend, and the arrangement is remembered
 (`uw.graphCollapsed`). Unfolding is a dissolve: the steps start at the box and glide to their places (CSS transitions on
-the node wrappers) while the box fades, and the camera refits once they have left it, unless the reader panned or zoomed.
+the node wrappers) while the box fades, and once the steps have left it the camera centres on the group that was just unfolded (zoom at most 1.1) and then counts as the
+reader's, so a resize leaves it alone; Group all and Ungroup all refit the whole graph unless the reader panned or zoomed. Box names
+are centred; the status icon is balanced by a hidden spacer so the name itself sits at the centre.
 Nodes are always handed to React Flow in one fixed order, because React moving a node in the list restarts its style and
 the transition never plays.
 
@@ -330,8 +332,8 @@ resolution, stretched upward so it rises like flame, then one letter per cell (D
 the cell's darkness with a random per-cell threshold, so letters of one density mix like a read sequence, over the soft
 field. The pointer pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written
 from scratch (not Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. The `mist` preset
-(pale blue into grey, strokes only lighter than the ground, slow, shy of the pointer, with `detail` 1.8 so the same colours
-change more often down the panel) sits behind the history sidebar; its
+(pale blue into grey, strokes only lighter than the ground, slow, shy of the pointer, with `detail` 3.2 so the same colours
+change often, over short stretches, down the panel) sits behind the history sidebar; its
 darkest stop is the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as
 the graph, spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.
 
