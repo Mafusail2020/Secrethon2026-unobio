@@ -1,14 +1,17 @@
-"""In-memory stand-ins so the stub graph runs. Person B replaces them with real stores."""
+"""In-memory stores for unit tests. The app uses app.store.sqlite_store."""
 
 import re
 import time
 from collections import defaultdict
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.contracts import CaseStance, EntityRef, Evidence, SourceRef
+from app.contracts import EntityRef, Evidence, SourceRef
 from app.store.kg import KGEdge
+from app.store.retriever import RunRetriever
+
+__all__ = ["InMemoryStore", "RunRetriever"]  # RunRetriever: graph/context.py imports it here
 
 _WORD = re.compile(r"[a-z0-9]+")
 
@@ -66,9 +69,11 @@ class InMemoryVectorIndex:
     def __init__(self) -> None:
         self._docs: dict[str, set[str]] = {}
 
-    async def add(self, evidence: Sequence[Evidence]) -> None:
+    async def add(
+        self, evidence: Sequence[Evidence], context: Mapping[str, str] | None = None
+    ) -> None:
         for item in evidence:
-            self._docs[item.id] = _tokens(item.excerpt)
+            self._docs[item.id] = _tokens(f"{(context or {}).get(item.id, '')} {item.excerpt}")
 
     async def search(
         self, query: str, *, k: int, evidence_ids: Collection[str] | None = None
@@ -116,24 +121,3 @@ class InMemoryStore:
     evidence: InMemoryEvidenceStore = field(default_factory=InMemoryEvidenceStore)
     vectors: InMemoryVectorIndex = field(default_factory=InMemoryVectorIndex)
     kg: InMemoryKnowledgeGraph = field(default_factory=InMemoryKnowledgeGraph)
-
-
-class RunRetriever:
-    """Retriever bound to a run's frozen evidence set; falls back to set order on no match."""
-
-    def __init__(self, store: InMemoryStore, allowed: Collection[str]) -> None:
-        self._store = store
-        self._allowed = list(allowed)
-
-    async def retrieve(
-        self,
-        query: str,
-        entity_ids: Sequence[str] = (),
-        stance: CaseStance | None = None,
-        k: int = 8,
-    ) -> list[Evidence]:
-        if not self._allowed:
-            return []
-        hits = await self._store.vectors.search(query, k=k, evidence_ids=set(self._allowed))
-        ids = [i for i, score in hits if score > 0] or self._allowed[:k]
-        return await self._store.evidence.get_many_evidence(ids)

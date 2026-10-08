@@ -111,3 +111,49 @@ class LLMCacheRow(Base):
     model: Mapped[str] = mapped_column(String)
     response: Mapped[dict[str, Any]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
+class SourceCacheRow(Base):
+    __tablename__ = "source_cache"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    source: Mapped[str] = mapped_column(String)
+    value: Mapped[Any] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
+class SourceRow(Base):
+    __tablename__ = "sources"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    type: Mapped[str] = mapped_column(String)
+    # the full SourceRef; columns above are for filtering only
+    body: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class EvidenceRow(Base):
+    __tablename__ = "evidence"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    source_id: Mapped[str] = mapped_column(String, index=True)
+    body: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class KGNodeRow(Base):
+    __tablename__ = "kg_nodes"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    kind: Mapped[str] = mapped_column(String)
+    label: Mapped[str] = mapped_column(String)
+    body: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class KGEdgeRow(Base):
+    __tablename__ = "kg_edges"
+    __table_args__ = (Index("ix_kg_edges_target", "target"),)
+
+    source: Mapped[str] = mapped_column(String, primary_key=True)
+    target: Mapped[str] = mapped_column(String, primary_key=True)
+    relation: Mapped[str] = mapped_column(String, primary_key=True)
+    evidence_id: Mapped[str] = mapped_column(String, primary_key=True)
