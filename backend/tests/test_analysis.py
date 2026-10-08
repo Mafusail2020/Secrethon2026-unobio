@@ -163,6 +163,15 @@ def test_quote_must_appear_verbatim_ignoring_case_space_and_quotes():
     assert not quote_found("futility", [text])  # too short to prove anything
 
 
+def test_quote_tolerates_typographic_dashes_and_ellipsis_joins():
+    text = "BACE1 × AD: overall association score 0.422; lit 0.99. No genetic_association evidence."
+    assert quote_found(
+        "overall association score 0.422; ... No genetic_association evidence.", [text]
+    )
+    assert quote_found("amyloid‑beta production", ["the amyloid-beta production step"])
+    assert not quote_found("score 0.422 … no genetic support", [text])
+
+
 async def test_gate_rejects_unknown_ids_and_downgrades_bad_quotes():
     store, ids = await _store()
     ctx = FakeCtx("bear_claim_gate", store)
@@ -712,3 +721,26 @@ async def test_lane_score_uses_only_its_own_claims(lane):
     node = assessments.make_nodes(lane)[f"{lane}_score"]
     out = await node(state, FakeCtx(f"{lane}_score", store))
     assert out["assessments"][lane].claim_ids == []
+
+
+async def test_a_refused_long_input_is_retried_smaller():
+    from app.nodes._analysis import DraftClaims, ask_fitted
+
+    class Refuses(FakeLLM):
+        async def complete(self, task):
+            if len(self.tasks) == 0:
+                self.tasks.append(task)
+                raise RuntimeError("400: Input exceeds the conservative input limit.")
+            return await super().complete(task)
+
+    llm = Refuses()
+    ctx = FakeCtx("bull_claim_writer", InMemoryStore(), llm)
+    scales: list[float] = []
+
+    async def build(scale: float) -> tuple[str, list[str]]:
+        scales.append(scale)
+        return "x" * int(100 * scale), [f"ev_{scale}"]
+
+    parsed, _, shown = await ask_fitted(ctx, "p", "s", build, DraftClaims, 100)
+    assert scales == [1.0, 0.6] and shown == ["ev_0.6"] and parsed is not None
+    assert any("input too long" in m for _, m in ctx.logs)
