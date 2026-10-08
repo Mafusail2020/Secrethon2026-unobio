@@ -1,2 +1,19 @@
 # Quant owner fills these. Every entry needs a `citation` or `assumption: true`.
-thresholds: {}                # e.g. invest_min_pos, do_not_invest_max_pos
+# Starting rules from the brief; to be tuned after the Q&A with Unobio on finance.
+thresholds:
+  # invest: the pessimistic PoS clears this, rNPV is positive even pessimistically, no red flags
+  invest_min_pos_low: {value: 0.10, assumption: true}
+  # do_not_invest kill flag: this many same-indication twins on the same target stopped for
+  # efficacy at Phase 2/3 or later
+  kill_min_efficacy_failures: {value: 2, assumption: true}
+  # confidence: posterior high/low ratio above this is "low", below `high_confidence_ratio` is "high"
+  low_confidence_ratio: {value: 8.0, assumption: true}
+  high_confidence_ratio: {value: 3.0, assumption: true}
+  # fewer decided twins than this caps confidence at low
+  min_decided_twins_for_confidence: {value: 3, assumption: true}
+
+# A correction on the verdict is a human instruction. These phrases are read deterministically;
+# anything else is recorded but does not change the decision.
+corrections:
+  assumption: true
+  failure_words: "terminated|failed|failure|futility|withdrawn|discontinued|toxicity|safety signal|clinical hold"
