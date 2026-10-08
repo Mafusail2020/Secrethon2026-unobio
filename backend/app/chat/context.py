@@ -1,7 +1,7 @@
 from app.contracts import Claim, UnderwritingReport
 
 MAX_CLAIMS = 60
-MAX_CHARS = 14_000
+MAX_CHARS = 18_000
 _CONFIDENCE = {"high": 0, "medium": 1, "low": 2}
 
 
@@ -48,6 +48,22 @@ def build_context(report: UnderwritingReport) -> tuple[str, set[str]]:
     for s in report.sections.values():
         unknown = f" Unknown: {'; '.join(s.unknowns)}." if s.unknowns else ""
         lines.append(f"SECTION {s.title} ({s.status}): {_clip(s.summary, 300)}{unknown}")
+        for point in s.key_points[:4]:
+            ids = ", ".join(point.claim_ids) or "none"
+            lines.append(f"    - {_clip(point.text, 200)} [claims: {ids}]")
+    if report.translation_chain:
+        steps = "; ".join(
+            f"{link.step.replace('_', ' ')} {link.status}" for link in report.translation_chain
+        )
+        lines.append(f"TRANSLATION CHAIN: {steps}")
+    for risk in report.key_risks[:8]:
+        ids = ", ".join(risk.claim_ids) or "none"
+        lines.append(
+            f"RISK ({risk.severity} {risk.category}): {_clip(risk.text, 200)} [claims: {ids}]"
+        )
+    for question in report.diligence_questions[:6]:
+        why = _clip(question.why_it_matters, 160)
+        lines.append(f"DILIGENCE: {_clip(question.question, 160)} (why: {why})")
     if report.twin_stats:
         t = report.twin_stats
         lines.append(f"TWINS: {t.n_programs} similar programs, prior {t.prior_pos.base:.3f}")
