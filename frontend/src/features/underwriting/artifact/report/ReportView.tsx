@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { GraphSpec, SectionId, UnderwritingReport } from "../../../../api/types";
-import { Badge } from "../../../../components/ui/Badge";
-import { DECISION_LABEL, DECISION_STYLE, pctRange } from "../../../../lib/format";
+import { DECISION_LABEL, pct } from "../../../../lib/format";
 import { CorrectionDialog } from "../../correction/CorrectionDialog";
 import { ClaimCard } from "./ClaimCard";
 import { ClaimFilterBar } from "./ClaimFilterBar";
@@ -19,7 +18,6 @@ import { RunDetails } from "./RunDetails";
 import { Collapse } from "./tree/Collapse";
 import { ReportTreeView } from "./tree/ReportTree";
 import { Section } from "./Section";
-import { isSyntheticReport } from "./synthetic";
 import { useScrollSpy } from "./useScrollSpy";
 import { WhatChanged } from "./WhatChanged";
 
@@ -85,7 +83,8 @@ export function ReportView({
 
   const sections = SECTION_ORDER.flatMap((id) => (report.sections[id] ? [report.sections[id]] : []));
   const nav = [
-    { id: "summary", label: "Summary" },
+    // once the call has scrolled away this chip keeps it in sight; it only changes width, never the header's height
+    { id: "summary", label: rootInView ? "Summary" : `${DECISION_LABEL[verdict.decision]} · ${pct(report.pos.base)}` },
     ...tree.questions.map((q) => ({ id: `q-${q.id}`, label: q.short })),
     { id: "full-report", label: "Full report" },
   ];
@@ -149,48 +148,31 @@ export function ReportView({
     };
   }, []);
 
-  const synthetic = isSyntheticReport(report);
-
   return (
     <ReportContext.Provider value={{ report, runId, graph, canCorrect, focus, jumpToClaim, openCorrection: setSeed }}>
       <div ref={wrapper} className="@container pb-6">
         <header ref={header} className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-2">
-            {/* the call is the first thing on the page; once it has scrolled away, the header keeps it in sight. It is
-                always laid out, only faded, so the header never changes height and the page never jumps */}
-            <div className={`flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 transition-opacity duration-200 ${rootInView ? "pointer-events-none opacity-0" : "opacity-100"}`} aria-hidden={rootInView}>
-              <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
-              <span className="text-sm">
-                Probability <strong>{pctRange(report.pos)}</strong>
-              </span>
-            </div>
-            <div className="ml-auto">
-              <ExportBar report={report} />
-            </div>
+          <div className="flex items-center gap-3 px-4 py-2">
+            <nav aria-label="Report sections" className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-print-hide>
+              {nav.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    scrollToId(item.id);
+                    select(item.id);
+                  }}
+                  aria-current={active === item.id ? "location" : undefined}
+                  className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${
+                    active === item.id ? "bg-navy text-white" : "text-muted hover:bg-surface hover:text-ink"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+            <ExportBar report={report} />
           </div>
-          {synthetic && (
-            <p role="alert" className="mx-4 mt-1.5 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-900">
-              Synthetic data: this report contains placeholder content from stub steps, not real research.
-            </p>
-          )}
-          <nav aria-label="Report sections" className="mt-1 flex gap-1 overflow-x-auto px-4 pb-2" data-print-hide>
-            {nav.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  scrollToId(item.id);
-                  select(item.id);
-                }}
-                aria-current={active === item.id ? "location" : undefined}
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${
-                  active === item.id ? "bg-navy text-white" : "text-muted hover:bg-surface hover:text-ink"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
         </header>
 
         <div className="space-y-4 p-4">
@@ -219,7 +201,7 @@ export function ReportView({
               data-print-hide
             >
               <span>
-                <span id="full-report-title" className="block text-[0.95rem] font-semibold">
+                <span id="full-report-title" className="block text-xl font-semibold tracking-tight">
                   Full report
                 </span>
                 <span className="block text-sm text-muted">Every section, chart and claim ({claims.length}), and how the run went</span>

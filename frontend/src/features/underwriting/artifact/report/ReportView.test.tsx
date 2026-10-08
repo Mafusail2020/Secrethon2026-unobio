@@ -24,8 +24,12 @@ const render = (report: UnderwritingReport, canCorrect = true, focusClaim?: { id
 describe("report on the BACE1 fixture", () => {
   const markup = render(fixture);
 
-  it("carries the synthetic banner and the navigator", () => {
-    expect(markup).toContain("Synthetic data: this report contains placeholder content");
+  it("has the navigator and the export buttons in one row, and no synthetic-data banner", () => {
+    expect(markup).not.toContain("Synthetic data");
+    const header = markup.slice(markup.indexOf("<header"), markup.indexOf("</header>"));
+    expect(header.indexOf("Report sections")).toBeGreaterThan(-1);
+    expect(header.indexOf("Copy the report as Markdown")).toBeGreaterThan(header.indexOf("Report sections"));
+    expect(header.match(/<(nav|div) /g)!.length).toBeLessThanOrEqual(4);
     for (const label of ["Summary", "Works", "Approval", "Uptake", "Funding", "Full report", "Clinical plan", "All claims (16)"]) expect(markup).toContain(label);
   });
 

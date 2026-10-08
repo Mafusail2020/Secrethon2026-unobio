@@ -15,7 +15,7 @@ export function SideBox({ side, title, count, plain = false, children }: { side:
   const tone = TONE[side];
   return (
     <div className={`min-w-0 rounded-xl border-2 p-3 ${tone.box}`}>
-      <h4 className={`flex items-center gap-2 text-sm font-bold ${tone.title}`}>
+      <h4 className={`flex items-center gap-2 text-base font-bold ${tone.title}`}>
         {!plain && (
           <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-sm leading-none text-white ${tone.mark}`} aria-hidden="true">
             {tone.sign}

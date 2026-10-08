@@ -29,7 +29,7 @@ export function TranslationStepper({ chain }: { chain: TranslationLink[] }) {
 
   return (
     <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="chain-h">
-      <h3 id="chain-h" className="text-sm font-semibold">
+      <h3 id="chain-h" className="text-base font-semibold">
         Will it work in humans? The translation chain
       </h3>
       <ol className="mt-2 grid grid-cols-1 gap-2 @xl:grid-cols-5">

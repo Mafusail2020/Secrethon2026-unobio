@@ -61,7 +61,7 @@ function Strip({ tree, scale, onJump }: { tree: ReportTree; scale: number; onJum
             onClick={() => onJump(q.id)}
             className={`block h-full w-full rounded-lg border border-l-4 border-line bg-canvas/60 px-3 py-2 text-left hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${STANDING_EDGE[q.standing]}`}
           >
-            <span className="block text-xs font-semibold">{q.short}</span>
+            <span className="block text-sm font-semibold">{q.short}</span>
             <span className={`mt-0.5 inline-block rounded-full border px-1.5 text-[0.65rem] font-medium ${STANDING_STYLE[q.standing]}`}>{STANDING_LABEL[q.standing]}</span>
             <span className="mt-1.5 block">
               <BalanceBar pro={q.balance.pro} con={q.balance.con} scale={scale} label={`${q.pros.length} for, ${q.cons.length} against`} />
@@ -104,7 +104,7 @@ export function RootSummary({ report, tree, scale, onJump }: { report: Underwrit
         )}
       </div>
 
-      <h2 className="mt-5 text-lg font-semibold">
+      <h2 className="mt-5 text-2xl font-semibold tracking-tight">
         {report.program.mechanism} in {report.program.indication}
       </h2>
       <p className="mt-1 text-[0.95rem] leading-relaxed">{verdict.rationale}</p>

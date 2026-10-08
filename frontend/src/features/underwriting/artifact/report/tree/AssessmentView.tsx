@@ -23,7 +23,7 @@ export function AssessmentView({ assessment, hideHeadline = false }: { assessmen
   return (
     <section className="rounded-lg border border-line bg-surface p-3" aria-label={TITLE[assessment.cause]}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold">{TITLE[assessment.cause]}</h4>
+        <h4 className="text-base font-semibold">{TITLE[assessment.cause]}</h4>
         <Badge className={STANDING_STYLE[standing]}>
           {assessment.rating} · {STANDING_LABEL[standing].toLowerCase()}
         </Badge>

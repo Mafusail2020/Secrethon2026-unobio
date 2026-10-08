@@ -29,7 +29,7 @@ export function ReportTreeView({
     <div className="space-y-4">
       <RootSummary report={report} tree={tree} scale={scale * 3} onJump={onJump} />
       <div className="flex items-center justify-between" data-print-hide>
-        <h2 className="text-sm font-semibold">The case, question by question</h2>
+        <h2 className="text-xl font-semibold tracking-tight">The case, question by question</h2>
         <button
           type="button"
           onClick={() => onSetAll(!allOpen)}

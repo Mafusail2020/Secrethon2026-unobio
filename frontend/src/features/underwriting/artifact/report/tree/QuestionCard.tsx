@@ -84,12 +84,12 @@ export function QuestionCard({
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 id={`q-title-${node.id}`} className="text-base font-semibold">
+              <h3 id={`q-title-${node.id}`} className="text-xl font-semibold leading-snug tracking-tight">
                 {node.title}
               </h3>
               <Badge className={STANDING_STYLE[node.standing]}>{STANDING_LABEL[node.standing]}</Badge>
             </div>
-            <p className="mt-1 text-sm text-muted">{node.headline}</p>
+            <p className="mt-1.5 text-[0.95rem] text-muted">{node.headline}</p>
           </div>
           {node.impact && node.impact.steps.length > 0 && <Impact pts={node.impact.pts} />}
           <span className="mt-1 shrink-0 text-sm text-muted" aria-hidden="true">
@@ -130,7 +130,7 @@ export function QuestionCard({
           </p>
           {node.sections.map((s) => (
             <div key={s.section}>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">{s.title}</h4>
+              <h4 className="text-sm font-semibold uppercase tracking-wide text-muted">{s.title}</h4>
               {s.status === "insufficient_evidence" ? (
                 <p className="mt-1 text-sm text-muted">Not enough public evidence to say. {s.summary}</p>
               ) : (
