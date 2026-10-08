@@ -1,14 +1,18 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import UnderwritingPage from "./features/underwriting/UnderwritingPage";
 import { ChatLayout } from "./shell/ChatLayout";
+import { GravityShell } from "./shell/GravityShell";
 import { HomePage } from "./shell/HomePage";
 import { UnobioShell } from "./shell/UnobioShell";
 
 const router = createBrowserRouter([
   {
     element: <UnobioShell />,
+    children: [{ path: "/", element: <HomePage /> }],
+  },
+  {
+    element: <GravityShell />,
     children: [
-      { path: "/", element: <HomePage /> },
       {
         element: <ChatLayout />,
         children: [
