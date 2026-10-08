@@ -73,7 +73,10 @@ uniform sampler2D uAtlas;
 uniform vec2 uRes;
 uniform vec2 uCell;
 uniform float uCount;
+uniform vec2 uLum;
 uniform float uBackdrop;
+uniform float uStroke;
+uniform float uGlow;
 out vec4 o;
 
 float bayer4(vec2 c) {
@@ -89,11 +92,15 @@ void main() {
   vec3 c = texture(uField, (cell + 0.5) * uCell / uRes).rgb;
   float lum = dot(c, vec3(0.299, 0.587, 0.114));
 
-  float idx = floor(clamp((1.0 - lum) * uCount + (bayer4(cell) - 0.5) * 0.9, 0.0, uCount - 0.001));
+  // darkness within this palette's own range, so a pale palette still uses every glyph
+  float dark = 1.0 - clamp((lum - uLum.x) / max(uLum.y - uLum.x, 0.001), 0.0, 1.0);
+  float idx = floor(clamp(dark * uCount + (bayer4(cell) - 0.5) * 0.9, 0.0, uCount - 0.001));
   vec2 inCell = fract(px / uCell);
   float ink = texture(uAtlas, vec2((idx + inCell.x) / uCount, 1.0 - inCell.y)).r;
 
-  // strokes are a little lighter on dark ground and a little darker on light ground
-  vec3 stroke = lum > 0.5 ? c * 0.72 : c * 1.3 + 0.06;
+  // strokes are a little lighter on dark ground and a little darker on light ground; uStroke says how much.
+  // With uGlow they are always lighter, so nothing on the screen is darker than the field itself.
+  vec3 target = uGlow > 0.5 ? mix(c, vec3(1.0), 0.6) : (lum > 0.5 ? c * 0.72 : c * 1.3 + 0.06);
+  vec3 stroke = mix(c, target, uStroke);
   o = vec4(mix(under * uBackdrop, stroke, ink), 1.0);
 }`;

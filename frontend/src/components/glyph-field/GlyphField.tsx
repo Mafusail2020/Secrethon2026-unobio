@@ -11,6 +11,16 @@ export interface GlyphFieldProps {
   ramp?: string;
   /** glyph cell in CSS pixels: width, height */
   cell?: [number, number];
+  /** 0 hides the strokes in the ground's own colour, 1 contrasts them with it */
+  strokeContrast?: number;
+  /** 1 is the natural pace */
+  speed?: number;
+  /** how hard the pointer pushes the field, 0 to 1 */
+  push?: number;
+  /** strokes only lighter than the ground, never darker: the field's darkest stop is then the worst case for text over it */
+  glow?: boolean;
+  /** 1 shows the field's colours as they are; less dims them between the strokes */
+  backdrop?: number;
   className?: string;
 }
 
@@ -18,7 +28,7 @@ export interface GlyphFieldProps {
  * A flowing field of colour drawn in text. The pointer pushes it around; with reduced motion it is one still frame.
  * Draws nothing where there is no WebGL2, so whatever is behind the canvas stays.
  */
-export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [8, 13], className }: GlyphFieldProps) {
+export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [8, 13], strokeContrast = 1, speed = 1, push = 1, backdrop = 0.92, glow = false, className }: GlyphFieldProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const paletteKey = palette.join(",");
   const [cellW, cellH] = cell;
@@ -33,7 +43,9 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [8, 13
       font: FONT,
       maxDpr: 1.5,
       fieldScale: 0.5,
-      backdrop: 0.92,
+      backdrop,
+      stroke: strokeContrast,
+      glow,
     });
     if (!field) return;
 
@@ -50,11 +62,11 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [8, 13
       if (!visible || document.hidden) return;
       const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
       last = now;
-      seconds += dt;
+      seconds += dt * speed;
       const follow = 1 - Math.exp(-dt * 8);
       pointer.x += (pointer.tx - pointer.x) * follow;
       pointer.y += (pointer.ty - pointer.y) * follow;
-      pointer.push += ((pointer.active ? 1 : 0) - pointer.push) * (1 - Math.exp(-dt * 3));
+      pointer.push += ((pointer.active ? push : 0) - pointer.push) * (1 - Math.exp(-dt * 3));
       draw();
       raf = requestAnimationFrame(frame);
     };
@@ -107,7 +119,7 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [8, 13
       document.removeEventListener("visibilitychange", onVisible);
       field.destroy();
     };
-  }, [paletteKey, ramp, cellW, cellH]);
+  }, [paletteKey, ramp, cellW, cellH, strokeContrast, speed, push, backdrop, glow]);
 
   return <canvas ref={ref} aria-hidden="true" className={className} />;
 }

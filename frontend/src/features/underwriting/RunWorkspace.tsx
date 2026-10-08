@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { Link, useLocation } from "react-router-dom";
 import { useGraph, useRunDetail, useSummary } from "../../api/hooks";
 import type { Decision } from "../../api/types";
+import { GlyphField } from "../../components/glyph-field/GlyphField";
+import { PRESETS } from "../../components/glyph-field/presets";
 import { ErrorBox } from "../../components/ui/ErrorBox";
 import { readPref, writePref } from "../../lib/storage";
 import type { TabId } from "./artifact/ViewContent";
@@ -109,7 +111,8 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
           sidebarOpen ? "translate-x-0 shadow-xl md:w-72" : "-translate-x-full shadow-none md:w-0 md:translate-x-0"
         }`}
       >
-        <div className="h-full w-72 max-w-[85vw]">
+        <div className="relative h-full w-72 max-w-[85vw]">
+          <GlyphField {...PRESETS.mist} className="absolute inset-0 h-full w-full" />
           <Sidebar currentId={runId} onNavigate={() => !isWide() && setSidebarOpen(false)} />
         </div>
       </aside>

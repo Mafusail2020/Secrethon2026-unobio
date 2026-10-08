@@ -13,6 +13,10 @@ export interface GlyphFieldOptions {
   fieldScale: number;
   /** how much of the smooth field shows between strokes */
   backdrop: number;
+  /** 0 draws strokes in the field's own colour (they vanish); 1 contrasts them with it */
+  stroke: number;
+  /** strokes only ever lighter than the field, so the field's darkest colour stays the darkest thing on screen */
+  glow: boolean;
 }
 
 export interface GlyphFieldHandle {
@@ -51,6 +55,7 @@ function texture(gl: WebGL2RenderingContext, unit: number): WebGLTexture {
 
 /** Null when this browser has no WebGL2; the caller keeps whatever is behind the canvas. */
 export function createGlyphField(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHandle | null {
+  if (typeof WebGL2RenderingContext === "undefined") return null;
   try {
     return build(canvas, opts);
   } catch (error) {
@@ -67,6 +72,7 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
   const glyphs = parseRamp(opts.ramp);
   const palette: Rgb[] = resamplePalette(opts.palette);
   const palFlat = new Float32Array(palette.flat());
+  const lums = palette.map(([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b);
   const fieldProg = program(gl, VERT, FIELD_FRAG);
   const glyphProg = program(gl, VERT, GLYPH_FRAG);
   const fieldTex = texture(gl, 0);
@@ -119,7 +125,10 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
     gl.uniform2f(loc(glyphProg, "uRes"), size.w, size.h);
     gl.uniform2f(loc(glyphProg, "uCell"), size.cw, size.ch);
     gl.uniform1f(loc(glyphProg, "uCount"), glyphs.length);
+    gl.uniform2f(loc(glyphProg, "uLum"), Math.min(...lums), Math.max(...lums));
     gl.uniform1f(loc(glyphProg, "uBackdrop"), opts.backdrop);
+    gl.uniform1f(loc(glyphProg, "uStroke"), opts.stroke);
+    gl.uniform1f(loc(glyphProg, "uGlow"), opts.glow ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
 

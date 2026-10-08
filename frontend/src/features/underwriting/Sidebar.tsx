@@ -26,7 +26,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
   const groups = useMemo(() => groupRuns(runs.data ?? []), [runs.data]);
 
   return (
-    <nav aria-label="Underwritings" className="flex h-full min-h-0 flex-col">
+    <nav aria-label="Underwritings" className="relative flex h-full min-h-0 flex-col">
       <div className="p-3">
         <Link
           to="/underwriting"
