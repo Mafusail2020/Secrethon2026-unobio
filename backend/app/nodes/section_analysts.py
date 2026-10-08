@@ -19,6 +19,7 @@ from app.contracts.common import Severity
 from app.graph.provenance import gate_claims
 from app.graph.state import GraphState
 from app.nodes._analysis import (
+    OUT_TOKENS,
     Draft,
     DraftClaim,
     ask_fitted,
@@ -267,7 +268,7 @@ async def _write(
         system,
         build,
         RisksDraft if risks else SectionDraft,
-        3000 if risks else 2000,
+        OUT_TOKENS["risks" if risks else "section"],
     )
     drafts = (drafted.new_claims if drafted else [])[:MAX_NEW_CLAIMS]
     new_claims, quotes = to_claims(

@@ -9,6 +9,7 @@ from app.graph.state import GraphState
 from app.graph.topology import STANCES, case_container, case_node
 from app.nodes._analysis import (
     DIGEST_CHARS,
+    OUT_TOKENS,
     Draft,
     DraftClaims,
     ask,
@@ -225,7 +226,12 @@ def make_nodes(stance: CaseStance) -> dict[str, NodeRun]:
         if extra := instructions(ctx):
             user += f"\n\n{extra}"
         plan = await ask(
-            ctx, f"{planner}.plan", system_prompt("query_planner"), user, QueryPlan, max_tokens=600
+            ctx,
+            f"{planner}.plan",
+            system_prompt("query_planner"),
+            user,
+            QueryPlan,
+            max_tokens=OUT_TOKENS["queries"],
         )
         queries = merge_queries(plan.queries if plan else [], template_queries(stance, state), n)
         ctx.log(f"planned {len(queries)} {stance} queries")
@@ -272,7 +278,12 @@ def make_nodes(stance: CaseStance) -> dict[str, NodeRun]:
             return user, shown
 
         drafted, _, provided = await ask_fitted(
-            ctx, f"{writer}.draft", system_prompt("claim_writer"), build, DraftClaims, 2500
+            ctx,
+            f"{writer}.draft",
+            system_prompt("claim_writer"),
+            build,
+            DraftClaims,
+            OUT_TOKENS["claims"],
         )
         claims, quotes = to_claims(
             (drafted.claims if drafted else [])[:limit], writer, _STANCE[stance]

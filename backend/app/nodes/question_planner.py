@@ -5,6 +5,7 @@ from pydantic import Field
 from app.contracts import SECTION_IDS, NodeSpec, PlannedQuestion, SectionId
 from app.graph.state import GraphState
 from app.nodes._analysis import (
+    OUT_TOKENS,
     Draft,
     ask,
     describe_program,
@@ -114,7 +115,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         system_prompt("question_planner"),
         user,
         QuestionPlan,
-        max_tokens=1500,
+        max_tokens=OUT_TOKENS["questions"],
     )
     questions, defaulted = plan_questions(
         plan.questions if plan else [], program.indication, program.mechanism
