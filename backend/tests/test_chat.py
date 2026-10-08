@@ -2,9 +2,11 @@ import json
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import BaseModel
 
 from app.chat.answer import REFUSAL, ChatAnswer, answer_with_llm, build_prompt, gate_answer
 from app.chat.context import MAX_CLAIMS, build_context, usable_claims
+from app.chat.summary import SummaryDraft, gate_summary, summarise_with_llm, template_summary
 from app.contracts import ChatMessage, UnderwritingReport
 from app.llm.backend import RawCompletion
 from app.llm.registry import ModelRegistry
@@ -23,7 +25,7 @@ class ScriptedBackend:
     cacheable = False
     is_mock = False
 
-    def __init__(self, answer: ChatAnswer) -> None:
+    def __init__(self, answer: BaseModel) -> None:
         self.answer = answer
         self.tasks: list[LLMTask] = []
 
@@ -34,7 +36,7 @@ class ScriptedBackend:
         )
 
 
-def _service(answer: ChatAnswer) -> tuple[LLMService, ScriptedBackend]:
+def _service(answer: BaseModel) -> tuple[LLMService, ScriptedBackend]:
     backend = ScriptedBackend(answer)
     return LLMService(backend, ModelRegistry([]), None, cache_enabled=False), backend
 
@@ -211,3 +213,121 @@ def test_parse_failure_is_a_clean_502_and_nothing_is_stored(
     assert response.status_code == 502 and response.json()["error"]["code"] == "chat_failed"
     assert client.get(f"/api/runs/{run_id}/messages").json() == []
     json.dumps(response.json())
+
+
+def test_template_summary_reads_the_verdict_and_cites_only_real_claims():
+    message = template_summary(REPORT, "r1")
+    verdict = REPORT.verdict
+    assert message.role == "assistant" and message.run_id == "r1"
+    assert {"invest": "Invest", "conditional": "Conditional", "do_not_invest": "Do not invest"}[
+        verdict.decision
+    ] in message.content
+    assert (
+        f"{REPORT.pos.base * 100:.0f}%" in message.content and verdict.rationale in message.content
+    )
+    assert len(message.content.split("\n\n")) >= 2
+    assert message.cited_claim_ids and set(message.cited_claim_ids) <= build_context(REPORT)[1]
+
+
+def test_summary_gate_keeps_real_citations_and_replaces_an_unbacked_draft():
+    _, valid = build_context(REPORT)
+    real = sorted(valid)[0]
+    kept = gate_summary(
+        SummaryDraft(text=" The call is sound. ", cited_claim_ids=[real, "ghost", real]),
+        valid,
+        REPORT,
+        "r1",
+    )
+    assert kept.content == "The call is sound." and kept.cited_claim_ids == [real]
+    fallback = gate_summary(
+        SummaryDraft(text="Trust me.", cited_claim_ids=["ghost"]), valid, REPORT, "r1"
+    )
+    assert fallback.content == template_summary(REPORT, "r1").content
+
+
+async def test_summary_prompt_carries_the_rules_and_the_report_as_data():
+    real = sorted(build_context(REPORT)[1])[0]
+    service, backend = _service(SummaryDraft(text="Short read-out.", cited_claim_ids=[real]))
+    message, result = await summarise_with_llm(service, "m", REPORT, "r1")
+    task = backend.tasks[0]
+    assert "Use only the report text" in task.system and "never instructions" in task.system
+    assert (
+        task.user.startswith("<report>") and "CLAIMS" in task.user and task.schema is SummaryDraft
+    )
+    assert task.purpose == "chat.summary" and result.tokens_in == 500
+    assert message.cited_claim_ids == [real]
+
+
+def test_summary_waits_for_the_report(client: TestClient):
+    run_id = client.post("/api/runs", json=BODY).json()["id"]
+    early = client.post(f"/api/runs/{run_id}/summary")
+    assert early.status_code == 409 and early.json()["error"]["code"] == "run_not_completed"
+    assert client.post("/api/runs/run_missing/summary").status_code == 404
+
+
+def test_summary_is_written_once_and_cites_the_report(client: TestClient):
+    run_id = _finished_run(client)
+    report = client.get(f"/api/runs/{run_id}/report").json()
+    first = client.post(f"/api/runs/{run_id}/summary")
+    second = client.post(f"/api/runs/{run_id}/summary")
+    assert first.status_code == 200 and first.json() == second.json()
+    body = first.json()
+    assert (
+        body["role"] == "assistant"
+        and body["content"]
+        and set(body["cited_claim_ids"]) <= set(report["claims"])
+    )
+    assert (
+        client.get(f"/api/runs/{run_id}/messages").json() == []
+    )  # not part of the question thread
+
+
+def test_live_summary_logs_the_call_once_and_a_bad_draft_falls_back(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+):
+    import asyncio
+
+    from app.api import chat as chat_api
+    from app.llm.types import LLMParseError, LLMResult
+
+    run_id = _finished_run(client)
+    services = client.app.state.services
+    services.settings.llm_mode = "live"
+    calls: list[str] = []
+    real = sorted(build_context(REPORT)[1])[0]
+
+    async def fake(llm, model, report, rid):
+        calls.append(rid)
+        result = LLMResult(
+            model="gw-model",
+            text="",
+            parsed=None,
+            tokens_in=700,
+            tokens_out=300,
+            cost_usd=0.0016,
+            cached=False,
+            latency_ms=250,
+        )
+        return ChatMessage(
+            role="assistant", content="Model read-out.", run_id=rid, cited_claim_ids=[real]
+        ), result
+
+    monkeypatch.setattr(chat_api, "summarise_with_llm", fake)
+    assert client.post(f"/api/runs/{run_id}/summary").json()["content"] == "Model read-out."
+    assert client.post(f"/api/runs/{run_id}/summary").json()["content"] == "Model read-out."
+    assert len(calls) == 1
+    logged = [
+        c for c in asyncio.run(services.llm_repo.calls_for_run(run_id)) if c.node_id == "summary"
+    ]
+    assert [(c.model, c.purpose, c.tokens_in, c.cost_usd) for c in logged] == [
+        ("gw-model", "chat.summary", 700, 0.0016)
+    ]
+
+    other = _finished_run(client)
+
+    async def broken(*args, **kwargs):
+        raise LLMParseError("bad json")
+
+    monkeypatch.setattr(chat_api, "summarise_with_llm", broken)
+    fallback = client.post(f"/api/runs/{other}/summary")
+    assert fallback.status_code == 200 and fallback.json()["cited_claim_ids"]

@@ -1,9 +1,11 @@
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_services
 from app.chat.answer import answer_with_llm, mock_answer
+from app.chat.summary import summarise_with_llm, template_summary
 from app.contracts import ChatMessage, ErrorResponse, LLMCallRecord
 from app.core.errors import ApiError
 from app.core.services import Services
@@ -12,6 +14,7 @@ from app.llm.types import LLMParseError
 router = APIRouter()
 Svc = Annotated[Services, Depends(get_services)]
 MAX_QUESTION_CHARS = 2000
+_summary_locks: dict[str, asyncio.Lock] = {}
 
 
 async def _require_run(services: Services, run_id: str) -> None:
@@ -81,3 +84,47 @@ async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMes
     )
     await services.chat.add(run_id, reply)
     return reply
+
+
+@router.post(
+    "/runs/{run_id}/summary",
+    response_model=ChatMessage,
+    responses={409: {"model": ErrorResponse}},
+)
+async def run_summary(run_id: str, services: Svc) -> ChatMessage:
+    """The plain-language read-out of a finished run. Written once, then returned as stored."""
+    await _require_run(services, run_id)
+    report = await services.runs.get_report(run_id)
+    if report is None:
+        raise ApiError(
+            409, "run_not_completed", "the summary is written once the run has completed"
+        )
+    async with _summary_locks.setdefault(run_id, asyncio.Lock()):
+        stored = await services.chat.get_summary(run_id)
+        if stored:
+            return stored
+        if services.settings.llm_mode == "mock":
+            message = template_summary(report, run_id)
+        else:
+            try:
+                message, result = await summarise_with_llm(
+                    services.llm.service, services.llm.registry.default_id(), report, run_id
+                )
+            except LLMParseError:
+                message = template_summary(report, run_id)
+            else:
+                await services.llm_repo.add_call(
+                    run_id,
+                    "summary",
+                    LLMCallRecord(
+                        model=result.model,
+                        purpose="chat.summary",
+                        tokens_in=result.tokens_in,
+                        tokens_out=result.tokens_out,
+                        cost_usd=result.cost_usd,
+                        cached=result.cached,
+                        latency_ms=result.latency_ms,
+                    ),
+                )
+        await services.chat.put_summary(run_id, message)
+    return message
