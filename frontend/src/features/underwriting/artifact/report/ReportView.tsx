@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { GraphSpec, SectionId, UnderwritingReport } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
 import { DECISION_LABEL, DECISION_STYLE, humanize, pctRange } from "../../../../lib/format";
@@ -70,7 +70,21 @@ export function ReportView({
     { id: "all-claims", label: `All claims (${claims.length})` },
     { id: "run-details", label: "Run" },
   ];
-  const active = useScrollSpy(nav.map((n) => n.id).join("|"));
+  const header = useRef<HTMLElement>(null);
+  const wrapper = useRef<HTMLDivElement>(null);
+  const { active, select } = useScrollSpy(nav.map((n) => n.id).join("|"), header);
+
+  // anchors scroll to just under the sticky header, whatever height its rows wrap to
+  useLayoutEffect(() => {
+    const bar = header.current;
+    const box = wrapper.current;
+    if (!bar || !box || typeof ResizeObserver === "undefined") return;
+    const apply = () => box.style.setProperty("--report-header", `${bar.offsetHeight}px`);
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, []);
 
   const jumpToClaim = (id: string) => {
     setFilters(emptyFilters);
@@ -95,8 +109,8 @@ export function ReportView({
 
   return (
     <ReportContext.Provider value={{ report, runId, graph, canCorrect, focus, jumpToClaim, openCorrection: setSeed }}>
-      <div className="@container pb-6">
-        <header className="sticky top-14 z-20 border-b border-line bg-canvas/95 backdrop-blur md:top-0" data-print-header>
+      <div ref={wrapper} className="@container pb-6">
+        <header ref={header} className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-2">
             <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
             <span className="text-xs text-muted">{verdict.confidence} confidence</span>
@@ -117,7 +131,10 @@ export function ReportView({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => scrollToId(item.id)}
+                onClick={() => {
+                  scrollToId(item.id);
+                  select(item.id);
+                }}
                 aria-current={active === item.id ? "location" : undefined}
                 className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${
                   active === item.id ? "bg-navy text-white" : "text-muted hover:bg-surface hover:text-ink"
@@ -132,7 +149,7 @@ export function ReportView({
         <div className="space-y-4 p-4">
           {report.meta.parent_run_id && <WhatChanged report={report} onJumpSection={(id) => scrollToId(`section-${id}`)} />}
 
-          <section id="overview" className="scroll-mt-32 space-y-4" aria-label="Overview">
+          <section id="overview" className="report-anchor space-y-4" aria-label="Overview">
             <div className="rounded-lg border border-line bg-surface p-4">
               <h2 className="text-lg font-semibold">
                 {report.program.mechanism} in {report.program.indication}
@@ -176,7 +193,7 @@ export function ReportView({
           </section>
 
           {report.translation_chain.length > 0 && (
-            <div id="translation-chain" className="scroll-mt-32">
+            <div id="translation-chain" className="report-anchor">
               <TranslationStepper chain={report.translation_chain} />
             </div>
           )}
@@ -185,14 +202,14 @@ export function ReportView({
             <Section key={s.section} result={s} />
           ))}
 
-          <div id="risks-unknowns" className="scroll-mt-32 space-y-4">
+          <div id="risks-unknowns" className="report-anchor space-y-4">
             {report.key_risks.length > 0 && <RisksPanel risks={report.key_risks} />}
             {(report.critical_unknowns.length > 0 || report.diligence_questions.length > 0) && (
               <DiligencePanel unknowns={report.critical_unknowns} questions={report.diligence_questions} />
             )}
           </div>
 
-          <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="scroll-mt-32 rounded-lg border border-line bg-surface p-3">
+          <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="report-anchor rounded-lg border border-line bg-surface p-3">
             <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
             <div className="mt-2 space-y-2">
               <ClaimFilterBar claims={claims} filters={filters} shown={shownClaims.length} onChange={setFilters} />
@@ -206,7 +223,7 @@ export function ReportView({
             </div>
           </details>
 
-          <div id="run-details" className="scroll-mt-32">
+          <div id="run-details" className="report-anchor">
             <RunDetails meta={report.meta} runId={report.run_id} />
           </div>
         </div>

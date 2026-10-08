@@ -24,6 +24,11 @@
   --font-serif: "Newsreader", Georgia, ui-serif, serif;
 }
 
+/* where a jump lands: just under the report's sticky header (ReportView sets --report-header) */
+@utility report-anchor {
+  scroll-margin-top: calc(var(--report-header, 8rem) + 0.5rem);
+}
+
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
