@@ -3,7 +3,7 @@ import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../
 import { ErrorBoundary } from "../../../components/ErrorBoundary";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
-import { Tabs } from "../../../components/ui/Tabs";
+import { CloseIcon } from "../../../components/ui/icons";
 import { affectedSet, runnableNodes } from "../graphUtils";
 import type { RunStream } from "../reduceEvents";
 import { GraphView } from "./graph/GraphView";
@@ -17,13 +17,12 @@ import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
 
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "report", label: "Report" },
-  { id: "graph", label: "Graph" },
-  { id: "sources", label: "Sources" },
-  { id: "logs", label: "Logs" },
-];
+const TITLE: Record<TabId, string> = {
+  report: "Report",
+  graph: "Graph",
+  sources: "Sources",
+  logs: "Logs",
+};
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted">{children}</div>;
@@ -107,7 +106,7 @@ function GraphTab({
 
 export function ArtifactPanel({
   tab,
-  onTab,
+  onClose,
   run,
   graph,
   graphError,
@@ -119,8 +118,8 @@ export function ArtifactPanel({
   sourceCounts,
   onOpenClaim,
 }: {
-  tab: TabId | null;
-  onTab: (tab: TabId) => void;
+  tab: TabId;
+  onClose: () => void;
   run: RunSummary | undefined;
   graph: GraphSpec | undefined;
   graphError?: unknown;
@@ -132,30 +131,40 @@ export function ArtifactPanel({
   sourceCounts: Record<string, number>;
   onOpenClaim: (claimId: string) => void;
 }) {
-  const active: TabId = tab ?? (report ? "report" : "graph");
+  const active = tab;
   const stubbed = stream.stubData || (!!report && isSyntheticReport(report));
   const failed = run?.status === "failed" || stream.status === "failed";
   const waiting = failed ? (
-    <Empty>This run failed before it produced a report. The Graph tab shows which step failed and why; the chat can run it again.</Empty>
+    <Empty>This run failed before it produced a report. The Graph view shows which step failed and why; the conversation can run it again.</Empty>
   ) : run ? (
     <Empty>
       <span className="flex items-center gap-2">
-        <Spinner /> The report appears here when the analysis finishes. Watch the Graph tab meanwhile.
+        <Spinner /> The report appears here when the analysis finishes. Open the Graph view to watch it run.
       </span>
     </Empty>
   ) : (
-    <Empty>Describe a drug program on the left to start an underwriting run.</Empty>
+    <Empty>Start an underwriting to see its report, sources and logs here.</Empty>
   );
 
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
-      <Tabs tabs={TABS} active={active} onChange={onTab} idPrefix="artifact" label="Underwriting artifact" />
+    <section id="artifact-panel" data-print-flow aria-label={TITLE[active]} className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
+      <header data-print-hide className="flex h-11 shrink-0 items-center justify-between border-b border-line bg-surface px-4">
+        <h2 className="text-sm font-medium">{TITLE[active]}</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={`Close ${TITLE[active]}`}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-slate-100 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+        >
+          <CloseIcon width={18} height={18} />
+        </button>
+      </header>
       {stubbed && active !== "report" && (
         <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-1 text-xs text-amber-900">
           Synthetic data: parts of this run come from stub steps and contain placeholder content.
         </p>
       )}
-      <div role="tabpanel" id="artifact-panel" aria-labelledby={`artifact-${active}`} className="min-h-0 flex-1 overflow-auto">
+      <div data-print-flow className="min-h-0 flex-1 overflow-auto">
         <ErrorBoundary resetKey={`${active}:${run?.id ?? ""}`}>
           {active === "report" &&
             (report && run ? (

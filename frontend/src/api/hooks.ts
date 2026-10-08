@@ -52,9 +52,10 @@ export const useDiff = (parentId: string | null | undefined, runId: string, read
     retry: false,
   });
 
-export const useMessages = (runId: string) =>
+export const useMessages = (runId: string, enabled = true) =>
   useQuery({
     queryKey: ["messages", runId],
     queryFn: async () => (await getApi()).getMessages(runId),
+    enabled,
     retry: false,
   });

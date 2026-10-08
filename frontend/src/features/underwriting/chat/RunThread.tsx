@@ -19,11 +19,11 @@ function ProgramMessage({ run }: { run: RunSummary }) {
     .filter(Boolean)
     .join(" · ");
   return (
-    <div className="ml-8 rounded-2xl rounded-tr-sm bg-navy p-3 text-sm text-white">
+    <div className="ml-auto max-w-[85%] rounded-2xl bg-slate-100 px-4 py-3 text-[0.95rem]">
       <div className="font-medium">{p.indication}</div>
       <div>{p.mechanism}</div>
-      {extras && <div className="mt-1 text-xs opacity-80">{extras}</div>}
-      <div className="mt-1 text-xs opacity-70">
+      {extras && <div className="mt-1 text-xs text-muted">{extras}</div>}
+      <div className="mt-1 text-xs text-muted">
         effort {run.options.effort}
         {run.options.model ? ` · ${run.options.model}` : ""}
       </div>
@@ -127,9 +127,9 @@ export function RunThread({
   });
 
   return (
-    <div className="@container space-y-3 p-3">
+    <div className="@container space-y-6">
       <ProgramMessage run={run} />
-      <div className="mr-2 space-y-2 rounded-2xl rounded-tl-sm bg-canvas p-3">
+      <div className="space-y-3">
         {run.parent_run_id && (
           <p className="rounded-md bg-violet-50 p-2 text-xs text-violet-800">
             Re-run of <Link className="underline" to={`/underwriting/runs/${run.parent_run_id}`}>the previous version</Link>{" "}

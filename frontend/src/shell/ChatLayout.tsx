@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
 
-/** Fills the viewport under the fixed header; below md the columns stack and the page scrolls. */
+/** Fills the viewport under the fixed header; the thread and the side panel scroll inside it. */
 export function ChatLayout() {
   return (
-    <main className="relative box-border min-h-screen bg-canvas pt-14 md:h-screen md:min-h-[640px] md:overflow-hidden">
+    <main className="relative box-border h-dvh min-h-[560px] overflow-hidden bg-canvas pt-14">
       <Outlet />
     </main>
   );

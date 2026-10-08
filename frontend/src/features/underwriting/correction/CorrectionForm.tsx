@@ -55,7 +55,7 @@ export function CorrectionForm({
     onSuccess: (child) => {
       void queryClient.invalidateQueries({ queryKey: ["runs"] });
       onSubmitted?.();
-      navigate(`/underwriting/runs/${child.id}`);
+      navigate(`/underwriting/runs/${child.id}`, { state: { panel: "graph" } });
     },
   });
 

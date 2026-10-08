@@ -1,120 +1,149 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
-import { ApiError, getApi } from "../../../api/client";
-import { useMessages } from "../../../api/hooks";
-import type { ChatMessage, UnderwritingReport } from "../../../api/types";
+import { useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import type { UnderwritingReport } from "../../../api/types";
+import { ArrowUpIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
+import type { FollowUp } from "./useFollowUp";
 
-/** Follow-up questions about a finished run. Answers cite claims of the report; a 501 or the question limit locks the input. */
-export function FollowUp({
-  runId,
+const NOTICE = {
+  unavailable: "Follow-up questions are not available yet.",
+  limit: "This run has reached its follow-up question limit.",
+} as const;
+
+/** The follow-up thread: earlier questions, the one in flight, and what went wrong. Claims in answers jump to the report. */
+export function FollowUpMessages({
+  follow,
   report,
   onOpenClaim,
 }: {
-  runId: string;
-  report: UnderwritingReport;
+  follow: FollowUp;
+  report: UnderwritingReport | undefined;
   onOpenClaim: (claimId: string) => void;
 }) {
-  const queryClient = useQueryClient();
-  const history = useMessages(runId);
-  const [draft, setDraft] = useState("");
-  const [locked, setLocked] = useState<"unavailable" | "limit" | null>(null);
-
-  const ask = useMutation({
-    mutationFn: async (content: string) =>
-      (await getApi()).postMessage(runId, { role: "user", content, run_id: runId, cited_claim_ids: [] }),
-    onSuccess: (reply, content) => {
-      queryClient.setQueryData<ChatMessage[]>(["messages", runId], (old = []) => [
-        ...old,
-        { role: "user", content, run_id: runId, cited_claim_ids: [] },
-        reply,
-      ]);
-      setDraft("");
-    },
-    onError: (error) => {
-      if (!(error instanceof ApiError)) return;
-      if (error.status === 501) setLocked("unavailable");
-      if (error.status === 429) setLocked("limit");
-    },
-  });
-
-  const messages = history.data ?? [];
-  const notice =
-    locked === "unavailable"
-      ? "Follow-up questions are not available yet."
-      : locked === "limit"
-        ? "This run has reached its follow-up question limit."
-        : null;
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const content = draft.trim();
-    if (content && !locked) ask.mutate(content);
-  };
+  const { messages, ask, locked, historyFailed } = follow;
+  const notice = locked ? NOTICE[locked] : null;
+  if (!messages.length && !ask.isPending && !notice && !ask.error && !historyFailed) return null;
 
   return (
-    <section aria-label="Follow-up questions" className="border-t border-line bg-surface p-3">
-      {(messages.length > 0 || ask.isPending) && (
-        <ul aria-live="polite" className="mb-2 max-h-48 space-y-2 overflow-auto">
-          {messages.map((m, i) => (
-            <li key={i} className={`rounded-lg p-2 text-sm ${m.role === "user" ? "ml-6 bg-navy text-white" : "mr-6 bg-canvas"}`}>
-              <p>{m.content}</p>
-              {m.cited_claim_ids.length > 0 && (
-                <ul className="mt-1 flex flex-wrap gap-1">
-                  {m.cited_claim_ids.map((id) => {
-                    const claim = report.claims[id];
-                    return (
-                      <li key={id}>
-                        <button
-                          type="button"
-                          onClick={() => onOpenClaim(id)}
-                          className="max-w-[16rem] truncate rounded-full border border-line bg-surface px-2 py-0.5 text-xs text-brand hover:border-brand"
-                          title={claim?.text}
-                        >
-                          {claim ? claim.text : id}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+    <section aria-label="Follow-up questions" className="space-y-5">
+      <ul aria-live="polite" className="space-y-5">
+        {messages.map((m, i) => (
+          <li key={i} className={m.role === "user" ? "flex justify-end" : ""}>
+            {m.role === "user" ? (
+              <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-[0.95rem]">{m.content}</p>
+            ) : (
+              <div className="text-[0.95rem] leading-relaxed">
+                <p className="whitespace-pre-wrap">{m.content}</p>
+                {m.cited_claim_ids.length > 0 && (
+                  <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Claims this answer rests on">
+                    {m.cited_claim_ids.map((id) => {
+                      const claim = report?.claims[id];
+                      return (
+                        <li key={id}>
+                          <button
+                            type="button"
+                            onClick={() => onOpenClaim(id)}
+                            className="max-w-[18rem] truncate rounded-full border border-line bg-surface px-2.5 py-1 text-xs text-brand hover:border-brand"
+                            title={claim?.text}
+                          >
+                            {claim ? claim.text : id}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+          </li>
+        ))}
+        {ask.isPending && (
+          <>
+            <li className="flex justify-end">
+              <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-[0.95rem] opacity-70">{ask.variables}</p>
             </li>
-          ))}
-          {ask.isPending && (
-            <li className="ml-6 rounded-lg bg-navy p-2 text-sm text-white opacity-70">
-              <p>{ask.variables}</p>
+            <li className="flex items-center gap-2 text-sm text-muted">
+              <Spinner className="h-3.5 w-3.5" /> Reading the report…
             </li>
-          )}
-        </ul>
-      )}
-      {history.isError && <p role="status" className="mb-2 text-xs text-muted">Earlier questions could not be loaded.</p>}
-      {notice && <p role="status" className="mb-2 text-xs text-amber-800">{notice}</p>}
+          </>
+        )}
+      </ul>
+      {historyFailed && <p role="status" className="text-xs text-muted">Earlier questions could not be loaded.</p>}
+      {notice && <p role="status" className="text-xs text-amber-800">{notice}</p>}
       {ask.error && !locked && (
-        <p role="alert" className="mb-2 text-xs text-red-700">
+        <p role="alert" className="text-xs text-red-700">
           {ask.error instanceof Error ? ask.error.message : "Could not send the question."}
         </p>
       )}
-      <form onSubmit={submit} className="flex items-center gap-2">
+    </section>
+  );
+}
+
+/** Reply box docked under the thread. It is visible while a run is going, and opens when the report exists. */
+export function FollowUpInput({ follow, ready }: { follow: FollowUp; ready: boolean }) {
+  const { ask, locked } = follow;
+  const [draft, setDraft] = useState("");
+  const box = useRef<HTMLTextAreaElement>(null);
+  const closed = !ready || !!locked;
+
+  // grow with the text up to a few lines
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [draft]);
+
+  const submit = (event?: FormEvent) => {
+    event?.preventDefault();
+    const content = draft.trim();
+    if (content && !closed && !ask.isPending) ask.mutate(content, { onSuccess: () => setDraft("") });
+  };
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      submit();
+    }
+  };
+
+  const placeholder = locked
+    ? locked === "limit"
+      ? "Question limit reached"
+      : "Follow-up questions are not available yet"
+    : ready
+      ? "Ask a follow-up about this report"
+      : "Follow-up questions open when the analysis completes";
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 pb-3 pt-1">
+      <form
+        onSubmit={submit}
+        className={`flex items-end gap-2 rounded-3xl border bg-surface py-2 pl-5 pr-2 shadow-sm transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 ${closed ? "border-line/70 opacity-80" : "border-line"}`}
+      >
         <label className="sr-only" htmlFor="follow-up">
           Ask a follow-up question
         </label>
-        <input
+        <textarea
           id="follow-up"
+          ref={box}
+          rows={1}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          disabled={!!locked || ask.isPending}
-          placeholder={locked ? (locked === "limit" ? "Question limit reached" : "Follow-up questions are not available yet") : "Ask a follow-up about this report"}
-          className="min-w-0 flex-1 rounded-full border border-line bg-surface px-3 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:bg-canvas"
+          onKeyDown={onKeyDown}
+          disabled={closed || ask.isPending}
+          maxLength={2000}
+          placeholder={placeholder}
+          className="uw-bare max-h-40 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-[0.95rem] placeholder:text-muted/70 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled={!!locked || ask.isPending || !draft.trim()}
-          className="inline-flex items-center gap-1 rounded-full bg-navy px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          aria-label="Send question"
+          disabled={closed || ask.isPending || !draft.trim()}
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-royal text-white transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:bg-slate-300 disabled:text-white"
         >
-          {ask.isPending && <Spinner className="h-3 w-3" />}
-          Ask
+          {ask.isPending ? <Spinner className="h-3.5 w-3.5" /> : <ArrowUpIcon width={18} height={18} />}
         </button>
       </form>
-    </section>
+      <p className="mt-1.5 text-center text-xs text-muted">Answers come from this report only and cite its claims.</p>
+    </div>
   );
 }

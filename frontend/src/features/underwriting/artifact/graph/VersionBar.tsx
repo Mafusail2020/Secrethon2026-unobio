@@ -19,7 +19,7 @@ export function VersionBar({ run, completed }: { run: RunSummary; completed: boo
         <select
           className="rounded border border-line px-1 py-0.5"
           value={run.id}
-          onChange={(e) => navigate(`/underwriting/runs/${e.target.value}`)}
+          onChange={(e) => navigate(`/underwriting/runs/${e.target.value}`, { state: { panel: "graph" } })}
         >
           {family.map((r, i) => (
             <option key={r.id} value={r.id}>

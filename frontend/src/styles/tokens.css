@@ -21,6 +21,7 @@
   --color-slate-900: #0f1838;
   --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, ui-serif, serif;
 }
 
 body {

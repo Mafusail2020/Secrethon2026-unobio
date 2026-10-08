@@ -5,6 +5,11 @@
   outline-offset: 2px;
 }
 
+/* inputs inside a card whose border shows the focus (focus-within), so the box itself stays plain */
+[data-uw] .uw-bare:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-uw] *,
   [data-uw] *::before,
