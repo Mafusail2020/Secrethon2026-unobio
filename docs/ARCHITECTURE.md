@@ -326,11 +326,12 @@ it, and a page reload rebuilds them by replaying the stream. The report drill-do
 report itself.
 
 `components/glyph-field` draws a flowing field of colour as text, in two WebGL2 passes: a domain-warped noise field at half
-resolution, then one letter per cell (DNA bases A T C G) chosen by the cell's darkness with a random per-cell threshold, so letters of one
+resolution, then one letter per cell (DNA bases A T C G plus `/` and `\`) chosen by the cell's darkness with a random per-cell threshold, so letters of one
 density mix like a read sequence, over the soft field. The pointer
 pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written from scratch (not
-Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. A lattice of small tall rhombi with soft gaussian edges, bent by the
-same noise, lies over the field in patches; the second pass colours each line from the average of the cells around it
+Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. A lattice of small tall rhombi, bent by the same noise, lies over the field in
+patches, each rhombus a pane of glass (the field is looked up through it magnified and shifted, with a bevel and its own
+shade) with soft gaussian edges; the second pass colours each line from the average of the cells around it
 mixed with a tint that floats along the palette with time and across the screen (with glow, never darker than the field). The `mist` preset (pale blue into grey, strokes only lighter than the ground, slow, shy of the
 pointer) sits behind the history sidebar; its darkest stop is
 the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as the graph,

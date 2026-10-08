@@ -13,7 +13,7 @@ export interface GlyphFieldProps {
   cell?: [number, number];
   /** 0 hides the strokes in the ground's own colour, 1 contrasts them with it */
   strokeContrast?: number;
-  /** 1 is the natural pace */
+  /** 1 is the shader's own pace; the default is half of it, a slow drift */
   speed?: number;
   /** how hard the pointer pushes the field, 0 to 1 */
   push?: number;
@@ -21,6 +21,8 @@ export interface GlyphFieldProps {
   glow?: boolean;
   /** 0 to 1: how strongly a lattice of tall rhombi shows through the field */
   lattice?: number;
+  /** 0 to 1: how much each rhombus is a pane of glass that bends and bevels the field behind it */
+  glass?: number;
   /** 1 shows the field's colours as they are; less dims them between the strokes */
   backdrop?: number;
   className?: string;
@@ -30,7 +32,7 @@ export interface GlyphFieldProps {
  * A flowing field of colour drawn in text. The pointer pushes it around; with reduced motion it is one still frame.
  * Draws nothing where there is no WebGL2, so whatever is behind the canvas stays.
  */
-export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14], strokeContrast = 1, speed = 1, push = 1, backdrop = 0.92, glow = false, lattice = 0, className }: GlyphFieldProps) {
+export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14], strokeContrast = 1, speed = 0.5, push = 1, backdrop = 0.92, glow = false, lattice = 0, glass = 0, className }: GlyphFieldProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const paletteKey = palette.join(",");
   const [cellW, cellH] = cell;
@@ -49,6 +51,7 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14
       stroke: strokeContrast,
       glow,
       lattice,
+      glass,
     });
     // a canvas that failed to start is opaque black: hide it so whatever is behind it shows
     canvas.hidden = !field;
@@ -124,7 +127,7 @@ export function GlyphField({ palette = FLAME, ramp = DEFAULT_RAMP, cell = [9, 14
       document.removeEventListener("visibilitychange", onVisible);
       field.destroy();
     };
-  }, [paletteKey, ramp, cellW, cellH, strokeContrast, speed, push, backdrop, glow, lattice]);
+  }, [paletteKey, ramp, cellW, cellH, strokeContrast, speed, push, backdrop, glow, lattice, glass]);
 
   return <canvas ref={ref} aria-hidden="true" className={className} />;
 }

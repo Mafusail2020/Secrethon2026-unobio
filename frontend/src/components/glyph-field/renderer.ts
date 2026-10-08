@@ -19,6 +19,8 @@ export interface GlyphFieldOptions {
   glow: boolean;
   /** 0 to 1: how strongly the lattice of rhombi shows */
   lattice: number;
+  /** 0 to 1: how much each rhombus acts as a pane of glass, bending and bevelling what is behind it */
+  glass: number;
 }
 
 export interface GlyphFieldHandle {
@@ -116,6 +118,7 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
     gl.uniform1f(loc(fieldProg, "uTime"), seconds);
     gl.uniform2f(loc(fieldProg, "uPointer"), pointerX, pointerY);
     gl.uniform1f(loc(fieldProg, "uPush"), push);
+    gl.uniform1f(loc(fieldProg, "uGlass"), opts.glass);
     gl.uniform3fv(loc(fieldProg, "uPal"), palFlat);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 

@@ -30,7 +30,7 @@ describe("palette", () => {
   });
 
   it("needs two glyphs to draw a difference", () => {
-    expect(parseRamp(DEFAULT_RAMP)).toEqual([" ", ".", "T", "A", "C", "G"]);
+    expect(parseRamp(DEFAULT_RAMP)).toEqual([" ", ".", "/", "\\", "T", "A", "C", "G"]);
     expect(() => parseRamp("M")).toThrow();
   });
 

@@ -14,8 +14,8 @@ export const BRAND: string[] = ["#04081a", "#34489f", "#2f55b5", "#7b95e0", "#c9
  */
 export const MIST: string[] = ["#bccdf0", "#c4d1ec", "#cad4e8", "#d2d8e6", "#dcdfe8", "#e9ecf3"];
 
-/** DNA bases, from the lightest area to the darkest, by how much ink each takes. */
-export const DEFAULT_RAMP = " .TACG";
+/** Slashes and DNA bases, from the lightest area to the darkest, by how much ink each takes. */
+export const DEFAULT_RAMP = " ./\\TACG";
 
 export function hexToRgb(hex: string): Rgb {
   const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());

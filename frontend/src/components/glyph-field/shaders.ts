@@ -15,6 +15,7 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uPush;
+uniform float uGlass;
 uniform vec3 uPal[6];
 out vec4 o;
 
@@ -50,6 +51,24 @@ void main() {
   uv += d * exp(-dot(d, d) * 14.0) * 0.4 * uPush;
 
   float t = uTime * 0.05;
+
+  // a lattice of tall rhombi, bent by noise, in patches. Each rhombus is a pane: (gu, gw) count panes along the two
+  // diagonals, and c is where this point sits in its pane, -0.5 to 0.5 each way
+  vec2 lw = uv + 0.05 * (vec2(fbm(uv * 3.0 + t * 0.8), fbm(uv * 3.0 + 7.0 - t * 0.8)) - 0.5);
+  vec2 lp = vec2(lw.x / 0.075, lw.y / 0.125);
+  float gu = lp.x + lp.y;
+  float gw = lp.x - lp.y;
+  vec2 pane = vec2(floor(gu), floor(gw));
+  vec2 c = vec2(fract(gu), fract(gw)) - 0.5;
+  float pocket = smoothstep(0.3, 0.6, fbm(uv * 1.2 + vec2(3.0, t)));
+  float g = pocket * uGlass;
+
+  // look through the pane like glass: each one shows a magnified, slightly shifted piece of the field, so the
+  // picture jumps where two panes meet
+  vec2 off = vec2((c.x + c.y) * 0.5 * 0.075, (c.x - c.y) * 0.5 * 0.125);
+  vec2 shift = (vec2(hash(pane), hash(pane + 3.7)) - 0.5) * 0.04;
+  uv -= (off * 0.6 + shift) * g;
+
   // tall, narrow structures that rise: squeeze the noise across and stretch it up, and let it climb
   vec2 p = vec2(uv.x * 2.2 + uv.y * 0.35, uv.y * 0.95 - t * 0.9);
   vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3) - t));
@@ -60,14 +79,13 @@ void main() {
   float v = f * 1.35 - 0.12 + (1.0 - frag.x) * 0.3 + frag.y * 0.35 - 0.3;
   v = smoothstep(0.08, 0.92, v);
 
-  // a lattice of tall rhombi, bent by the same noise and showing only in patches; the second pass colours it
-  vec2 lw = uv + 0.05 * (vec2(fbm(uv * 3.0 + t * 2.0), fbm(uv * 3.0 + 7.0 - t * 2.0)) - 0.5);
-  vec2 lp = vec2(lw.x / 0.075, lw.y / 0.125);
-  float l1 = abs(fract(lp.x + lp.y) - 0.5) * 2.0;
-  float l2 = abs(fract(lp.x - lp.y) - 0.5) * 2.0;
-  // a gaussian edge: soft on both sides instead of a hard cut
-  float lat = max(exp(-pow(l1 / 0.3, 2.0)), exp(-pow(l2 / 0.3, 2.0)));
-  float pocket = smoothstep(0.22, 0.62, fbm(uv * 1.2 + vec2(3.0, t)));
+  // each pane a little lighter or darker than its neighbours, and bevelled: light on two of its edges, shade on the
+  // other two
+  float edge = smoothstep(0.2, 0.5, max(abs(c.x), abs(c.y)));
+  v = clamp(v + (hash(pane + 9.1) - 0.5) * 0.09 * g + edge * (c.x - c.y) * 0.18 * g, 0.0, 1.0);
+
+  // the pane edges themselves, with a gaussian falloff so they are soft on both sides; the second pass colours them
+  float lat = max(exp(-pow((1.0 - abs(c.x) * 2.0) / 0.3, 2.0)), exp(-pow((1.0 - abs(c.y) * 2.0) / 0.3, 2.0)));
 
   o = vec4(ramp(v), lat * pocket);
 }`;
@@ -120,7 +138,7 @@ vec3 ramp(float v) {
 
 // the colour a line wears here: it floats along the palette with time, and differently across the screen
 vec3 lineTint(vec2 uv) {
-  float ph = 0.5 + 0.5 * sin(uTime * 0.11 + uv.x * 4.0 + uv.y * 2.5 + sin(uTime * 0.07 + uv.y * 3.0));
+  float ph = 0.5 + 0.5 * sin(uTime * 0.035 + uv.x * 4.0 + uv.y * 2.5 + sin(uTime * 0.022 + uv.y * 3.0));
   return ramp(mix(0.25, 0.9, ph));
 }
 
