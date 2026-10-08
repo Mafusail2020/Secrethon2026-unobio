@@ -67,6 +67,21 @@ PCSK9 Ã— familial hypercholesterolemia has `genetic_association` **0.92**. That 
 - Rate limit *(docs)*: 3 req/s without key, 10 with key; send `tool` and `email` params.
 - Mostly redundant with Europe PMC (which indexes PubMed); use only as fallback.
 
+## How the clients run (T1)
+
+- Code: `backend/app/sources/` — one client per API on top of `HttpSource` (timeouts, retries on 429/5xx and
+  network errors, a per-source request interval, JSON cache). `records.py` turns payloads into `SourceRef` +
+  `Evidence`; ids are content-addressed, so a re-fetch gives the same ids.
+- Cache: SQLite table `source_cache` in `backend/data/app.db`, key = source + hash of the request, TTL from
+  `config/sources.yaml` (7 days). `force_refresh` on a run skips the cache read and rewrites the entry.
+  A 404 is cached as "not found".
+- `SOURCES_MODE=live` (default) registers the clients; `SOURCES_MODE=fixture` registers none, and every data node
+  falls back to the BACE1 fixture. The test suite runs in fixture mode, so it never touches the network; the data
+  nodes have their own tests on recorded responses in `backend/tests/fixtures/sources/`.
+- User links (`ingest_user_input`) go through `web.py`: http(s) only, public addresses only, 1 MB cap, HTML
+  stripped to text. Unreadable links (PDF, errors) are logged, never turned into evidence.
+- Measured on the demo cases (LLM mocked): cold run ~11 s, warm run ~1.2 s.
+
 ## Client plan for T1
 
 | client | calls per run (medium effort) | cache key |
