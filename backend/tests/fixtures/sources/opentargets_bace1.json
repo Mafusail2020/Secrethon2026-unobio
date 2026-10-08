@@ -1,0 +1,548 @@
+{
+ "Search:disease": {
+  "data": {
+   "search": {
+    "hits": [
+     {
+      "id": "MONDO_0004975",
+      "name": "Alzheimer disease",
+      "entity": "disease",
+      "score": 3816.774
+     },
+     {
+      "id": "EFO_0006514",
+      "name": "Alzheimer's disease biomarker measurement",
+      "entity": "disease",
+      "score": 789.6578
+     },
+     {
+      "id": "EFO_0006801",
+      "name": "Alzheimer's disease neuropathologic change",
+      "entity": "disease",
+      "score": 543.31757
+     },
+     {
+      "id": "MONDO_0011913",
+      "name": "Alzheimer disease 3",
+      "entity": "disease",
+      "score": 463.80853
+     },
+     {
+      "id": "EFO_0022957",
+      "name": "early-onset Alzheimers disease",
+      "entity": "disease",
+      "score": 408.68616
+     },
+     {
+      "id": "EFO_1001870",
+      "name": "late-onset Alzheimers disease",
+      "entity": "disease",
+      "score": 338.24466
+     },
+     {
+      "id": "MONDO_0014265",
+      "name": "Alzheimer disease 18",
+      "entity": "disease",
+      "score": 320.16626
+     },
+     {
+      "id": "MONDO_0001627",
+      "name": "dementia",
+      "entity": "disease",
+      "score": 265.27353
+     }
+    ]
+   }
+  }
+ },
+ "Search:target": {
+  "data": {
+   "search": {
+    "hits": [
+     {
+      "id": "ENSG00000186318",
+      "name": "BACE1",
+      "entity": "target",
+      "score": 5009.8726
+     },
+     {
+      "id": "ENSG00000278768",
+      "name": "BACE1-AS",
+      "entity": "target",
+      "score": 526.95325
+     },
+     {
+      "id": "ENSG00000276505",
+      "name": "ENSG00000276505",
+      "entity": "target",
+      "score": 215.67506
+     },
+     {
+      "id": "ENSG00000047249",
+      "name": "ATP6V1H",
+      "entity": "target",
+      "score": 63.460693
+     }
+    ]
+   }
+  }
+ },
+ "Disease": {
+  "data": {
+   "disease": {
+    "id": "MONDO_0004975",
+    "name": "Alzheimer disease",
+    "description": "A progressive, neurodegenerative disease characterized by loss of function and death of nerve cells in several areas of the brain leading to loss of cognitive function such as memory and language.",
+    "dbXRefs": [
+     "DOID:10652",
+     "HP:0002511",
+     "ICD10CM:G30",
+     "ICD10WHO:G30",
+     "ICD9:290.1",
+     "ICD9:331.0",
+     "MEDGEN:1853",
+     "MESH:D000544",
+     "NCIT:C2866",
+     "Orphanet:238616",
+     "SCTID:142811000119104",
+     "UMLS:C0002395",
+     "birnlex:2092",
+     "icd11.foundation:1611724421"
+    ],
+    "therapeuticAreas": [
+     {
+      "id": "MONDO_0002025",
+      "name": "psychiatric disorder"
+     },
+     {
+      "id": "MONDO_0005071",
+      "name": "nervous system disorder"
+     },
+     {
+      "id": "EFO_0000651",
+      "name": "phenotype"
+     }
+    ],
+    "synonyms": [
+     {
+      "relation": "hasExactSynonym",
+      "terms": [
+       "AD",
+       "Alzheimer dementia",
+       "Alzheimer disease",
+       "Alzheimer's dementia",
+       "Alzheimer's disease",
+       "Alzheimers disease",
+       "presenile and senile dementia",
+       "AD - Alzheimer's disease",
+       "ALZHEIMER DIS",
+       "ALZHEIMERS DIS",
+       "Alzheimer Dementia, Presenile",
+       "Alzheimer Type Dementia",
+       "Alzheimer's",
+       "Alzheimer's disease (disorder)",
+       "Alzheimer's disease, NOS",
+       "Alzheimers",
+       "Alzheimers Dementia",
+       "DAT - Dementia Alzheimer's type",
+       "Dementia in Alzheimer's disease",
+       "Dementia in Alzheimer's disease (disorder)",
+       "Dementia in Alzheimer's disease, unspecified (disorder)",
+       "Dementia of the Alzheimer's type",
+       "Dementia, Alzheimer Type",
+       "Dementia, Presenile",
+       "Dementia, Presenile Alzheimer",
+       "Disease, Alzheimer",
+       "Disease, Alzheimer's",
+       "Presenile Alzheimer Dementia",
+       "[X]Dementia in Alzheimer's disease",
+       "[X]Dementia in Alzheimer's disease (disorder)",
+       "sporadic Alzheimer's disease"
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "Target": {
+  "data": {
+   "target": {
+    "id": "ENSG00000186318",
+    "approvedSymbol": "BACE1",
+    "approvedName": "beta-secretase 1",
+    "targetClass": [
+     {
+      "label": "Aspartic protease",
+      "level": "l3"
+     },
+     {
+      "label": "Aspartic protease A1A subfamily",
+      "level": "l5"
+     },
+     {
+      "label": "Protease",
+      "level": "l2"
+     },
+     {
+      "label": "Enzyme",
+      "level": "l1"
+     },
+     {
+      "label": "Aspartic protease AA clan",
+      "level": "l4"
+     }
+    ],
+    "tractability": [
+     {
+      "label": "Approved Drug",
+      "modality": "SM",
+      "value": false
+     },
+     {
+      "label": "Advanced Clinical",
+      "modality": "SM",
+      "value": true
+     },
+     {
+      "label": "Phase 1 Clinical",
+      "modality": "SM",
+      "value": false
+     },
+     {
+      "label": "Structure with Ligand",
+      "modality": "SM",
+      "value": true
+     },
+     {
+      "label": "High-Quality Ligand",
+      "modality": "SM",
+      "value": true
+     },
+     {
+      "label": "High-Quality Pocket",
+      "modality": "SM",
+      "value": true
+     },
+     {
+      "label": "Med-Quality Pocket",
+      "modality": "SM",
+      "value": false
+     },
+     {
+      "label": "Druggable Family",
+      "modality": "SM",
+      "value": true
+     },
+     {
+      "label": "Approved Drug",
+      "modality": "AB",
+      "value": false
+     },
+     {
+      "label": "Advanced Clinical",
+      "modality": "AB",
+      "value": false
+     },
+     {
+      "label": "Phase 1 Clinical",
+      "modality": "AB",
+      "value": false
+     },
+     {
+      "label": "UniProt loc high conf",
+      "modality": "AB",
+      "value": true
+     },
+     {
+      "label": "GO CC high conf",
+      "modality": "AB",
+      "value": true
+     },
+     {
+      "label": "UniProt loc med conf",
+      "modality": "AB",
+      "value": false
+     },
+     {
+      "label": "UniProt SigP or TMHMM",
+      "modality": "AB",
+      "value": true
+     },
+     {
+      "label": "GO CC med conf",
+      "modality": "AB",
+      "value": false
+     },
+     {
+      "label": "Human Protein Atlas loc",
+      "modality": "AB",
+      "value": true
+     },
+     {
+      "label": "Approved Drug",
+      "modality": "PR",
+      "value": false
+     },
+     {
+      "label": "Advanced Clinical",
+      "modality": "PR",
+      "value": false
+     },
+     {
+      "label": "Phase 1 Clinical",
+      "modality": "PR",
+      "value": false
+     },
+     {
+      "label": "Literature",
+      "modality": "PR",
+      "value": false
+     },
+     {
+      "label": "UniProt Ubiquitination",
+      "modality": "PR",
+      "value": true
+     },
+     {
+      "label": "Database Ubiquitination",
+      "modality": "PR",
+      "value": true
+     },
+     {
+      "label": "Half-life Data",
+      "modality": "PR",
+      "value": true
+     },
+     {
+      "label": "Small Molecule Binder",
+      "modality": "PR",
+      "value": true
+     },
+     {
+      "label": "Approved Drug",
+      "modality": "OC",
+      "value": false
+     },
+     {
+      "label": "Advanced Clinical",
+      "modality": "OC",
+      "value": false
+     },
+     {
+      "label": "Phase 1 Clinical",
+      "modality": "OC",
+      "value": false
+     }
+    ],
+    "safetyLiabilities": [
+     {
+      "event": "regulation of catalytic activity",
+      "eventId": null,
+      "datasource": "ToxCast",
+      "literature": null,
+      "url": "https://www.epa.gov/chemical-research/exploring-toxcast-data-downloadable-data",
+      "effects": [],
+      "biosamples": [
+       {
+        "tissueLabel": null,
+        "cellLabel": null
+       }
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "Association": {
+  "data": {
+   "disease": {
+    "associatedTargets": {
+     "rows": [
+      {
+       "score": 0.4223313017853209,
+       "datatypeScores": [
+        {
+         "id": "literature",
+         "score": 0.9921047406449517
+        },
+        {
+         "id": "animal_model",
+         "score": 0.46914526260686806
+        },
+        {
+         "id": "clinical",
+         "score": 0.6346722351987387
+        }
+       ]
+      }
+     ]
+    }
+   }
+  }
+ },
+ "TargetDrugs": {
+  "data": {
+   "target": {
+    "drugAndClinicalCandidates": {
+     "count": 4,
+     "rows": [
+      {
+       "maxClinicalStage": "PHASE_3",
+       "drug": {
+        "id": "CHEMBL3301601",
+        "name": "VERUBECESTAT",
+        "drugType": "Small molecule"
+       },
+       "diseases": [
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": null
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        }
+       ]
+      },
+      {
+       "maxClinicalStage": "PHASE_2_3",
+       "drug": {
+        "id": "CHEMBL3916243",
+        "name": "ATABECESTAT",
+        "drugType": "Small molecule"
+       },
+       "diseases": [
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": null
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        }
+       ]
+      },
+      {
+       "maxClinicalStage": "PHASE_3",
+       "drug": {
+        "id": "CHEMBL3989948",
+        "name": "LANABECESTAT",
+        "drugType": "Small molecule"
+       },
+       "diseases": [
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": null
+        },
+        {
+         "disease": null
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "GO_0007596",
+          "name": "blood coagulation"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0000831",
+          "name": "thrombotic disease"
+         }
+        }
+       ]
+      },
+      {
+       "maxClinicalStage": "PHASE_3",
+       "drug": {
+        "id": "CHEMBL4204869",
+        "name": "ELENBECESTAT",
+        "drugType": "Small molecule"
+       },
+       "diseases": [
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": {
+          "id": "MONDO_0004975",
+          "name": "Alzheimer disease"
+         }
+        },
+        {
+         "disease": null
+        },
+        {
+         "disease": {
+          "id": "MONDO_0001627",
+          "name": "dementia"
+         }
+        },
+        {
+         "disease": null
+        }
+       ]
+      }
+     ]
+    }
+   }
+  }
+ }
+}
