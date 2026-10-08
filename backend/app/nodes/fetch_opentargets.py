@@ -42,9 +42,11 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
 
     try:
         assoc = await ot.association(disease.id, target.id, force_refresh=fr)
-        records.append(
-            association_records(assoc, (target.id, target.label), (disease.id, disease.label), ids)
+        record = association_records(
+            assoc, (target.id, target.label), (disease.id, disease.label), ids
         )
+        records.append(record)
+        facts["association_evidence_ids"] = [e.id for e in record[1]]
         scores = {d["id"]: d["score"] for d in (assoc or {}).get("datatypeScores") or []}
         facts["association_score"] = assoc["score"] if assoc else None
         facts["genetic_association"] = scores.get("genetic_association")
@@ -65,8 +67,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         profile = await ot.target(target.id, force_refresh=fr)
         if profile:
             records.append(target_profile_records(profile, ids))
-            facts["safety_liabilities"] = len(profile.get("safetyLiabilities") or [])
-            ctx.log(f"{facts['safety_liabilities']} safety liabilities, tractability and class")
+            ctx.log("target tractability and class (safety liabilities: see Safety data)")
     except SourceError as exc:
         ctx.log(f"target profile lookup failed: {exc}", "warn")
 
