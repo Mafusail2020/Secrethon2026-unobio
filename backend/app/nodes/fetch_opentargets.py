@@ -50,6 +50,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         scores = {d["id"]: d["score"] for d in (assoc or {}).get("datatypeScores") or []}
         facts["association_score"] = assoc["score"] if assoc else None
         facts["genetic_association"] = scores.get("genetic_association")
+        facts["somatic_mutation"] = scores.get("somatic_mutation")
         ctx.log(
             f"association {target.label} × {disease.label}: "
             + (f"{assoc['score']:.2f}" if assoc else "none")
