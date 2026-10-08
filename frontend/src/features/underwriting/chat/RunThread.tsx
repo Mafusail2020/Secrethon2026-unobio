@@ -19,7 +19,7 @@ function ProgramMessage({ run }: { run: RunSummary }) {
     .filter(Boolean)
     .join(" · ");
   return (
-    <div className="ml-auto max-w-[85%] rounded-2xl bg-slate-100 px-4 py-3 text-[0.95rem]">
+    <div className="ml-auto max-w-[85%] rounded-lg bg-slate-100 px-4 py-3 text-[0.95rem]">
       <div className="font-medium">{p.indication}</div>
       <div>{p.mechanism}</div>
       {extras && <div className="mt-1 text-xs text-muted">{extras}</div>}

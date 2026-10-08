@@ -225,7 +225,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
     <form
       onSubmit={submit}
       onKeyDown={onKeyDown}
-      className="rounded-3xl border border-line bg-surface shadow-lg shadow-royal/5 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20"
+      className="rounded-lg border border-line bg-surface shadow-lg shadow-royal/5 transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20"
     >
       <div className="px-5 pt-4">
         <Field id={`${uid}-indication`} name="indication" title="Indication" errors={errors}>
@@ -259,7 +259,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
       </div>
 
       {detailsOpen && (
-        <div id={`${uid}-details`} className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-line/70 p-3">
+        <div id={`${uid}-details`} className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
           <Field id={`${uid}-drug`} name="drug_name" title="Drug name" errors={errors}>
             {(p) => <input {...p} className={input} value={form.drug_name} onChange={(e) => set("drug_name", e.target.value)} />}
           </Field>

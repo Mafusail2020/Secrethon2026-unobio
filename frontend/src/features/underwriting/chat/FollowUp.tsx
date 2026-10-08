@@ -29,7 +29,7 @@ export function FollowUpMessages({
         {messages.map((m, i) => (
           <li key={i} className={m.role === "user" ? "flex justify-end" : ""}>
             {m.role === "user" ? (
-              <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-[0.95rem]">{m.content}</p>
+              <p className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-slate-100 px-4 py-2.5 text-[0.95rem]">{m.content}</p>
             ) : (
               <div className="text-[0.95rem] leading-relaxed">
                 <p className="whitespace-pre-wrap">{m.content}</p>
@@ -59,7 +59,7 @@ export function FollowUpMessages({
         {ask.isPending && (
           <>
             <li className="flex justify-end">
-              <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-slate-100 px-4 py-2.5 text-[0.95rem] opacity-70">{ask.variables}</p>
+              <p className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-slate-100 px-4 py-2.5 text-[0.95rem] opacity-70">{ask.variables}</p>
             </li>
             <li className="flex items-center gap-2 text-sm text-muted">
               <Spinner className="h-3.5 w-3.5" /> Reading the report…
@@ -117,7 +117,7 @@ export function FollowUpInput({ follow, ready }: { follow: FollowUp; ready: bool
     <div className="mx-auto w-full max-w-3xl px-4 pb-3 pt-1">
       <form
         onSubmit={submit}
-        className={`flex items-end gap-2 rounded-3xl border bg-surface py-2 pl-5 pr-2 shadow-sm transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 ${closed ? "border-line/70 opacity-80" : "border-line"}`}
+        className={`flex items-end gap-2 rounded-lg border bg-surface py-2 pl-5 pr-2 shadow-sm transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 ${closed ? "border-line/70 opacity-80" : "border-line"}`}
       >
         <label className="sr-only" htmlFor="follow-up">
           Ask a follow-up question

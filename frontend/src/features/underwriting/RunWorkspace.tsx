@@ -108,7 +108,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
                 <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6">
                   {detail.isPending && (
                     <div className="space-y-3" aria-busy="true" aria-label="Loading the run">
-                      <div className="ml-auto h-16 w-2/3 animate-pulse rounded-2xl bg-slate-100 motion-reduce:animate-none" />
+                      <div className="ml-auto h-16 w-2/3 animate-pulse rounded-lg bg-slate-100 motion-reduce:animate-none" />
                       {[0, 1, 2, 3].map((i) => (
                         <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100 motion-reduce:animate-none" />
                       ))}
