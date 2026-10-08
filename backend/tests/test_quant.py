@@ -371,3 +371,81 @@ def test_verdict_reads_a_reported_failure_in_a_correction_and_ignores_other_text
         "do_not_invest"
     )
     assert decide(_inputs(GOOD_POS, GOOD_RNPV, corrections=[chatter]), conf).decision == "invest"
+
+
+# --- regressions from the debug session ------------------------------------------------------
+
+
+def test_an_approved_stage_program_does_not_break_the_beta_prior():
+    prior = beta_range(6, 0, 1.0)  # base rate of 1 used to zero a Beta parameter
+    assert 0 < prior.low <= prior.base <= prior.high <= 1
+
+
+def test_open_targets_area_names_map_with_their_exact_spelling():
+    assert area_for(["cardiovascular disorder"], "x")[0] == "cardiovascular"
+    assert area_for(["hematologic disorder"], "x")[0] == "hematology"
+    assert area_for(["endocrine system disorder", "phenotype"], "obesity disorder")[0] == (
+        "endocrine"
+    )
+    assert area_for(["immune system disorder"], "psoriasis")[0] == "autoimmune"
+
+
+def test_valuation_survives_a_corrected_cost_per_patient():
+    conf = _conf("valuation")
+    apply_corrections(conf, ["cost per patient is 300k"], "cns")
+    v, _ = value(
+        "phase2",
+        Range(low=0.02, base=0.05, high=0.2, unit="probability"),
+        base_rates(["nervous system disorder"], "Alzheimer disease"),
+        conf,
+    )
+    cpp = next(a for a in v.assumptions if a.name.startswith("cost per patient"))
+    assert cpp.value.base == 300_000 and cpp.basis == "assumption" and cpp.citation is None
+
+
+async def test_ledger_drop_matches_a_factor_named_without_its_prefix():
+    correction = Correction(
+        id="c", run_id="r", node_id="evidence_ledger", text="ignore no human exposure data",
+        created_at=utcnow(),
+    )  # fmt: skip
+    adjustments = {
+        "p": _adjustment("FIXTURE: no human exposure data", 1.05, "pk_exposure"),
+        "g": _adjustment("genetic support", 0.85),
+    }
+    out = await evidence_ledger.run(
+        {"twin_stats": _twin("target_area"), "risk_adjustments": adjustments},
+        _Ctx([correction]),  # type: ignore[arg-type]
+    )
+    assert [s.factor for s in out["ledger"].steps] == ["genetic support"]
+
+
+async def test_twin_stats_without_a_target_uses_the_area_base_rate_not_the_fixture():
+    from app.contracts import EntityRef, ProgramInput, ResolvedEntities
+    from app.nodes import twin_stats
+
+    class Ctx:
+        node_id = "twin_stats"
+
+        def __init__(self) -> None:
+            self.logs: list[str] = []
+
+        def log(self, message: str, level: str = "info") -> None:
+            self.logs.append(message)
+
+        def corrections_for(self, node_id=None):
+            return []
+
+    entities = ResolvedEntities(
+        disease=EntityRef(id="MONDO_0005083", label="psoriasis", kind="disease"),
+        therapeutic_areas=["immune system disorder"],
+        confidence="low",
+    )
+    state = {
+        "program": ProgramInput(indication="psoriasis", mechanism="novel mechanism xyz123"),
+        "entities": entities,
+    }
+    out = await twin_stats.run(state, Ctx())  # type: ignore[arg-type]
+    stats = out["twin_stats"]
+    assert stats.match_level == "area_base_rate" and stats.twins == []
+    assert stats.failure_mix and stats.failure_mix.source == "literature"
+    assert not any("FIXTURE" in n for n in stats.notes)
