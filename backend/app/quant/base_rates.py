@@ -58,8 +58,8 @@ def area_for(therapeutic_areas: list[str], disease_name: str) -> tuple[str, str 
     for rule in conf["name_keywords"]["rules"]:
         if re.search(rule["pattern"], disease_name, re.I):
             return rule["area"], (
-                f"no therapeutic area on the disease term; '{rule['area']}' inferred from its name"
-                " (assumption)"
+                f"no mapped therapeutic area on the disease term; '{rule['area']}' inferred from"
+                " its name (assumption)"
             )
     return "all", "no matching disease area; using the all-indications rates"
 
