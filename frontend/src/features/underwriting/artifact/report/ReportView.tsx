@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { GraphSpec, SectionId, UnderwritingReport } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
-import { DECISION_LABEL, DECISION_STYLE, humanize, pctRange } from "../../../../lib/format";
+import { DECISION_LABEL, DECISION_STYLE, pctRange } from "../../../../lib/format";
 import { CorrectionDialog } from "../../correction/CorrectionDialog";
 import { ClaimCard } from "./ClaimCard";
 import { ClaimFilterBar } from "./ClaimFilterBar";
@@ -14,7 +14,10 @@ import { TranslationStepper } from "./quant/TranslationStepper";
 import { TwinPanel } from "./quant/TwinPanel";
 import { ValuationPanel } from "./quant/ValuationPanel";
 import { ReportContext, type CorrectionSeed, type FocusClaim } from "./reportContext";
+import { buildReportTree, questionOfClaim, type QuestionId } from "./reportTree";
 import { RunDetails } from "./RunDetails";
+import { Collapse } from "./tree/Collapse";
+import { ReportTreeView } from "./tree/ReportTree";
 import { Section } from "./Section";
 import { isSyntheticReport } from "./synthetic";
 import { useScrollSpy } from "./useScrollSpy";
@@ -59,17 +62,32 @@ export function ReportView({
 
   const claims = useMemo(() => Object.values(report.claims), [report.claims]);
   const shownClaims = useMemo(() => filterClaims(claims, filters, report), [claims, filters, report]);
-  const inSection = (id: string) => Object.values(report.sections).some((s) => s.key_points.some((kp) => kp.claim_ids.includes(id)));
-  const focusInAll = !!focus && !inSection(focus.id);
+  const tree = useMemo(() => buildReportTree(report), [report]);
+  const [openQuestions, setOpenQuestions] = useState<ReadonlySet<QuestionId>>(() => new Set());
+  const [fullOpen, setFullOpen] = useState(false);
+  const [rootInView, setRootInView] = useState(true);
+  // a link to a claim opens the branch it sits in (or the full report, for a claim no question holds); done while rendering,
+  // once per link, so the branch is open by the time the page scrolls to the claim
+  const [seenLink, setSeenLink] = useState<number | undefined>();
+  if (focus && focus.nonce !== seenLink) {
+    setSeenLink(focus.nonce);
+    const branch = questionOfClaim(tree, focus.id);
+    if (branch) setOpenQuestions((open) => new Set(open).add(branch));
+    else setFullOpen(true);
+  }
+  const toggleQuestion = (id: QuestionId) =>
+    setOpenQuestions((open) => {
+      const next = new Set(open);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  const focusInAll = !!focus && !questionOfClaim(tree, focus.id);
 
   const sections = SECTION_ORDER.flatMap((id) => (report.sections[id] ? [report.sections[id]] : []));
   const nav = [
-    { id: "overview", label: "Overview" },
-    ...(report.translation_chain.length ? [{ id: "translation-chain", label: "Translation chain" }] : []),
-    ...sections.map((s) => ({ id: `section-${s.section}`, label: s.title })),
-    { id: "risks-unknowns", label: "Risks and unknowns" },
-    { id: "all-claims", label: `All claims (${claims.length})` },
-    { id: "run-details", label: "Run" },
+    { id: "summary", label: "Summary" },
+    ...tree.questions.map((q) => ({ id: `q-${q.id}`, label: q.short })),
+    { id: "full-report", label: "Full report" },
   ];
   const header = useRef<HTMLElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -94,9 +112,34 @@ export function ReportView({
 
   useEffect(() => {
     if (!focus) return;
-    const el = document.getElementById(`claim-${focus.id}`) ?? document.getElementById(`all-claim-${focus.id}`);
-    el?.scrollIntoView({ block: "center", behavior: prefersCalm() ? "auto" : "smooth" });
+    // a branch that was closed needs its opening to finish before the claim is where it will stay
+    const timer = window.setTimeout(
+      () => {
+        const el =
+          document.getElementById(`tree-claim-${focus.id}`) ?? document.getElementById(`claim-${focus.id}`) ?? document.getElementById(`all-claim-${focus.id}`);
+        el?.scrollIntoView({ block: "center", behavior: prefersCalm() ? "auto" : "smooth" });
+      },
+      prefersCalm() ? 0 : 420,
+    );
+    return () => window.clearTimeout(timer);
   }, [focus]);
+
+  useEffect(() => {
+    const call = document.getElementById("summary-call");
+    const bar = header.current;
+    if (!call || !bar || typeof IntersectionObserver === "undefined") return;
+    // the page scrolls inside the dock, not the window: watch it from there, minus the sticky header laid over its top
+    let scroller: HTMLElement | null = call.parentElement;
+    while (scroller && !(scroller.scrollHeight > scroller.clientHeight && getComputedStyle(scroller).overflowY !== "visible")) scroller = scroller.parentElement;
+    // half hidden counts as gone: a sliver of the number peeking out under the header is no longer the call on screen
+    const watcher = new IntersectionObserver(([entry]) => setRootInView(!!entry && entry.intersectionRatio >= 0.5), {
+      root: scroller,
+      rootMargin: `-${bar.offsetHeight}px 0px 0px 0px`,
+      threshold: [0, 0.25, 0.5, 0.75, 1],
+    });
+    watcher.observe(call);
+    return () => watcher.disconnect();
+  }, []);
 
   // print rules in styles/print.css apply only while a report is on screen
   useEffect(() => {
@@ -113,11 +156,16 @@ export function ReportView({
       <div ref={wrapper} className="@container pb-6">
         <header ref={header} className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-2">
-            <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
-            <span className="text-xs text-muted">{verdict.confidence} confidence</span>
-            <span className="text-sm">
-              Probability of success <strong>{pctRange(report.pos)}</strong>
-            </span>
+            {/* the call is the first thing on the page; once it has scrolled away, the header keeps it in sight */}
+            {!rootInView && (
+              <>
+                <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
+                <span className="text-xs text-muted">{verdict.confidence} confidence</span>
+                <span className="text-sm">
+                  Probability of success <strong>{pctRange(report.pos)}</strong>
+                </span>
+              </>
+            )}
             <div className="ml-auto">
               <ExportBar report={report} />
             </div>
@@ -150,83 +198,81 @@ export function ReportView({
         <div className="space-y-4 p-4">
           {report.meta.parent_run_id && <WhatChanged report={report} onJumpSection={(id) => scrollToId(`section-${id}`)} />}
 
-          <section id="overview" className="report-anchor space-y-4" aria-label="Overview">
-            <div className="rounded-lg border border-line bg-surface p-4">
-              <h2 className="text-lg font-semibold">
-                {report.program.mechanism} in {report.program.indication}
-              </h2>
-              <p className="mt-1 text-sm">{verdict.rationale}</p>
-              <ul className="mt-3 space-y-1">
-                {verdict.reason_codes.map((rc) => (
-                  <li key={rc.code} className="flex items-start gap-2 text-sm">
-                    <span className={rc.direction === "positive" ? "text-emerald-600" : "text-red-600"} aria-hidden="true">
-                      {rc.direction === "positive" ? "▲" : "▼"}
-                    </span>
-                    <span>
-                      <span className="sr-only">{rc.direction}: </span>
-                      <span className="font-medium">{humanize(rc.code.toLowerCase())}</span>: {rc.text}
-                      {rc.claim_ids.map((id) => (
-                        <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1 rounded-full border border-line px-1.5 text-xs text-brand hover:border-brand">
-                          claim
-                        </button>
-                      ))}
-                    </span>
-                  </li>
+          <ReportTreeView
+            report={report}
+            tree={tree}
+            open={openQuestions}
+            onToggle={toggleQuestion}
+            onSetAll={(all) => setOpenQuestions(all ? new Set(tree.questions.map((q) => q.id)) : new Set())}
+            focus={focus}
+          />
+
+          <section id="full-report" aria-labelledby="full-report-title" className="report-anchor rounded-xl border border-line bg-surface">
+            <button
+              type="button"
+              aria-expanded={fullOpen}
+              aria-controls="full-report-body"
+              onClick={() => setFullOpen((o) => !o)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl p-4 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              data-print-hide
+            >
+              <span>
+                <span id="full-report-title" className="block text-[0.95rem] font-semibold">
+                  Full report
+                </span>
+                <span className="block text-sm text-muted">Every section, chart and claim ({claims.length}), and how the run went</span>
+              </span>
+              <span className="text-sm text-muted" aria-hidden="true">
+                {fullOpen ? "▾" : "▸"}
+              </span>
+            </button>
+            <Collapse open={fullOpen} id="full-report-body">
+              <div className="space-y-4 border-t border-line p-4">
+                <section id="overview" className="report-anchor space-y-4" aria-label="Overview">
+                  <div className="grid gap-4 @3xl:grid-cols-2">
+                    {report.twin_stats ? <TwinPanel twin={report.twin_stats} report={report} /> : <Missing title="Similar programs" why="Historical twin statistics are not available for this run." />}
+                    {report.valuation ? <ValuationPanel valuation={report.valuation} /> : <Missing title="Funding to the next milestone" why="No valuation was produced for this run." />}
+                  </div>
+                  {report.ledger ? <LedgerWaterfall ledger={report.ledger} /> : <Missing title="Evidence ledger" why="No evidence ledger was produced, so the probability above rests on the twin prior alone." />}
+                </section>
+
+                {report.translation_chain.length > 0 && (
+                  <div id="translation-chain" className="report-anchor">
+                    <TranslationStepper chain={report.translation_chain} />
+                  </div>
+                )}
+
+                {sections.map((s) => (
+                  <Section key={s.section} result={s} />
                 ))}
-              </ul>
-              {verdict.conditions.length > 0 && (
-                <div className="mt-3 text-sm">
-                  <span className="font-medium">Conditions to proceed:</span>
-                  <ul className="list-disc pl-5">
-                    {verdict.conditions.map((c) => (
-                      <li key={c}>{c}</li>
-                    ))}
-                  </ul>
+
+                <div id="risks-unknowns" className="report-anchor space-y-4">
+                  {report.key_risks.length > 0 && <RisksPanel risks={report.key_risks} />}
+                  {(report.critical_unknowns.length > 0 || report.diligence_questions.length > 0) && (
+                    <DiligencePanel unknowns={report.critical_unknowns} questions={report.diligence_questions} />
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="grid gap-4 @3xl:grid-cols-2">
-              {report.twin_stats ? <TwinPanel twin={report.twin_stats} report={report} /> : <Missing title="Similar programs" why="Historical twin statistics are not available for this run." />}
-              {report.valuation ? <ValuationPanel valuation={report.valuation} /> : <Missing title="Funding to the next milestone" why="No valuation was produced for this run." />}
-            </div>
-            {report.ledger ? <LedgerWaterfall ledger={report.ledger} /> : <Missing title="Evidence ledger" why="No evidence ledger was produced, so the probability above rests on the twin prior alone." />}
+                <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="report-anchor rounded-lg border border-line bg-surface p-3">
+                  <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
+                  <div className="mt-2 space-y-2">
+                    <ClaimFilterBar claims={claims} filters={filters} shown={shownClaims.length} onChange={setFilters} />
+                    {shownClaims.length === 0 && <p className="text-sm text-muted">No claims match these filters.</p>}
+                    <ul className="space-y-1.5">
+                      {shownClaims.map((claim) => {
+                        const focused = focusInAll && focus.id === claim.id;
+                        return <ClaimCard key={focused ? `${claim.id}-${focus.nonce}` : claim.id} claim={claim} domId={`all-claim-${claim.id}`} focused={focused} />;
+                      })}
+                    </ul>
+                  </div>
+                </details>
+
+                <div id="run-details" className="report-anchor">
+                  <RunDetails meta={report.meta} runId={report.run_id} />
+                </div>
+              </div>
+            </Collapse>
           </section>
-
-          {report.translation_chain.length > 0 && (
-            <div id="translation-chain" className="report-anchor">
-              <TranslationStepper chain={report.translation_chain} />
-            </div>
-          )}
-
-          {sections.map((s) => (
-            <Section key={s.section} result={s} />
-          ))}
-
-          <div id="risks-unknowns" className="report-anchor space-y-4">
-            {report.key_risks.length > 0 && <RisksPanel risks={report.key_risks} />}
-            {(report.critical_unknowns.length > 0 || report.diligence_questions.length > 0) && (
-              <DiligencePanel unknowns={report.critical_unknowns} questions={report.diligence_questions} />
-            )}
-          </div>
-
-          <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="report-anchor rounded-lg border border-line bg-surface p-3">
-            <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
-            <div className="mt-2 space-y-2">
-              <ClaimFilterBar claims={claims} filters={filters} shown={shownClaims.length} onChange={setFilters} />
-              {shownClaims.length === 0 && <p className="text-sm text-muted">No claims match these filters.</p>}
-              <ul className="space-y-1.5">
-                {shownClaims.map((claim) => {
-                  const focused = focusInAll && focus.id === claim.id;
-                  return <ClaimCard key={focused ? `${claim.id}-${focus.nonce}` : claim.id} claim={claim} domId={`all-claim-${claim.id}`} focused={focused} />;
-                })}
-              </ul>
-            </div>
-          </details>
-
-          <div id="run-details" className="report-anchor">
-            <RunDetails meta={report.meta} runId={report.run_id} />
-          </div>
         </div>
       </div>
       {seed && graph && (

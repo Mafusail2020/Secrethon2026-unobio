@@ -58,6 +58,18 @@
   body[data-print="report"] details:not([open]) > :not(summary) {
     display: none;
   }
+  /* the tree prints whole: every branch open, claims in full, nothing clipped */
+  body[data-print="report"] .uw-collapse {
+    grid-template-rows: 1fr !important;
+    opacity: 1 !important;
+  }
+  body[data-print="report"] .uw-collapse > * {
+    overflow: visible !important;
+  }
+  body[data-print="report"] .line-clamp-2 {
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+  }
   body[data-print="report"] [class*="rounded-lg"] {
     break-inside: avoid;
   }

@@ -7,8 +7,11 @@ import { correctionTargetFor } from "./correctionTarget";
 import { EvidenceCard } from "./EvidenceCard";
 import { useReportContext } from "./reportContext";
 
-/** A claim with its stance, label and status, expandable to the evidence behind it. */
-export function ClaimCard({ claim, domId, focused = false }: { claim: Claim; domId?: string; focused?: boolean }) {
+/**
+ * A claim with its stance, label and status, expandable to the evidence behind it. `bare` is for a place that already
+ * shows the claim's text and frame, such as a row of the report tree: only the details are drawn.
+ */
+export function ClaimCard({ claim, domId, focused = false, bare = false }: { claim: Claim; domId?: string; focused?: boolean; bare?: boolean }) {
   const { graph, canCorrect, openCorrection, report } = useReportContext();
   const [open, setOpen] = useState(focused);
   const rejected = claim.status === "rejected";
@@ -18,14 +21,18 @@ export function ClaimCard({ claim, domId, focused = false }: { claim: Claim; dom
   return (
     <li
       id={domId}
-      className={`scroll-mt-32 overflow-hidden rounded-lg border bg-surface [content-visibility:auto] ${
-        focused ? "uw-flash border-brand ring-2 ring-brand/30" : "border-line"
-      } ${rejected ? "opacity-70" : ""}`}
+      className={
+        bare
+          ? `${rejected ? "opacity-70" : ""}`
+          : `scroll-mt-32 overflow-hidden rounded-lg border bg-surface [content-visibility:auto] ${
+              focused ? "uw-flash border-brand ring-2 ring-brand/30" : "border-line"
+            } ${rejected ? "opacity-70" : ""}`
+      }
     >
       <div className="flex">
-        <span className={`w-1 shrink-0 ${STANCE_BAR[claim.stance]}`} aria-hidden="true" />
+        {!bare && <span className={`w-1 shrink-0 ${STANCE_BAR[claim.stance]}`} aria-hidden="true" />}
         <div className="min-w-0 flex-1 p-2.5">
-          <p className={`text-sm ${rejected ? "line-through" : ""}`}>{claim.text}</p>
+          {!bare && <p className={`text-sm ${rejected ? "line-through" : ""}`}>{claim.text}</p>}
           <div className="mt-1.5 flex flex-wrap items-center gap-1">
             <Badge className={STANCE_STYLE[claim.stance]}>{claim.stance === "pro" ? "supports" : claim.stance === "con" ? "against" : "neutral"}</Badge>
             <LabelChip label={claim.label} />

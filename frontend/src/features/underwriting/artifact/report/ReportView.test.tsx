@@ -12,11 +12,11 @@ const fixture = reportJson as unknown as UnderwritingReport;
 const scrubbed = JSON.parse(JSON.stringify(fixture).replaceAll("FIXTURE:", "Real:")) as UnderwritingReport;
 const clean: UnderwritingReport = { ...scrubbed, meta: { ...scrubbed.meta, synthetic: false } };
 
-const render = (report: UnderwritingReport, canCorrect = true) =>
+const render = (report: UnderwritingReport, canCorrect = true, focusClaim?: { id: string; nonce: number }) =>
   renderToStaticMarkup(
     <QueryClientProvider client={new QueryClient()}>
       <MemoryRouter>
-        <ReportView report={report} runId="r1" graph={spec} canCorrect={canCorrect} />
+        <ReportView report={report} runId="r1" graph={spec} canCorrect={canCorrect} focusClaim={focusClaim} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -26,7 +26,33 @@ describe("report on the BACE1 fixture", () => {
 
   it("carries the synthetic banner and the navigator", () => {
     expect(markup).toContain("Synthetic data: this report contains placeholder content");
-    for (const label of ["Overview", "Translation chain", "Clinical plan", "All claims (16)", "Run"]) expect(markup).toContain(label);
+    for (const label of ["Summary", "Works", "Approval", "Uptake", "Funding", "Full report", "Clinical plan", "All claims (16)"]) expect(markup).toContain(label);
+  });
+
+  it("opens with the call and the four questions, every branch closed", () => {
+    expect(markup).toContain("Probability of success");
+    expect(markup).toContain("What carries it");
+    expect(markup).toContain("What holds it back");
+    for (const title of ["Will it work in people?", "Will it get through trials and regulators?", "Will it actually be used?", "Is funding it to the next milestone worth it?"]) {
+      expect(markup).toContain(title);
+    }
+    expect(markup).toContain("Expand all");
+    expect(markup.match(/aria-expanded="false"/g)!.length).toBeGreaterThanOrEqual(5);
+    expect(markup).not.toContain('data-open="true"');
+  });
+
+  it("shows the efficacy and safety checks with their numbers inside their questions", () => {
+    expect(markup).toContain("Efficacy check");
+    expect(markup).toContain("Safety check");
+    expect(markup).toContain("Could not check:");
+  });
+
+  it("opens the branch a claim link points at", () => {
+    const some = Object.values(fixture.claims).find((c) => c.section === "safety" && c.status === "accepted")!;
+    const opened = render(fixture, true, { id: some.id, nonce: 1 });
+    expect(opened).toMatch(/id="q-body-approval" data-open="true"/);
+    expect(opened).not.toMatch(/id="q-body-works" data-open="true"/);
+    expect(opened).toContain(`id="tree-claim-${some.id}"`);
   });
 
   it("shows the quant visuals and their honest warnings", () => {
