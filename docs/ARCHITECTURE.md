@@ -216,6 +216,17 @@ top so the heading does not move as it grows; the effort picker is four equal co
 thread content, history rows and the finished call rise or flash once (`uw-rise`, `uw-fade`, `uw-flash`, `uw-ring`,
 `uw-stagger` for the briefing). Nothing loops. `prefers-reduced-motion` removes all of it, and printing does too.
 
+The graph folds its 23 steps into the pipeline phases (`graph/groups.ts`: every phase with two or more executing steps is a
+group, so Gather public evidence, Freeze and index, Argue both sides and Quantify and decide), which leaves eight boxes in one
+column. A folded group is one larger box with its progress ("2/6 steps", and which steps are running); clicking it unfolds
+it, and clicking the title of an unfolded frame folds it again. Edges are rewired onto the boxes (no self-links, no
+duplicates), a group that holds a failed or running step shows that status, and a correction draft rings every group it
+would recompute. Group all and Ungroup all sit beside the legend, and the arrangement is remembered
+(`uw.graphCollapsed`). Unfolding is a dissolve: the steps start at the box and glide to their places (CSS transitions on
+the node wrappers) while the box fades, and the camera refits once they have left it, unless the reader panned or zoomed.
+Nodes are always handed to React Flow in one fixed order, because React moving a node in the list restarts its style and
+the transition never plays.
+
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible

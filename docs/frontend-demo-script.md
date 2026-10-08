@@ -32,7 +32,10 @@ the conversation; below 768 px the history is a drawer.
    openFDA, Europe PMC …") with steps done and elapsed time. Click **Show steps** for the full list of phases; the usage
    line (model calls, tokens, cost; "mock model, no spend" in mock) is inside it. A **stub data** chip is expected: the
    nodes are still fixtures.
-5. Click **Graph** in the top bar while it runs: turn on **Follow running step**; the camera follows. Open **Legend**.
+5. Click **Graph** in the top bar while it runs: the 23 steps are folded into eight boxes, each showing its progress and
+   which steps are running. Click **Gather public evidence**: its six steps glide out of the box. Click the title of the
+   opened frame to fold them again; **Ungroup all** and **Group all** do every box at once (and the choice is
+   remembered). Turn on **Follow running step**; the camera follows. Open **Legend**.
 6. When it completes, a structured briefing appears in the thread (a smaller version of the report: Verdict, Why this
    call, What the report found, Funding, Risks and unknowns, What to do next). The small numbers are citations: a number
    opens the report at that claim, and **Claims cited** at the end lists them. Under it, the verdict card: click **Open
@@ -65,7 +68,8 @@ the conversation; below 768 px the history is a drawer.
 3. Report view: the **What changed after your correction** banner shows Conditional → Do not invest, the PoS change,
    the changed sections and the added and removed claims (click to jump).
 4. Graph view: version bar switches between v1 and v2; reused steps are dashed blue.
-5. Alternative path: **Graph** → click **Verdict** → **Correct** tab. While the form is open the steps that would
+5. Alternative path: **Graph** → click **Quantify and decide** to open it → click **Verdict** → **Correct** tab. (Folded boxes
+   ring in blue when the draft would recompute any step inside.) While the form is open the steps that would
    recompute are outlined and the rest dim.
 
 ## 4. Export
