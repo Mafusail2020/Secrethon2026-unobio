@@ -198,9 +198,14 @@ after scrolling). Every link and button is inert (no `href`); the exceptions are
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 
-The workspace (`features/underwriting/`) has a chat side and an artifact side. The chat shows the run as pipeline phases
-(`phases.ts` groups the 23 steps into eight collapsible blocks), live model usage, a verdict card, run history grouped by
-correction lineage, and a follow-up input backed by the chat endpoints (history is loaded per run; a 429 locks it with a note). The artifact
+The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
+lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
+`Composer`, example pills) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
+blocks), live model usage, a verdict card, then the follow-up thread (`FollowUpMessages`) with its reply box
+(`FollowUpInput`) docked at the bottom; both read `useFollowUp`, which is backed by the chat endpoints (history is loaded
+per run; a 429 locks the box with a note). `TopBar` has toggle buttons for the four views; opening one shows it in a side
+panel (`ArtifactPanel`), split beside the conversation from 1280 px and covering it below that. A correction or a version
+switch passes the open view along in router state so it stays open. The report view
 is the report as a document (sticky verdict, section navigator, a "What changed" banner for corrected runs, claim cards with
 evidence, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print), the graph (kind
 colours, follow mode, a tabbed step drawer, highlighting of what a correction would recompute), sources and logs. Pure
