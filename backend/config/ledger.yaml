@@ -30,5 +30,21 @@ risk_ratios:
   efficacy.unproven_translation: {low: 1.00, base: 1.10, high: 1.30, assumption: true}
   safety.target_liability: {low: 1.00, base: 1.15, high: 1.40, assumption: true}
   pk_exposure.no_human_exposure: {low: 1.00, base: 1.05, high: 1.20, assumption: true}
+  # added by the T4 lanes (our assumptions until a source is found)
+  efficacy.contradicted_translation: {low: 1.10, base: 1.30, high: 1.60, assumption: true}
+  efficacy.human_proof_of_concept: {low: 0.60, base: 0.75, high: 0.90, assumption: true}
+  pk_exposure.human_exposure_shown: {low: 0.70, base: 0.85, high: 0.95, assumption: true}
+  safety.boxed_warning_same_target: {low: 1.05, base: 1.20, high: 1.40, assumption: true}
+  safety.tolerated_same_target: {low: 0.75, base: 0.85, high: 0.95, assumption: true}
+
+# When the lanes count an input as present
+assessment:
+  # Open Targets genetic_association datatype score (0-1) at or above which a target counts as
+  # genetically supported. Minikel et al., "Refining the impact of genetic evidence on clinical success",
+  # Nature 2024, report ~2.6x higher approval odds with genetic support (not yet re-read by us); the
+  # cut-off itself is our assumption.
+  genetic_support_min_score: {value: 0.1, assumption: true}
+  # net hazard multiplier of a lane -> rating; lower is better
+  rating_cutoffs: {strong: 0.75, moderate: 0.95, weak: 1.15, assumption: true}
 
 posterior_clamp: {low: 0.01, high: 0.95, assumption: true}

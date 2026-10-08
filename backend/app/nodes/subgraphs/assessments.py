@@ -1,19 +1,51 @@
-"""The efficacy and safety lanes. Stub bodies: real ones keep these specs and state keys.
+"""The efficacy and safety lanes.
 
 Each lane is gather (code) -> extract (one model call) -> gate (code) -> score (formulas):
 the model only reads and writes claims; every number comes from a function.
 """
 
-from collections import Counter
-from typing import Any
+from typing import Any, get_args
 
-from app.contracts import AssessedCause, Claim, NodeSpec, RiskAdjustment
+import yaml
+from pydantic import Field
+
+from app.contracts import (
+    AssessedCause,
+    Claim,
+    NodeSpec,
+    RiskAdjustment,
+    TranslationLink,
+)
+from app.contracts.claims import TranslationStatus, TranslationStep
+from app.contracts.ids import claim_id
+from app.core.settings import get_settings
 from app.graph.provenance import gate_claims
 from app.graph.state import GraphState
 from app.graph.topology import LANES, lane_container, lane_node
+from app.nodes._analysis import (
+    QUOTE_MISSING,
+    Draft,
+    DraftClaim,
+    ask,
+    describe_program,
+    digest,
+    dump_drafts,
+    fixture_run,
+    gate,
+    instructions,
+    load_drafts,
+    system_prompt,
+    tally,
+    to_claims,
+    usable_evidence,
+)
+from app.nodes._data import entity_ids
 from app.nodes._fixture import excluded_ids, fixture_report, nap, slug, touch_llm
 from app.nodes.base import NodeContext, NodeRun
+from app.nodes.subgraphs.bull_bear import rank_hits
+from app.quant.assessment import EfficacyInputs, SafetyInputs, score_efficacy, score_safety
 
+TRANSLATION_STEPS: tuple[str, ...] = get_args(TranslationStep)
 _GOAL: dict[str, str] = {
     "efficacy": "whether the drug does what it is meant to do in people",
     "safety": "whether people will tolerate the drug",
@@ -22,6 +54,22 @@ _GOAL: dict[str, str] = {
 _CAUSES: dict[str, tuple[str, ...]] = {
     "efficacy": ("efficacy", "pk_exposure"),
     "safety": ("safety",),
+}
+_QUERIES: dict[str, tuple[str, ...]] = {
+    "efficacy": (
+        "{subject} {disease} efficacy clinical trial results",
+        "{subject} genetic association {disease}",
+        "{subject} target engagement biomarker",
+        "{subject} exposure pharmacokinetics tissue penetration",
+        "{subject} preclinical animal model results",
+        "{subject} {disease} phase 2 primary endpoint",
+    ),
+    "safety": (
+        "{subject} safety liability toxicity",
+        "{subject} adverse reactions boxed warning warnings",
+        "{subject} stopped safety adverse events",
+        "{subject} tissue expression off-target",
+    ),
 }
 
 
@@ -104,89 +152,325 @@ def _specs(lane: AssessedCause) -> list[NodeSpec]:
 SPECS: list[NodeSpec] = [spec for lane in LANES for spec in _specs(lane)]
 
 
+class _ChainStep(Draft):
+    step: TranslationStep
+    status: TranslationStatus
+    claims: list[int] = Field(default_factory=list, description="0-based indexes into claims.")
+
+
+class EfficacyDraft(Draft):
+    claims: list[DraftClaim] = Field(default_factory=list)
+    chain: list[_ChainStep] = Field(default_factory=list)
+
+
+class SafetyDraft(Draft):
+    claims: list[DraftClaim] = Field(default_factory=list)
+
+
+def _ledger_conf() -> dict[str, Any]:
+    return yaml.safe_load((get_settings().config_dir / "ledger.yaml").read_text())
+
+
+def _scratch(state: GraphState, node_id: str) -> dict[str, Any]:
+    return state.get("scratch", {}).get(node_id, {})
+
+
+def _lane_ids(lane: AssessedCause, state: GraphState) -> list[str]:
+    """Evidence ids the fetch nodes flagged as this lane's inputs."""
+    if lane == "efficacy":
+        return list(_scratch(state, "fetch_opentargets").get("association_evidence_ids", []))
+    facts = _scratch(state, "fetch_safety")
+    ids = list(facts.get("liability_evidence_ids", []))
+    ids += [i for v in facts.get("boxed_warning_evidence_ids", {}).values() for i in v]
+    ids += [i for v in facts.get("faers", {}).values() for i in v]
+    ids += [i for v in facts.get("labels", {}).values() for i in v]
+    return ids
+
+
+def chain_from_draft(
+    drafted: EfficacyDraft, claim_ids_by_index: list[str | None]
+) -> list[TranslationLink]:
+    given = {}
+    for s in drafted.chain:
+        ids = [
+            claim_ids_by_index[i]
+            for i in s.claims
+            if 0 <= i < len(claim_ids_by_index) and claim_ids_by_index[i]
+        ]
+        given.setdefault(s.step, TranslationLink(step=s.step, status=s.status, claim_ids=ids))  # type: ignore[arg-type]
+    return [
+        given.get(step) or TranslationLink(step=step, status="missing")
+        for step in TRANSLATION_STEPS
+    ]  # type: ignore[arg-type]
+
+
+def settle_chain(chain: list[TranslationLink], gated: dict[str, Claim]) -> list[TranslationLink]:
+    """A step keeps its status only while a claim behind it survives the gate; a step resting only
+    on claims whose quote failed drops from supported to weak."""
+    settled = []
+    for link in chain:
+        alive = [c for c in link.claim_ids if c in gated and gated[c].status != "rejected"]
+        status = link.status
+        if status != "missing" and not alive:
+            status = "missing"
+        elif status == "supported" and all(
+            gated[c].rejection_reason == QUOTE_MISSING for c in alive
+        ):
+            status = "weak"
+        settled.append(link.model_copy(update={"status": status, "claim_ids": alive}))
+    return settled
+
+
 def make_nodes(lane: AssessedCause) -> dict[str, NodeRun]:
-    gather, extract, gate, score = (
+    gather, extract, gate_id, score = (
         lane_node(lane, s) for s in ("gather", "extract", "gate", "score")
     )
 
     async def run_gather(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
-        query = f"{lane} of {state['program'].mechanism} in {state['program'].indication}"
-        found = await ctx.retriever.retrieve(query, [], None, ctx.effort.retrieval_k)
-        twin = state.get("twin_stats")
-        await nap(ctx.node_id)
-        ctx.log(
-            f"gathered {len(found)} evidence items and {twin.n_programs if twin else 0} twin programs"
+        if fixture_run(state):
+            return await _fixture_gather(state, ctx)
+        program, entities = state["program"], state.get("entities")
+        subject = (
+            " ".join(
+                x
+                for x in (
+                    entities.target.label if entities and entities.target else None,
+                    entities.drug.label if entities and entities.drug else program.drug_name,
+                )
+                if x
+            )
+            or program.mechanism
         )
-        return {"scratch": {ctx.node_id: {"evidence_ids": [e.id for e in found]}}}
+        disease = entities.disease.label if entities else program.indication
+        ids, k = entity_ids(entities), ctx.effort.retrieval_k
+        hits = [
+            [
+                e.id
+                for e in await ctx.retriever.retrieve(
+                    q.format(subject=subject, disease=disease), ids, None, k
+                )
+            ]
+            for q in _QUERIES[lane]
+        ]
+        valid = usable_evidence(state)
+        flagged = [i for i in _lane_ids(lane, state) if i in valid]
+        found = rank_hits([flagged, *hits], max(12, 3 * k))
+        twin = state.get("twin_stats")
+        ctx.log(
+            f"gathered {len(found)} evidence items ({len(flagged)} flagged by the fetch stage) "
+            f"and {twin.n_programs if twin else 0} precedent programs"
+        )
+        return {"scratch": {ctx.node_id: {"evidence_ids": found}}}
 
     async def run_extract(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
-        await touch_llm(ctx, f"{extract}.extract")
-        await nap(ctx.node_id)
-        fixture = fixture_report()
-        drafts = [c for c in fixture.claims.values() if c.produced_by == extract]
-        out: dict[str, Any] = {"claims": [c.model_dump(mode="json") for c in drafts]}
-        if lane == "efficacy":
-            out["chain"] = [link.model_dump(mode="json") for link in fixture.translation_chain]
-        ctx.log(f"drafted {len(drafts)} claims (FIXTURE)")
-        return {"scratch": {ctx.node_id: out}}
+        if fixture_run(state):
+            return await _fixture_extract(state, ctx, lane)
+        provided = [
+            i
+            for i in _scratch(state, gather).get("evidence_ids", [])
+            if i not in excluded_ids(state)
+        ]
+        if not provided:
+            ctx.log("nothing gathered to extract from", "warn")
+            return {"scratch": {ctx.node_id: dump_drafts([], {}, evidence_ids=[], chain=[])}}
+        user = (
+            f"{describe_program(state)}\n\nAt most {4 + ctx.effort.n_queries} claims.\n\n"
+            f"Evidence:\n{await digest(ctx, provided)}"
+        )
+        if extra := instructions(ctx):
+            user += f"\n\n{extra}"
+        schema = EfficacyDraft if lane == "efficacy" else SafetyDraft
+        drafted = await ask(
+            ctx,
+            f"{extract}.extract",
+            system_prompt(f"{lane}_extract"),
+            user,
+            schema,
+            max_tokens=3000,
+        )
+        drafts = (drafted.claims if drafted else [])[: 4 + ctx.effort.n_queries]
+        claims, quotes = to_claims(drafts, extract)
+        chain: list[dict] = []
+        if isinstance(drafted, EfficacyDraft) and drafted.chain:
+            by_index = [
+                claim_id(extract, " ".join(d.text.split())) if d.text.strip() else None
+                for d in drafts
+            ]
+            chain = [link.model_dump(mode="json") for link in chain_from_draft(drafted, by_index)]
+        ctx.log(f"drafted {len(claims)} {lane} claims from {len(provided)} evidence items")
+        return {
+            "scratch": {
+                ctx.node_id: dump_drafts(claims, quotes, evidence_ids=provided, chain=chain)
+            }
+        }
 
     async def run_gate(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
-        mine = state.get("scratch", {}).get(extract, {})
-        valid = set(state.get("evidence_ids", [])) - excluded_ids(state)
-        gated = gate_claims((Claim.model_validate(c) for c in mine.get("claims", [])), valid)
-        counts = Counter(c.status for c in gated.values())
-        await nap(ctx.node_id)
-        ctx.log("gate: " + ", ".join(f"{n} {status}" for status, n in sorted(counts.items())))
+        mine = _scratch(state, extract)
+        if fixture_run(state):
+            return await _fixture_gate(state, ctx, lane, mine)
+        claims, quotes = load_drafts(mine)
+        valid = set(mine.get("evidence_ids", [])) & usable_evidence(state)
+        gated = await gate(ctx, claims, quotes, valid)
+        for c in gated.values():
+            if c.status != "accepted":
+                ctx.log(f"{c.status}: {c.text[:90]} ({c.rejection_reason})")
+        ctx.log("gate: " + tally(gated))
         delta: dict[str, Any] = {"claims": gated}
         if lane == "efficacy":
-            usable = {i for i, c in gated.items() if c.status != "rejected"}
-            chain = fixture_report().translation_chain
-            delta["translation_chain"] = [
-                link.model_copy(
-                    update={
-                        "claim_ids": [c for c in link.claim_ids if c in usable],
-                        "status": "missing"
-                        if link.claim_ids and not any(c in usable for c in link.claim_ids)
-                        else link.status,
-                    }
+            chain = [TranslationLink.model_validate(c) for c in mine.get("chain", [])]
+            settled = settle_chain(chain, gated)
+            delta["translation_chain"] = settled
+            if settled:
+                ctx.log(
+                    "translation chain: "
+                    + ", ".join(f"{link.step} {link.status}" for link in settled)
                 )
-                for link in chain
-            ]
         return delta
 
     async def run_score(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
-        fixture = fixture_report()
-        usable = {i for i, c in state.get("claims", {}).items() if c.status != "rejected"}
-        valid = set(state.get("evidence_ids", [])) - excluded_ids(state)
-        assert fixture.ledger is not None
-        adjustments: dict[str, RiskAdjustment] = {}
-        for step in fixture.ledger.steps:
-            if step.cause not in _CAUSES[lane]:
-                continue
-            claims = [c for c in step.claim_ids if c in usable]
-            evidence = [e for e in step.evidence_ids if e in valid]
-            # an adjustment that had support and has lost all of it (rejected claims, excluded evidence) drops out
-            if (step.claim_ids or step.evidence_ids) and not (claims or evidence):
-                continue
-            adjustment = RiskAdjustment(
-                cause=step.cause,
-                factor=step.factor,
-                risk_ratio=step.risk_ratio,
-                basis=step.basis,
-                citation=step.citation,
-                inputs={"fixture": 1},
-                claim_ids=claims,
-                evidence_ids=evidence,
+        if fixture_run(state):
+            return await _fixture_score(state, ctx, lane)
+        conf = _ledger_conf()
+        # only this lane's claims: the other lane and the cases may not have finished yet
+        own = [
+            c.id
+            for c in state.get("claims", {}).values()
+            if c.produced_by == extract and c.status != "rejected"
+        ]
+        twins = state.get("twin_stats")
+        valid = usable_evidence(state)
+        if lane == "efficacy":
+            facts = _scratch(state, "fetch_opentargets")
+            regulatory = _scratch(state, "fetch_regulatory")
+            adjustments, result = score_efficacy(
+                EfficacyInputs(
+                    genetic_score=facts.get("genetic_association"),
+                    association_score=facts.get("association_score"),
+                    association_evidence_ids=[
+                        i for i in facts.get("association_evidence_ids", []) if i in valid
+                    ],
+                    chain=list(state.get("translation_chain") or []),
+                    claim_ids=own,
+                    twins=twins,
+                    same_target_approved=regulatory.get("same_target_approved", []),
+                ),
+                conf,
+                ctx.node_id,
             )
-            adjustments[f"{step.cause}:{slug(step.factor)}"] = adjustment
-        results = {}
-        for found in fixture.assessments:
-            if found.cause == lane:
-                results[lane] = found.model_copy(
-                    update={"claim_ids": [c for c in found.claim_ids if c in usable]}
-                )
-        await nap(ctx.node_id)
-        ctx.log(f"{len(adjustments)} risk adjustments (FIXTURE ratios)")
-        return {"risk_adjustments": adjustments, "assessments": results}
+        else:
+            facts = _scratch(state, "fetch_safety")
+            keep = lambda ids: [i for i in ids if i in valid]  # noqa: E731
+            adjustments, result = score_safety(
+                SafetyInputs(
+                    liabilities=facts.get("liabilities", []),
+                    liability_evidence_ids=keep(facts.get("liability_evidence_ids", [])),
+                    same_target_approved=facts.get("same_target_approved", []),
+                    labels_checked={
+                        d: keep(ids) for d, ids in facts.get("labels", {}).items() if keep(ids)
+                    },
+                    boxed_warnings={
+                        d: keep(ids)
+                        for d, ids in facts.get("boxed_warning_evidence_ids", {}).items()
+                        if keep(ids)
+                    },
+                    faers={d: keep(ids) for d, ids in facts.get("faers", {}).items() if keep(ids)},
+                    claim_ids=own,
+                    twins=twins,
+                    fetched="liabilities" in facts,
+                ),
+                conf,
+                ctx.node_id,
+            )
+        for a in adjustments:
+            ctx.log(f"{a.cause}: {a.factor} x{a.risk_ratio.base:g} ({a.basis})")
+        ctx.log(result.headline)
+        return {
+            "risk_adjustments": {f"{a.cause}:{slug(a.factor)}": a for a in adjustments},
+            "assessments": {lane: result},
+        }
 
-    return {gather: run_gather, extract: run_extract, gate: run_gate, score: run_score}
+    return {gather: run_gather, extract: run_extract, gate_id: run_gate, score: run_score}
+
+
+async def _fixture_gather(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
+    lane = ctx.node_id.split("_", 1)[0]
+    query = f"{lane} of {state['program'].mechanism} in {state['program'].indication}"
+    found = await ctx.retriever.retrieve(query, [], None, ctx.effort.retrieval_k)
+    twin = state.get("twin_stats")
+    await nap(ctx.node_id)
+    ctx.log(
+        f"gathered {len(found)} evidence items and {twin.n_programs if twin else 0} twin programs"
+    )
+    return {"scratch": {ctx.node_id: {"evidence_ids": [e.id for e in found]}}}
+
+
+async def _fixture_extract(state: GraphState, ctx: NodeContext, lane: str) -> dict[str, Any]:
+    await touch_llm(ctx, f"{ctx.node_id}.extract")
+    await nap(ctx.node_id)
+    fixture = fixture_report()
+    drafts = [c for c in fixture.claims.values() if c.produced_by == ctx.node_id]
+    out: dict[str, Any] = {"claims": [c.model_dump(mode="json") for c in drafts]}
+    if lane == "efficacy":
+        out["chain"] = [link.model_dump(mode="json") for link in fixture.translation_chain]
+    ctx.log(f"drafted {len(drafts)} claims (FIXTURE)")
+    return {"scratch": {ctx.node_id: out}}
+
+
+async def _fixture_gate(
+    state: GraphState, ctx: NodeContext, lane: str, mine: dict
+) -> dict[str, Any]:
+    gated = gate_claims(
+        (Claim.model_validate(c) for c in mine.get("claims", [])), usable_evidence(state)
+    )
+    await nap(ctx.node_id)
+    ctx.log("gate: " + tally(gated))
+    delta: dict[str, Any] = {"claims": gated}
+    if lane == "efficacy":
+        usable = {i for i, c in gated.items() if c.status != "rejected"}
+        delta["translation_chain"] = [
+            link.model_copy(
+                update={
+                    "claim_ids": [c for c in link.claim_ids if c in usable],
+                    "status": "missing"
+                    if link.claim_ids and not any(c in usable for c in link.claim_ids)
+                    else link.status,
+                }
+            )
+            for link in fixture_report().translation_chain
+        ]
+    return delta
+
+
+async def _fixture_score(state: GraphState, ctx: NodeContext, lane: str) -> dict[str, Any]:
+    fixture = fixture_report()
+    usable = {i for i, c in state.get("claims", {}).items() if c.status != "rejected"}
+    valid = usable_evidence(state)
+    assert fixture.ledger is not None
+    adjustments: dict[str, RiskAdjustment] = {}
+    for step in fixture.ledger.steps:
+        if step.cause not in _CAUSES[lane]:
+            continue
+        claims = [c for c in step.claim_ids if c in usable]
+        evidence = [e for e in step.evidence_ids if e in valid]
+        # an adjustment that had support and has lost all of it (rejected claims, excluded evidence) drops out
+        if (step.claim_ids or step.evidence_ids) and not (claims or evidence):
+            continue
+        adjustments[f"{step.cause}:{slug(step.factor)}"] = RiskAdjustment(
+            cause=step.cause,
+            factor=step.factor,
+            risk_ratio=step.risk_ratio,
+            basis=step.basis,
+            citation=step.citation,
+            inputs={"fixture": 1},
+            claim_ids=claims,
+            evidence_ids=evidence,
+        )
+    results = {}
+    for found in fixture.assessments:
+        if found.cause == lane:
+            results[lane] = found.model_copy(
+                update={"claim_ids": [c for c in found.claim_ids if c in usable]}
+            )
+    await nap(ctx.node_id)
+    ctx.log(f"{len(adjustments)} risk adjustments (FIXTURE ratios)")
+    return {"risk_adjustments": adjustments, "assessments": results}
