@@ -8,19 +8,21 @@ const TONE: Record<Side, { box: string; title: string; mark: string; sign: strin
 };
 
 /**
- * One side of the case, in its own colour: green and plus for, red and minus against, the same everywhere in the report,
- * so a reader always knows which side of the argument they are looking at.
+ * One side of the case, in its own colour: green for, red against, the same everywhere in the report, so a reader always
+ * knows which side of the argument they are looking at. `plain` drops the sign and the count, for a box that stands alone.
  */
-export function SideBox({ side, title, count, children }: { side: Side; title: string; count: number; children: ReactNode }) {
+export function SideBox({ side, title, count, plain = false, children }: { side: Side; title: string; count: number; plain?: boolean; children: ReactNode }) {
   const tone = TONE[side];
   return (
     <div className={`min-w-0 rounded-xl border-2 p-3 ${tone.box}`}>
       <h4 className={`flex items-center gap-2 text-sm font-bold ${tone.title}`}>
-        <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-sm leading-none text-white ${tone.mark}`} aria-hidden="true">
-          {tone.sign}
-        </span>
+        {!plain && (
+          <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-sm leading-none text-white ${tone.mark}`} aria-hidden="true">
+            {tone.sign}
+          </span>
+        )}
         {title}
-        <span className="ml-auto rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold tabular-nums">{count}</span>
+        {!plain && <span className="ml-auto rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold tabular-nums">{count}</span>}
       </h4>
       <div className="mt-2">{children}</div>
     </div>

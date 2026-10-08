@@ -29,24 +29,19 @@ function Ruler({ range }: { range: UnderwritingReport["pos"] }) {
 function Reasons({ side, title, items }: { side: Side; title: string; items: ReportTree["reasons"]["positive"] }) {
   const { jumpToClaim } = useReportContext();
   return (
-    <SideBox side={side} title={title} count={items.length}>
+    <SideBox side={side} title={title} count={items.length} plain>
       {items.length === 0 ? (
         <p className="text-sm italic text-muted">None the verdict leaned on.</p>
       ) : (
         <ul className="space-y-2">
           {items.map((rc) => (
-            <li key={rc.code} className="flex gap-2 text-sm">
-              <span className={`font-bold ${side === "for" ? "text-emerald-700" : "text-red-700"}`} aria-hidden="true">
-                {side === "for" ? "+" : "−"}
-              </span>
-              <span>
-                {rc.text}
-                {rc.claim_ids.slice(0, 1).map((id) => (
-                  <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1.5 rounded-full border border-line bg-white/80 px-1.5 text-xs text-brand hover:border-brand">
-                    why
-                  </button>
-                ))}
-              </span>
+            <li key={rc.code} className="text-sm">
+              {rc.text}
+              {rc.claim_ids.slice(0, 1).map((id) => (
+                <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1.5 rounded-full border border-line bg-white/80 px-1.5 text-xs text-brand hover:border-brand">
+                  why
+                </button>
+              ))}
             </li>
           ))}
         </ul>
