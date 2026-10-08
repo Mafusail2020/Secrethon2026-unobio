@@ -128,8 +128,9 @@ def value(
         Assumption(
             name="cost per patient (USD)",
             value=_range(cpp, "USD"),
-            basis="sourced",
-            citation=cpp["citation"],
+            # a user-edited value has no citation and is the user's assumption
+            basis="sourced" if cpp.get("citation") else "assumption",
+            citation=cpp.get("citation"),
         ),
         Assumption(
             name="discount rate", value=_range(conf["discount_rate"], "rate"), basis="assumption"

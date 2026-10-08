@@ -24,21 +24,22 @@ areas:
   oncology:         {p1: 0.628, p2: 0.246, p3: 0.401, nda: 0.824}
   rare:             {p1: 0.760, p2: 0.506, p3: 0.736, nda: 0.892}  # Figure 8, non-oncology rare
 
-# Open Targets therapeutic-area names -> report areas, first match wins (most specific first).
+# Open Targets therapeutic-area names (release 26.09, exact spelling) -> report areas.
+# First match wins, most specific first.
 area_map:
   - {match: "cancer or benign tumor", area: oncology}
-  - {match: "hematologic disease", area: hematology}
+  - {match: "hematologic disorder", area: hematology}
   - {match: "infectious disease", area: infectious}
-  - {match: "cardiovascular disease", area: cardiovascular}
+  - {match: "cardiovascular disorder", area: cardiovascular}
   - {match: "nutritional or metabolic disease", area: metabolic}
-  - {match: "endocrine system disease", area: endocrine}
+  - {match: "endocrine system disorder", area: endocrine}
   - {match: "nervous system disorder", area: neurology}
   - {match: "psychiatric disorder", area: psychiatry}
-  - {match: "immune system disease", area: autoimmune}
+  - {match: "immune system disorder", area: autoimmune}
   - {match: "respiratory or thoracic disease", area: respiratory}
-  - {match: "digestive system disease", area: gastroenterology}
+  - {match: "gastrointestinal disease", area: gastroenterology}
   - {match: "disorder of visual system", area: ophthalmology}
-  - {match: "urinary system disease", area: urology}
+  - {match: "urinary system disorder", area: urology}
 # Phenotype-only disease terms (e.g. HP_0003124 hypercholesterolemia) carry no therapeutic area;
 # fall back to keywords in the disease name. Our assumption, not from the report.
 name_keywords:

@@ -262,6 +262,8 @@ def collapse_salts(programs: list[Program]) -> list[Program]:
 def beta_range(successes: int, failures: int, base_rate: float) -> Range:
     """5th / 50th / 95th percentiles of Beta(s + k*b, f + k*(1-b)); seeded, so runs repeat."""
     k = float(twin_param("pseudo_count")["value"])
+    # an approved-stage program has a base rate of 1, which would zero a Beta parameter
+    base_rate = min(max(base_rate, 0.01), 0.99)
     interval = twin_param("interval")
     a, b = successes + k * base_rate, failures + k * (1 - base_rate)
     rng = random.Random(f"{successes}:{failures}:{base_rate:.6f}")
@@ -354,7 +356,7 @@ def compute(
         programs = collapse_salts([classify(p, today) for p in programs])
         kept = [p for p in programs if parent_name(p.drug) not in drop_drugs]
         if len(kept) < len(programs):
-            notes.append(f"{len(programs) - len(kept)} twin program(s) removed by a correction")
+            notes.append(f"{len(programs) - len(kept)} twin program(s) left out on request")
         return kept
 
     target_programs = prepare(data.programs([target_id]))
@@ -421,7 +423,7 @@ def compute(
     )
     if len(decided) < 3:
         notes.append("thin history: fewer than 3 decided twins")
-    unknown_notes = [f"{p.drug}: {p.note}" for p in programs if p.note]
+    unknown_notes = list(dict.fromkeys(f"{p.drug}: {p.note}" for p in programs if p.note))
     notes += unknown_notes[:3]
     return TwinResult(
         match_level=level,

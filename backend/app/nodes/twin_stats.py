@@ -11,14 +11,16 @@ from app.graph.state import GraphState
 from app.nodes._data import entity_ids
 from app.nodes._fixture import excluded_ids, fixture_report, nap
 from app.nodes.base import NodeContext
-from app.quant.base_rates import base_rates, twin_param
+from app.quant.base_rates import BaseRates, base_rates, twin_param
 from app.quant.twin_stats import (
     OT_CATEGORY,
     STAGE_FLOOR,
     Program,
     TwinData,
+    beta_range,
     compute,
     data_ready,
+    failure_mix,
 )
 from app.sources.records import parent_name, trial_source, twin_records
 
@@ -64,51 +66,48 @@ def _dropped_drugs(ctx: NodeContext, programs_hint: list[str]) -> set[str]:
 
 async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     entities = state.get("entities")
-    root = get_settings().data_path / "opentargets"
-    real = (
-        entities is not None
-        and entities.target is not None
-        and not entities.target.id.startswith("FIXTURE:")
-    )
-    if not real or not data_ready(root):
-        if real:
-            ctx.log(
-                "Open Targets bulk files missing: run `uv run python -m scripts."
-                "download_opentargets`; falling back to the fixture",
-                "warn",
-            )
+    if entities is None or entities.disease.id.startswith("FIXTURE:"):
         return await _fixture_run(state, ctx)
-    assert entities is not None and entities.target is not None
 
     program = state["program"]
     options = state.get("options")
     today = options.as_of if options and options.as_of else None
     base = base_rates(entities.therapeutic_areas, entities.disease.label)
     ledger_conf = yaml.safe_load((get_settings().config_dir / "ledger.yaml").read_text())
+    root = get_settings().data_path / "opentargets"
+    if entities.target is None or not data_ready(root):
+        reason = (
+            "no resolved target, so no same-target history"
+            if entities.target is None
+            else "Open Targets bulk files missing (run `uv run python -m "
+            "scripts.download_opentargets`)"
+        )
+        ctx.log(f"{reason}: prior is the area base rate", "warn")
+        return {"twin_stats": _base_rate_only(base, program.stage, ledger_conf, reason)}
+
+    target = entities.target
+    # the program's own drug is not its own precedent
+    own = {parent_name(entities.drug.label)} if entities.drug else set()
     ctx.log(
-        f"looking up programs on {entities.target.label} in Open Targets clinical data "
+        f"looking up programs on {target.label} in Open Targets clinical data "
         f"(stage: {program.stage or 'not given'})"
     )
 
     def work() -> Any:
         data = TwinData(root)
         try:
-            first = compute(
-                data, entities.target.id, entities.disease.id, program.stage, base, ledger_conf,
-                today=today,
-            )  # fmt: skip
+            args = (data, target.id, entities.disease.id, program.stage, base, ledger_conf)
+            first = compute(*args, today=today, drop_drugs=own)
             dropped = _dropped_drugs(ctx, sorted({parent_name(p.drug) for p in first.programs}))
             if not dropped:
                 return first, dropped
-            again = compute(
-                data, entities.target.id, entities.disease.id, program.stage, base, ledger_conf,
-                today=today, drop_drugs=dropped,
-            )  # fmt: skip
-            return again, dropped
+            return compute(*args, today=today, drop_drugs=own | dropped), dropped
         finally:
             data.close()
 
     result, dropped = await asyncio.to_thread(work)
+    if own:
+        result.notes.insert(0, f"the program's own drug ({next(iter(own))}) is left out of twins")
     if dropped:
         ctx.log(f"left out by a correction: {', '.join(sorted(dropped))}")
 
@@ -183,6 +182,23 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         f"{result.failure_mix.source}"
     )
     return {"twin_stats": stats}
+
+
+def _base_rate_only(
+    base: BaseRates, stage: str | None, ledger_conf: dict[str, Any], reason: str
+) -> TwinStats:
+    loa = base.loa(stage)
+    return TwinStats(
+        match_level="area_base_rate",
+        n_programs=0,
+        prior_pos=beta_range(0, 0, loa),
+        failure_mix=failure_mix([], ledger_conf),
+        notes=[
+            reason,
+            f"area base rate ({base.area}): {loa:.3f} probability of approval"
+            + (f"; {base.note}" if base.note else ""),
+        ],
+    )
 
 
 async def _fixture_run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
