@@ -314,10 +314,19 @@ localStorage (`uw.dock.v1`, read back only if `parseLayout` finds it names our f
 below 1280 px the dock covers the conversation. A correction or a version switch passes the view to open in router state.
 Printing hides every group but the one holding the report (`print.css`). The graph refits when its panel changes size,
 until the reader pans or zooms. The report view
-is the report as a document (sticky verdict, section navigator, a "What changed" banner for corrected runs, claim cards with
-evidence, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print), the graph (kind
+is the report as a tree you open as far as you want (`report/reportTree.ts`, `report/tree/`): the call at the root (decision,
+probability, value at stake, what carries it and what holds it back), under it the four questions an investor asks (will it
+work in people, get through trials and regulators, be used, is funding it worth it), each with a standing, how much it moved
+the probability, a for/against scale, and, side by side from the first look, its heaviest claims for (green) and against
+(red), the same colours everywhere and no signs or counts; opened, every claim, then its efficacy or safety check, risks and what could not be
+established; a claim opens to its evidence and sources. A strip of the four questions sits in the root as a map, and each card
+has a left edge in its standing's colour. The tree is derived from the report as it is (claim
+stance and section, the ledger's steps by cause, the checks), adds nothing, and prints whole. Under it, a closed "Full
+report" keeps every section, chart and claim. A link to a claim opens the branch it sits in. Also in the view: a "What
+changed" banner for corrected runs, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print;
+the graph (kind
 colours, follow mode, a tabbed step drawer, highlighting of what a correction would recompute), sources and logs. Pure
-logic lives in plain `.ts` modules with vitest tests (`phases`, `claimFilters`, `diffView`, `waterfall`, `twinView`,
+logic lives in plain `.ts` modules with vitest tests (`phases`, `claimFilters`, `diffView`, `waterfall`, `twinView`, `reportTree`,
 `markdown`, `correctionTarget`, `logView`, `sourcesView`, `elapsed`). The mock API takes `?scenario=` for messy data.
 
 Vite, React, TanStack Query, `@xyflow/react` with dagre. `src/api/client.ts` is a typed `fetch` and `EventSource` wrapper over

@@ -43,12 +43,15 @@ the conversation; below 768 px the history is a drawer.
 
 ## 2. Drill-down (recommendation → claims → evidence → sources)
 
-1. Report view: the sticky header keeps the decision and probability in view; the chips below it jump between
-   sections and highlight where you are.
-2. In **Clinical plan**, open **▸ Evidence (2)** on the "TERMINATED" claim: the verbatim quote
-   (`overallStatus: TERMINATED`), where it sits, the source type, and a working ClinicalTrials.gov link.
+1. Report view: it opens on the call (decision, probability, value, what carries it and what holds it back) and four
+   question cards, each with a standing and a for/against scale. The header is one row: the chips jump between the questions and
+   highlight where you are, and once you scroll past the call the first chip shows the decision and probability; Copy, Trace and
+   Print sit at its right. **Expand all** opens every branch.
+2. Open **Will it get through trials and regulators?**, then a claim from **Against**, then **▸ Evidence (2)** on the
+   "TERMINATED" claim: the verbatim quote (`overallStatus: TERMINATED`), where it sits, the source type, and a working
+   ClinicalTrials.gov link. The sections, charts and all claims are under the closed **Full report**.
 3. Hover the **extracted** chip: the tooltip explains the six labels.
-4. **Commercial adoption** shows "Not enough public evidence", with what could not be established.
+4. A question with nothing to weigh says **Not enough evidence**, with what could not be established.
 5. **All claims** → filter by stance *against* and search "terminated"; **Clear** resets.
 6. Sources view: sort by **Cited by**, filter **trial**, click "1 claim" and open it in the report.
 7. Logs view: filter by step, search, **Group by step**, **Copy**.
@@ -74,8 +77,8 @@ the conversation; below 768 px the history is a drawer.
 
 ## 4. Export
 
-Report header: **Copy as Markdown** (paste somewhere: verdict, sections, claims with source links, run details),
-**Download trace** (live only), **Print** (preview: only the report prints, no site chrome).
+Report header, on the same row as the chips: **Copy** (as Markdown: paste somewhere: verdict, sections, claims with source links,
+run details), **Trace** (download, live only), **Print** (preview: only the report prints, no site chrome).
 
 ## 5. Messy data (mock only)
 
