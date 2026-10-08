@@ -85,9 +85,18 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
             ctx.log(f"skipped '{a.factor}': the prior already comes from same-indication twins")
         adjustments = [a for a in adjustments if a not in doubled]
 
-    drop_texts = [_key(c.text) for c in ctx.corrections_for() if DROP_WORDS.search(c.text)]
+    # "ignore no human exposure data" names the factor without its prefix, or the other way round
+    drop_texts = [
+        _key(DROP_WORDS.sub(" ", c.text))
+        for c in ctx.corrections_for()
+        if DROP_WORDS.search(c.text)
+    ]
     if drop_texts:
-        dropped = [a for a in adjustments if any(_key(a.factor) in t for t in drop_texts)]
+        dropped = [
+            a
+            for a in adjustments
+            if any(len(t) >= 4 and (t in _key(a.factor) or _key(a.factor) in t) for t in drop_texts)
+        ]
         for a in dropped:
             ctx.log(f"removed '{a.factor}' as a correction asked")
         adjustments = [a for a in adjustments if a not in dropped]
