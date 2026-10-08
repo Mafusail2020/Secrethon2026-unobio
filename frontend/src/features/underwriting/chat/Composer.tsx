@@ -4,11 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { getApi } from "../../../api/client";
 import { useHealth, useModels } from "../../../api/hooks";
 import type { CreateRunRequest, ProgramInput, RunOptions } from "../../../api/types";
-import { Badge } from "../../../components/ui/Badge";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { ArrowUpIcon, PlusIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
-import { priceLabel } from "../../../lib/format";
 import { readPref, writePref } from "../../../lib/storage";
 import { fieldErrors } from "./fieldErrors";
 
@@ -205,10 +203,8 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
 
   const { fields: errors, general } = create.error ? fieldErrors(create.error) : { fields: {}, general: undefined };
   const list = models.data ?? [];
-  const chosen = list.find((m) => m.id === form.model) ?? list.find((m) => m.default);
   // a remembered model that is gone or unavailable falls back to the default
   const modelValue = list.some((m) => m.id === form.model && m.available) ? form.model : "";
-  const effort = EFFORTS.find((e) => e.value === form.effort);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -319,7 +315,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 px-3 pb-2 pt-3">
+      <div className="flex flex-wrap items-center gap-2 px-3 pb-3 pt-3">
         <button
           type="button"
           onClick={() => setDetailsOpen((o) => !o)}
@@ -367,29 +363,18 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
           <button
             type="submit"
             aria-label="Underwrite"
+            title="Underwrite (⌘ Enter)"
             disabled={create.isPending}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-royal text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
           >
             {create.isPending ? <Spinner className="h-4 w-4" /> : <ArrowUpIcon />}
           </button>
         </div>
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-1.5 px-5 pb-3.5 text-xs text-muted">
-        {effort?.hint}
-        {chosen && (
-          <>
-            <span aria-hidden="true">·</span>
-            <Badge className="border-line px-1.5 py-0 text-muted">{chosen.tier}</Badge>
-            {priceLabel(chosen.price_in_per_mtok, chosen.price_out_per_mtok)}
-          </>
-        )}
-        {models.isError && <span className="text-amber-700">Could not load the model list; the cheapest available model will be used.</span>}
-        <span className="ml-auto">
-          <kbd className="rounded border border-line px-1">⌘</kbd>
-          <kbd className="ml-0.5 rounded border border-line px-1">Enter</kbd> to run
-        </span>
-      </p>
+      {models.isError && (
+        <p className="px-5 pb-3 text-xs text-amber-700">Could not load the model list; the cheapest available model will be used.</p>
+      )}
     </form>
   );
 }

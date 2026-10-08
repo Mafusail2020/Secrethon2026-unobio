@@ -24,8 +24,8 @@ the ✕, to close it). Below 1280 px the panel covers the conversation; below 76
 
 1. Open `/underwriting`. Click the **BACE1 inhibition for Alzheimer's disease** pill under the input. Fields fill; nothing
    runs. Report, Sources and Logs are greyed out until there is a run; **Graph** already works.
-2. Effort: click **Panel** and read the hint ("Several models analyse independently…") under the input, then back to **Medium**.
-3. Press **⌘/Ctrl+Enter** or the round arrow button. The URL becomes `/underwriting/runs/<id>`; the run appears in the
+2. Effort: hover **Panel** and read the hint ("Several models analyse independently…"), then click back to **Medium**.
+3. Press **⌘/Ctrl+Enter** or the arrow button. The URL becomes `/underwriting/runs/<id>`; the run appears in the
    history on the left.
 4. Conversation: phases open while running and collapse when done. The status line shows the current phase, steps done
    and elapsed time; the usage line shows model calls, tokens and cost ("mock model, no spend" in mock). A

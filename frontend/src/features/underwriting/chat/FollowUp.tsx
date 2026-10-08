@@ -114,7 +114,7 @@ export function FollowUpInput({ follow, ready }: { follow: FollowUp; ready: bool
       : "Follow-up questions open when the analysis completes";
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-3 pt-1">
+    <div className="mx-auto w-full max-w-3xl px-4 pb-4 pt-1">
       <form
         onSubmit={submit}
         className={`flex items-end gap-2 rounded-lg border bg-surface py-2 pl-5 pr-2 shadow-sm transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 ${closed ? "border-line/70 opacity-80" : "border-line"}`}
@@ -138,12 +138,11 @@ export function FollowUpInput({ follow, ready }: { follow: FollowUp; ready: bool
           type="submit"
           aria-label="Send question"
           disabled={closed || ask.isPending || !draft.trim()}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-royal text-white transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:bg-slate-300 disabled:text-white"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-royal text-white transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:bg-slate-300 disabled:text-white"
         >
           {ask.isPending ? <Spinner className="h-3.5 w-3.5" /> : <ArrowUpIcon width={18} height={18} />}
         </button>
       </form>
-      <p className="mt-1.5 text-center text-xs text-muted">Answers come from this report only and cite its claims.</p>
     </div>
   );
 }
