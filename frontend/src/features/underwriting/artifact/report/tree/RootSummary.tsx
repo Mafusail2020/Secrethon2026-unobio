@@ -29,7 +29,7 @@ function Ruler({ range }: { range: UnderwritingReport["pos"] }) {
 function Reasons({ side, title, items }: { side: Side; title: string; items: ReportTree["reasons"]["positive"] }) {
   const { jumpToClaim } = useReportContext();
   return (
-    <SideBox side={side} title={title} count={items.length} plain>
+    <SideBox side={side} title={title}>
       {items.length === 0 ? (
         <p className="text-sm italic text-muted">None the verdict leaned on.</p>
       ) : (
@@ -65,9 +65,6 @@ function Strip({ tree, scale, onJump }: { tree: ReportTree; scale: number; onJum
             <span className={`mt-0.5 inline-block rounded-full border px-1.5 text-[0.65rem] font-medium ${STANDING_STYLE[q.standing]}`}>{STANDING_LABEL[q.standing]}</span>
             <span className="mt-1.5 block">
               <BalanceBar pro={q.balance.pro} con={q.balance.con} scale={scale} label={`${q.pros.length} for, ${q.cons.length} against`} />
-            </span>
-            <span className="mt-1 block text-[0.7rem] text-muted">
-              {q.pros.length} for · {q.cons.length} against
             </span>
           </button>
         </li>

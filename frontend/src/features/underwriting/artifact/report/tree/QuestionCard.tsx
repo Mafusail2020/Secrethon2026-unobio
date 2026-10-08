@@ -104,11 +104,11 @@ export function QuestionCard({
       {!open && (
         <button type="button" onClick={onToggle} aria-label={`Open the case: ${node.title}`} className="block w-full px-4 pb-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
           <div className="grid gap-3 @2xl:grid-cols-2">
-            <SideBox side="for" title="For" count={node.pros.length}>
-              <Preview side="for" {...forPeek} />
+            <SideBox side="for" title="For">
+              <Preview {...forPeek} />
             </SideBox>
-            <SideBox side="against" title="Against" count={node.cons.length}>
-              <Preview side="against" {...againstPeek} />
+            <SideBox side="against" title="Against">
+              <Preview {...againstPeek} />
             </SideBox>
           </div>
         </button>
@@ -117,10 +117,10 @@ export function QuestionCard({
       <Collapse open={open} id={bodyId}>
         <div className="space-y-4 px-4 pb-4">
           <div className="grid gap-3 @2xl:grid-cols-2">
-            <SideBox side="for" title="For" count={node.pros.length}>
+            <SideBox side="for" title="For">
               <Claims claims={node.pros} focus={focus} />
             </SideBox>
-            <SideBox side="against" title="Against" count={node.cons.length}>
+            <SideBox side="against" title="Against">
               <Claims claims={node.cons} focus={focus} />
             </SideBox>
           </div>
