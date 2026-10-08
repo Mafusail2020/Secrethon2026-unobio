@@ -15,7 +15,6 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uPush;
-uniform float uLattice;
 uniform vec3 uPal[6];
 out vec4 o;
 
@@ -60,16 +59,16 @@ void main() {
   float v = f * 1.35 - 0.12 + (1.0 - frag.x) * 0.3 + frag.y * 0.35 - 0.3;
   v = smoothstep(0.08, 0.92, v);
 
-  // a lattice of tall rhombi, bent by the same noise and showing only in patches, that lightens what it crosses
-  vec2 lw = uv + 0.07 * (vec2(fbm(uv * 2.0 + t * 2.0), fbm(uv * 2.0 + 7.0 - t * 2.0)) - 0.5);
-  vec2 lp = vec2(lw.x / 0.12, lw.y / 0.2);
+  // a lattice of tall rhombi, bent by the same noise and showing only in patches; the second pass colours it
+  vec2 lw = uv + 0.05 * (vec2(fbm(uv * 3.0 + t * 2.0), fbm(uv * 3.0 + 7.0 - t * 2.0)) - 0.5);
+  vec2 lp = vec2(lw.x / 0.075, lw.y / 0.125);
   float l1 = abs(fract(lp.x + lp.y) - 0.5) * 2.0;
   float l2 = abs(fract(lp.x - lp.y) - 0.5) * 2.0;
-  float lat = pow(max(smoothstep(0.34, 0.0, l1), smoothstep(0.34, 0.0, l2)), 1.6);
+  // a gaussian edge: soft on both sides instead of a hard cut
+  float lat = max(exp(-pow(l1 / 0.3, 2.0)), exp(-pow(l2 / 0.3, 2.0)));
   float pocket = smoothstep(0.22, 0.62, fbm(uv * 1.2 + vec2(3.0, t)));
-  v = clamp(v + lat * pocket * uLattice * 0.5, 0.0, 1.0);
 
-  o = vec4(ramp(v), 1.0);
+  o = vec4(ramp(v), lat * pocket);
 }`;
 
 /**
@@ -85,6 +84,8 @@ uniform vec2 uRes;
 uniform vec2 uCell;
 uniform float uCount;
 uniform vec2 uLum;
+uniform float uLattice;
+uniform float uNear;
 uniform float uBackdrop;
 uniform float uStroke;
 uniform float uGlow;
@@ -96,11 +97,29 @@ float bayer4(vec2 c) {
   return (m[i.x + i.y * 4] + 0.5) / 16.0;
 }
 
+// the average colour of the field in a ring around a point: what a line there should take after
+vec3 around(vec2 uv) {
+  vec2 r = vec2(uNear) / uRes;
+  vec2 d = r * 0.7071;
+  vec3 s = texture(uField, uv + vec2(r.x, 0.0)).rgb + texture(uField, uv - vec2(r.x, 0.0)).rgb
+         + texture(uField, uv + vec2(0.0, r.y)).rgb + texture(uField, uv - vec2(0.0, r.y)).rgb
+         + texture(uField, uv + d).rgb + texture(uField, uv - d).rgb
+         + texture(uField, uv + vec2(d.x, -d.y)).rgb + texture(uField, uv + vec2(-d.x, d.y)).rgb;
+  return s / 8.0;
+}
+
+// the field at a point, with the lattice laid over it: lighter than the neighbourhood, never darker than the field
+vec3 laid(vec2 uv) {
+  vec4 f = texture(uField, uv);
+  vec3 line = max(f.rgb, mix(around(uv), vec3(1.0), 0.55));
+  return mix(f.rgb, line, f.a * uLattice);
+}
+
 void main() {
   vec2 px = gl_FragCoord.xy;
   vec2 cell = floor(px / uCell);
-  vec3 under = texture(uField, px / uRes).rgb;
-  vec3 c = texture(uField, (cell + 0.5) * uCell / uRes).rgb;
+  vec3 under = laid(px / uRes);
+  vec3 c = laid((cell + 0.5) * uCell / uRes);
   float lum = dot(c, vec3(0.299, 0.587, 0.114));
 
   // darkness within this palette's own range, so a pale palette still uses every glyph
