@@ -39,6 +39,11 @@ The home page (`/`) is a locked copy of unobio.com. Only its logo (home) and **G
 6. Sources tab: sort by **Cited by**, filter **trial**, click "1 claim" and open it in the report.
 7. Logs tab: filter by step, search, **Group by step**, **Copy**.
 
+8. Back in the chat, ask **Why is this conditional and not a no?** in the follow-up box under the thread. The answer
+   comes with claim chips; click one and the report jumps to that claim. Reload the page: the exchange is still there.
+   Ask something the report does not cover (for example a drug price) on a live run: it says it cannot tell from the
+   report instead of guessing. After 20 questions the box locks with a note.
+
 ## 3. Correction → verdict flip
 
 1. On the "TERMINATED" claim click **This is wrong**. The dialog is pre-filled with the claim text and the two trial
