@@ -3,7 +3,6 @@ import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../
 import { ErrorBoundary } from "../../../components/ErrorBoundary";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
-import { CloseIcon } from "../../../components/ui/icons";
 import { affectedSet, runnableNodes } from "../graphUtils";
 import type { RunStream } from "../reduceEvents";
 import { GraphView } from "./graph/GraphView";
@@ -16,13 +15,6 @@ import { isSyntheticReport } from "./report/synthetic";
 import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
-
-const TITLE: Record<TabId, string> = {
-  report: "Report",
-  graph: "Graph",
-  sources: "Sources",
-  logs: "Logs",
-};
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted">{children}</div>;
@@ -104,22 +96,8 @@ function GraphTab({
   );
 }
 
-export function ArtifactPanel({
-  tab,
-  onClose,
-  run,
-  graph,
-  graphError,
-  onRetryGraph,
-  stream,
-  report,
-  canCorrect,
-  focusClaim,
-  sourceCounts,
-  onOpenClaim,
-}: {
-  tab: TabId;
-  onClose: () => void;
+/** Everything a view needs from the run; the dock hands it to each panel through a context. */
+export interface ViewData {
   run: RunSummary | undefined;
   graph: GraphSpec | undefined;
   graphError?: unknown;
@@ -130,8 +108,22 @@ export function ArtifactPanel({
   focusClaim?: FocusClaim;
   sourceCounts: Record<string, number>;
   onOpenClaim: (claimId: string) => void;
-}) {
-  const active = tab;
+}
+
+/** One of the four views (report, graph, sources, logs), without any frame: the dock supplies tab and window. */
+export function ViewContent({
+  tab,
+  run,
+  graph,
+  graphError,
+  onRetryGraph,
+  stream,
+  report,
+  canCorrect,
+  focusClaim,
+  sourceCounts,
+  onOpenClaim,
+}: ViewData & { tab: TabId }) {
   const stubbed = stream.stubData || (!!report && isSyntheticReport(report));
   const failed = run?.status === "failed" || stream.status === "failed";
   const waiting = failed ? (
@@ -147,32 +139,21 @@ export function ArtifactPanel({
   );
 
   return (
-    <section id="artifact-panel" data-print-flow aria-label={TITLE[active]} className="flex h-full min-h-0 min-w-0 flex-col border-l border-line bg-canvas">
-      <header data-print-hide className="flex h-11 shrink-0 items-center justify-between border-b border-line bg-surface px-4">
-        <h2 className="text-sm font-medium">{TITLE[active]}</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={`Close ${TITLE[active]}`}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-slate-100 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-        >
-          <CloseIcon width={18} height={18} />
-        </button>
-      </header>
-      {stubbed && active !== "report" && (
+    <div className="flex h-full min-h-0 flex-col bg-canvas">
+      {stubbed && tab !== "report" && (
         <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-1 text-xs text-amber-900">
           Synthetic data: parts of this run come from stub steps and contain placeholder content.
         </p>
       )}
-      <div data-print-flow className="min-h-0 flex-1 overflow-auto">
-        <ErrorBoundary resetKey={`${active}:${run?.id ?? ""}`}>
-          {active === "report" &&
+      <div className="min-h-0 flex-1 overflow-auto" data-print-flow>
+        <ErrorBoundary resetKey={`${tab}:${run?.id ?? ""}`}>
+          {tab === "report" &&
             (report && run ? (
               <ReportView report={report} runId={run.id} graph={graph} canCorrect={canCorrect} focusClaim={focusClaim} />
             ) : (
               waiting
             ))}
-          {active === "graph" &&
+          {tab === "graph" &&
             (graph ? (
               <GraphTab run={run} graph={graph} stream={stream} report={report} canCorrect={canCorrect} sourceCounts={sourceCounts} />
             ) : graphError ? (
@@ -193,10 +174,10 @@ export function ArtifactPanel({
                 </div>
               </div>
             ))}
-          {active === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
-          {active === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
+          {tab === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
+          {tab === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
         </ErrorBoundary>
       </div>
-    </section>
+    </div>
   );
 }

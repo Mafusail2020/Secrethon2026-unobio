@@ -19,8 +19,9 @@ The home page (`/`) is a locked copy of unobio.com. Only its logo (home) and **G
 ## 1. The main flow (BACE1)
 
 The screen is laid out like a chat app: history on the left, the conversation in the middle, and **Report**, **Graph**,
-**Sources** and **Logs** buttons in the top bar. Each button opens that view in a panel on the right (click it again, or
-the ✕, to close it). Below 1280 px the panel covers the conversation; below 768 px the history is a drawer.
+**Sources** and **Logs** buttons in the top bar. Each button opens that view as a tab in the panel area on the right (click it
+again, or the ✕ on the tab, to close it). The views are draggable, see section 6b. Below 1280 px the panel area covers
+the conversation; below 768 px the history is a drawer.
 
 1. Open `/underwriting`. Click the **BACE1 inhibition for Alzheimer's disease** pill under the input. Fields fill; nothing
    runs. Report, Sources and Logs are greyed out until there is a run; **Graph** already works.
@@ -93,6 +94,17 @@ Add `?scenario=` to `/underwriting` before starting a run:
 - 1024 px: the view panel covers the conversation; ✕ brings it back. Below 768 px: the history is a drawer (the sidebar
   button in the top bar), no horizontal scrolling.
 - With "reduce motion" on, spinners and transitions in the workspace stop animating; the home page is unaffected.
+
+## 6b. Arrange the views
+
+1. Open **Report** and **Graph**: they sit in one panel as two tabs.
+2. Drag the **Graph** tab onto the right edge of the Report panel: the area splits and both are visible side by side.
+   Drag **Logs** onto the bottom edge of the Report panel: three panels. Drop a tab on another panel's tab strip to stack
+   them again.
+3. Drag the thin bar between the conversation and the panels to give either side more room (focus it and use ←/→ too).
+4. Reload: the arrangement is back. Close all views and reload: they stay closed.
+5. Click a citation number in the briefing while Report is behind another tab: Report comes to the front at that claim.
+6. **Print** from the Report with a split layout: only the report prints.
 
 ## 7. Automated checks
 

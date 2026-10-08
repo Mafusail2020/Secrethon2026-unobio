@@ -33,7 +33,7 @@ function sidebar(runs: RunSummary[], currentId?: string) {
 
 const bar = (props: Partial<Parameters<typeof TopBar>[0]> = {}) =>
   renderToStaticMarkup(
-    <TopBar title="New underwriting" decision={undefined} hasRun={false} panel={null} onTogglePanel={() => {}} sidebarOpen onToggleSidebar={() => {}} {...props} />,
+    <TopBar title="New underwriting" decision={undefined} hasRun={false} open={[]} onTogglePanel={() => {}} sidebarOpen onToggleSidebar={() => {}} {...props} />,
   );
 
 describe("top bar", () => {
@@ -45,7 +45,7 @@ describe("top bar", () => {
   });
 
   it("marks the open view as pressed and shows the decision once there is one", () => {
-    const markup = bar({ hasRun: true, panel: "graph", decision: "do_not_invest", title: "A · B" });
+    const markup = bar({ hasRun: true, open: ["graph"], decision: "do_not_invest", title: "A · B" });
     expect(markup.match(/<button[^>]*aria-label="Graph"[^>]*>/)![0]).toContain('aria-pressed="true"');
     expect(markup.match(/<button[^>]*aria-label="Report"[^>]*>/)![0]).toContain('aria-pressed="false"');
     expect(markup).toContain("Do not invest");

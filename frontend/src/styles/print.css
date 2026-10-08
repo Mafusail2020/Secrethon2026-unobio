@@ -28,6 +28,13 @@
     min-height: 0 !important;
     flex: none !important;
   }
+  /* the dock: only the group holding the report prints, without tab bars, dividers or floating frames */
+  body[data-print="report"] .dv-tabs-and-actions-container,
+  body[data-print="report"] .dv-sash,
+  body[data-print="report"] .dv-groupview:not(:has(header[data-print-header])),
+  body[data-print="report"] .dv-resize-container:not(:has(header[data-print-header])) {
+    display: none !important;
+  }
   body[data-print="report"] [role="tablist"] {
     display: none !important;
   }

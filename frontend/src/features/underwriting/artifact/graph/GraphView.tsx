@@ -1,6 +1,6 @@
-import { Background, Controls, MarkerType, Panel, ReactFlow, useReactFlow, type Edge } from "@xyflow/react";
+import { Background, Controls, MarkerType, Panel, ReactFlow, useReactFlow, useStore, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { GraphSpec, NodeStatus } from "../../../../api/types";
 import { containerIds } from "../../graphUtils";
 import type { RunStream } from "../../reduceEvents";
@@ -32,6 +32,17 @@ function FollowRunning({ x, y }: { x: number; y: number }) {
 
 type NodeView = [NodeStatus, number, number];
 
+/** Fits the graph again when its window changes size (a dock panel moved or resized), until the reader pans or zooms. */
+function FitOnResize({ touched }: { touched: RefObject<boolean> }) {
+  const { fitView } = useReactFlow();
+  const width = useStore((s) => s.width);
+  const height = useStore((s) => s.height);
+  useEffect(() => {
+    if (!touched.current) void fitView({ padding: 0.04, duration: 0 });
+  }, [width, height, fitView, touched]);
+  return null;
+}
+
 export function GraphView({
   spec,
   stream,
@@ -52,6 +63,7 @@ export function GraphView({
   const containers = useMemo(() => containerIds(spec), [spec]);
   const [hovered, setHovered] = useState<string | undefined>();
   const [follow, setFollow] = useState(false);
+  const touched = useRef(false);
 
   // log lines arrive far faster than anything drawn here changes, so rebuild only when a drawn value moves
   const viewKey = JSON.stringify(
@@ -152,9 +164,13 @@ export function GraphView({
       edgesFocusable={false}
       fitView
       fitViewOptions={{ padding: 0.04 }}
+      onMoveStart={(event) => {
+        if (event) touched.current = true; // a pan or zoom by hand; fitting by code passes no event
+      }}
       minZoom={0.2}
     >
       <Background />
+      <FitOnResize touched={touched} />
       <Controls showInteractive={false} />
       <Panel position="top-left">
         <GraphLegend spec={spec} />

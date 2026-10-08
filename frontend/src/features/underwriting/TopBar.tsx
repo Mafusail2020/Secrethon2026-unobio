@@ -2,7 +2,7 @@ import type { Decision } from "../../api/types";
 import { Badge } from "../../components/ui/Badge";
 import { GraphIcon, LogsIcon, ReportIcon, SidebarIcon, SourcesIcon } from "../../components/ui/icons";
 import { DECISION_LABEL, DECISION_STYLE } from "../../lib/format";
-import type { TabId } from "./artifact/ArtifactPanel";
+import type { TabId } from "./artifact/ViewContent";
 
 const VIEWS: { id: TabId; label: string; Icon: typeof GraphIcon; needsRun: boolean }[] = [
   { id: "report", label: "Report", Icon: ReportIcon, needsRun: true },
@@ -11,12 +11,12 @@ const VIEWS: { id: TabId; label: string; Icon: typeof GraphIcon; needsRun: boole
   { id: "logs", label: "Logs", Icon: LogsIcon, needsRun: true },
 ];
 
-/** Title on the left; the Report, Graph, Sources and Logs views open from the right. */
+/** Title on the left; the Report, Graph, Sources and Logs views open and close from the right. */
 export function TopBar({
   title,
   decision,
   hasRun,
-  panel,
+  open,
   onTogglePanel,
   sidebarOpen,
   onToggleSidebar,
@@ -24,7 +24,7 @@ export function TopBar({
   title: string;
   decision: Decision | undefined;
   hasRun: boolean;
-  panel: TabId | null;
+  open: readonly TabId[];
   onTogglePanel: (id: TabId) => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
@@ -45,7 +45,7 @@ export function TopBar({
       <div role="group" aria-label="Open a view" className="ml-auto flex items-center gap-0.5">
         {VIEWS.map(({ id, label, Icon, needsRun }) => {
           const disabled = needsRun && !hasRun;
-          const pressed = panel === id;
+          const pressed = open.includes(id);
           return (
             <button
               key={id}
