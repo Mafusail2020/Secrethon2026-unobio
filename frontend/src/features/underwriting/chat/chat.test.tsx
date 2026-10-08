@@ -5,9 +5,11 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import eventsRaw from "../../../../../contracts/fixtures/events_bace1_alzheimers.jsonl?raw";
 import graphSpecJson from "../../../../../contracts/fixtures/graph_spec.json";
-import type { ChatMessage, GraphSpec, RunEvent, RunSummary } from "../../../api/types";
+import reportJson from "../../../../../contracts/fixtures/report_bace1_alzheimers.json";
+import type { ChatMessage, GraphSpec, RunEvent, RunSummary, UnderwritingReport } from "../../../api/types";
 import { applyEvent, initialStream } from "../reduceEvents";
 import { Composer } from "./Composer";
+import { VerdictSlip } from "./VerdictSlip";
 import { RunThread } from "./RunThread";
 
 const html = (node: ReactElement) =>
@@ -133,5 +135,34 @@ describe("run thread", () => {
     const failed = view({ message: undefined, pending: false, failed: true });
     expect(failed).toContain("Could not write the summary");
     expect(failed).toContain("Try again");
+  });
+});
+
+describe("verdict slip", () => {
+  const report = reportJson as unknown as UnderwritingReport;
+  const slip = (r: UnderwritingReport | undefined) => html(<VerdictSlip decision="conditional" report={r} onOpenReport={() => {}} />);
+
+  it("leads with the call, the probability and how sure the report is", () => {
+    const markup = slip(report);
+    expect(markup).toContain("Underwriting call");
+    expect(markup).toContain("Conditional");
+    expect(markup).toContain("4.0%");
+    expect(markup).toContain(`${report.verdict.confidence} confidence`);
+    expect(markup).toContain("Open report");
+  });
+
+  it("describes the strip in words, with the range and the prior it started from", () => {
+    const label = slip(report).match(/role="img" aria-label="([^"]+)"/)![1]!;
+    expect(label).toContain("range 0.7% to 16%");
+    expect(label).toContain("prior of 5.0%");
+    expect(label).toContain("scale from 0% to 20%");
+  });
+
+  it("shows the call alone while the report is still loading, and no prior when there are no similar programs", () => {
+    const loading = slip(undefined);
+    expect(loading).toContain("Conditional");
+    expect(loading).not.toContain("chance of success");
+    const noTwins = slip({ ...report, twin_stats: null } as UnderwritingReport);
+    expect(noTwins).not.toContain("prior");
   });
 });

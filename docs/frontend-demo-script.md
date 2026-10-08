@@ -35,8 +35,9 @@ the conversation; below 768 px the history is a drawer.
 5. Click **Graph** in the top bar while it runs: turn on **Follow running step**; the camera follows. Open **Legend**.
 6. When it completes, a structured briefing appears in the thread (a smaller version of the report: Verdict, Why this
    call, What the report found, Funding, Risks and unknowns, What to do next). The small numbers are citations: a number
-   opens the report at that claim, and **Claims cited** at the end lists them. Under it, the verdict card: click **Open
-   report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run.
+   opens the report at that claim, and **Claims cited** at the end lists them. Above it sits the call: the decision and
+   probability in large type, and a strip showing the range, the best estimate (solid tick) and the prior from similar
+   programs (dashed mark). Click **Open report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run.
 
 ## 2. Drill-down (recommendation → claims → evidence → sources)
 

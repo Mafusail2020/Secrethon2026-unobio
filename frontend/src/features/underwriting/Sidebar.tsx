@@ -66,9 +66,8 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
                   <StatusDot run={group.latest} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{program.indication}</span>
-                    <span className="block truncate text-xs text-muted">
-                      {program.mechanism} · {relativeTime(group.latest.created_at)}
-                    </span>
+                    <span className="block truncate text-xs text-muted">{program.mechanism}</span>
+                    <span className="label-mono block text-muted/80">{relativeTime(group.latest.created_at)}</span>
                   </span>
                 </Link>
                 {group.runs.length > 1 && (

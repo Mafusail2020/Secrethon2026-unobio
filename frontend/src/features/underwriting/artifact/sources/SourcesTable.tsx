@@ -56,7 +56,7 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
           <thead className="text-xs uppercase text-muted">
             <tr>
               {COLUMNS.map((c) => (
-                <th key={c.key} scope="col" aria-sort={sort.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className={`py-2 ${c.right ? "text-right" : ""}`}>
+                <th key={c.key} scope="col" aria-sort={sort.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className={`py-2 pr-3 ${c.right ? "text-right" : ""}`}>
                   <button type="button" onClick={() => toggle(c.key)} className="uppercase hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
                     {c.label}
                     {sort.key === c.key ? (sort.dir === "asc" ? " ▲" : " ▼") : ""}
@@ -88,17 +88,17 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
                     {s.type === "user_provided" && <Badge className="ml-2 border-brand/30 bg-brand/10 text-royal">you provided</Badge>}
                     <div className="text-xs text-muted">{evidenceCount} evidence item{evidenceCount === 1 ? "" : "s"}</div>
                   </td>
-                  <td>
+                  <td className="pr-3">
                     <Badge className="border-slate-300 text-slate-700">{s.type.replace(/_/g, " ")}</Badge>
                   </td>
-                  <td>{s.publisher}</td>
-                  <td className="text-xs text-muted">{date(s.published_at)}</td>
-                  <td className="text-xs text-muted">{date(s.retrieved_at)}</td>
-                  <td className="text-right">
+                  <td className="pr-3">{s.publisher}</td>
+                  <td className="whitespace-nowrap pr-3 text-xs text-muted">{date(s.published_at)}</td>
+                  <td className="whitespace-nowrap pr-3 text-xs text-muted">{date(s.retrieved_at)}</td>
+                  <td className="pr-3 text-right">
                     {claimIds.length === 0 ? (
                       <span className="text-muted">0</span>
                     ) : (
-                      <button type="button" aria-expanded={open === s.id} onClick={() => setOpen(open === s.id ? undefined : s.id)} className="rounded-full border border-line px-2 py-0.5 text-xs text-brand hover:border-brand">
+                      <button type="button" aria-expanded={open === s.id} onClick={() => setOpen(open === s.id ? undefined : s.id)} className="whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs text-brand hover:border-brand">
                         {claimIds.length} claim{claimIds.length === 1 ? "" : "s"}
                       </button>
                     )}

@@ -3,15 +3,15 @@ import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getApi } from "../../../api/client";
 import type { ChatMessage, Decision, GraphSpec, RunSummary, UnderwritingReport } from "../../../api/types";
-import { Badge } from "../../../components/ui/Badge";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
-import { DECISION_LABEL, DECISION_STYLE, formatCost, formatTokens, pctRange } from "../../../lib/format";
+import { formatCost, formatTokens } from "../../../lib/format";
 import { runElapsed } from "../elapsed";
 import { currentStep, groupPhases, nowLabel } from "../phases";
 import type { RunStream } from "../reduceEvents";
 import { useNow } from "../useNow";
 import { MarkdownText } from "./MarkdownText";
+import { VerdictSlip } from "./VerdictSlip";
 import { PhaseBlock } from "./PhaseBlock";
 import { WorkTrace } from "./WorkTrace";
 
@@ -24,19 +24,24 @@ export interface SummaryState {
 
 function ProgramMessage({ run }: { run: RunSummary }) {
   const p = run.program;
-  const extras = [p.drug_name, p.modality?.replace(/_/g, " "), p.stage?.replace(/_/g, " "), p.route]
-    .filter(Boolean)
-    .join(" · ");
+  const rows: [string, string][] = [
+    ["Indication", p.indication],
+    ["Target", p.mechanism],
+    ...(p.drug_name ? [["Drug", p.drug_name] as [string, string]] : []),
+    ...(p.modality ? [["Modality", p.modality.replace(/_/g, " ")] as [string, string]] : []),
+    ...(p.stage ? [["Stage", p.stage.replace(/_/g, " ")] as [string, string]] : []),
+    ...(p.route ? [["Route", p.route] as [string, string]] : []),
+    ["Effort", `${run.options.effort}${run.options.model ? ` · ${run.options.model}` : ""}`],
+  ];
   return (
-    <div className="ml-auto max-w-[85%] rounded-lg bg-slate-100 px-4 py-3 text-[0.95rem]">
-      <div className="font-medium">{p.indication}</div>
-      <div>{p.mechanism}</div>
-      {extras && <div className="mt-1 text-xs text-muted">{extras}</div>}
-      <div className="mt-1 text-xs text-muted">
-        effort {run.options.effort}
-        {run.options.model ? ` · ${run.options.model}` : ""}
-      </div>
-    </div>
+    <dl className="ml-auto grid max-w-[85%] grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 rounded-lg bg-slate-100 px-4 py-3 text-[0.95rem]">
+      {rows.map(([label, value]) => (
+        <div key={label} className="contents">
+          <dt className="label-mono self-center text-muted">{label}</dt>
+          <dd className={label === "Indication" || label === "Target" ? "font-medium" : "text-sm text-muted"}>{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -88,7 +93,7 @@ function SummaryBlock({
   if (!summary.message) return null;
   const { content, cited_claim_ids: ids } = summary.message;
   return (
-    <div className="text-[0.95rem] leading-relaxed">
+    <div className="pt-3 text-[0.95rem] leading-relaxed">
       <MarkdownText text={content} ids={ids} report={report} onOpenClaim={onOpenClaim} />
       {ids.length > 0 && (
         <details className="mt-4 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
@@ -104,34 +109,6 @@ function SummaryBlock({
           </ol>
         </details>
       )}
-    </div>
-  );
-}
-
-function VerdictCard({
-  decision,
-  report,
-  onOpenReport,
-}: {
-  decision: Decision;
-  report: UnderwritingReport | undefined;
-  onOpenReport: () => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-3 py-2.5">
-      <Badge className={`px-3 py-1 text-sm ${DECISION_STYLE[decision]}`}>{DECISION_LABEL[decision]}</Badge>
-      {report && (
-        <span className="text-sm text-muted">
-          Probability of success <strong className="text-ink">{pctRange(report.pos)}</strong>
-        </span>
-      )}
-      <button
-        type="button"
-        onClick={onOpenReport}
-        className="ml-auto rounded-full border border-line px-3 py-1 text-sm font-medium text-brand hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-      >
-        Open report
-      </button>
     </div>
   );
 }
@@ -230,8 +207,8 @@ export function RunThread({
             {rerun.error && <ErrorBox error={rerun.error} title="Could not restart" />}
           </div>
         )}
+        {decision && <VerdictSlip decision={decision} report={report} onOpenReport={onOpenReport} />}
         {decision && summary && <SummaryBlock summary={summary} report={report} onOpenClaim={onOpenClaim} />}
-        {decision && <VerdictCard decision={decision} report={report} onOpenReport={onOpenReport} />}
         {run.status === "failed" && !stream.error && run.error && (
           <ErrorBox error={new Error(run.error)} title="The run failed" />
         )}

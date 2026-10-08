@@ -2,7 +2,6 @@ import { DECISION_LABEL } from "../../lib/format";
 import type { UnderwritingReport } from "../types";
 
 const SECTIONS = ["disease_need", "scientific_thesis", "translation", "clinical_plan", "competition", "commercial_adoption", "capital"] as const;
-const pct = (x: number) => `${Math.round(x * 100)}%`;
 const usd = (x: number) => {
   const sign = x < 0 ? "-" : "";
   const n = Math.abs(x);
@@ -11,11 +10,11 @@ const usd = (x: number) => {
 
 /** Mirrors the backend's template briefing, so the mock UI shows the same shape with no server. */
 export function briefing(report: UnderwritingReport): { text: string; cited: string[] } {
-  const { verdict, pos } = report;
+  const { verdict } = report;
   const cite = (ids: string[]) => ids.filter((id) => id in report.claims).map((id) => ` [[${id}]]`).join("");
   const parts = [
     "## Verdict",
-    `**${DECISION_LABEL[verdict.decision]}** at ${verdict.confidence} confidence. Probability of success about **${pct(pos.base)}** (range ${pct(pos.low)} to ${pct(pos.high)}).\n\n${verdict.rationale}`,
+    `**${DECISION_LABEL[verdict.decision]}** at ${verdict.confidence} confidence. ${verdict.rationale}`,
   ];
   if (verdict.reason_codes.length) {
     parts.push(

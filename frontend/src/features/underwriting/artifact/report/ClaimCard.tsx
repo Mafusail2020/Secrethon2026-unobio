@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Claim } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
 import { LabelChip } from "./ClaimChips";
-import { STANCE_BAR, STANCE_STYLE, STATUS_STYLE } from "./claimStyles";
+import { STANCE_BAR, STATUS_STYLE } from "./claimStyles";
 import { correctionTargetFor } from "./correctionTarget";
 import { EvidenceCard } from "./EvidenceCard";
 import { useReportContext } from "./reportContext";
@@ -27,9 +27,9 @@ export function ClaimCard({ claim, domId, focused = false }: { claim: Claim; dom
         <div className="min-w-0 flex-1 p-2.5">
           <p className={`text-sm ${rejected ? "line-through" : ""}`}>{claim.text}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-1">
-            <Badge className={STANCE_STYLE[claim.stance]}>{claim.stance === "pro" ? "supports" : claim.stance === "con" ? "against" : "neutral"}</Badge>
+            <span className="sr-only">{claim.stance === "pro" ? "Supports." : claim.stance === "con" ? "Against." : "Neutral."}</span>
             <LabelChip label={claim.label} />
-            <Badge className="border-slate-300 text-slate-700">{claim.confidence} confidence</Badge>
+            <span className="label-mono text-muted">{claim.confidence} confidence</span>
             {claim.status !== "accepted" && <Badge className={STATUS_STYLE[claim.status]}>{claim.status}</Badge>}
           </div>
           {claim.rejection_reason && <p className="mt-1 text-xs text-muted">{claim.rejection_reason}</p>}
