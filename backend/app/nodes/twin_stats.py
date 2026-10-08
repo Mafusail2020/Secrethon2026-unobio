@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="twin_stats",
     label="Twin stats",
     kind="quant",
+    phase="fetch",
     description="Finds historical programs like this one and derives stage reached, stop reasons and a prior success range.",
     reads=["program", "entities"],
     writes=["twin_stats", "source_ids", "evidence_ids"],

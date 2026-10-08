@@ -209,7 +209,7 @@ function executionOf(run: MockRun, nodeId: string): NodeExecution | undefined {
 const wait = <T,>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), 30));
 
 export const mockApi: Api = {
-  health: () => wait({ status: "ok", llm_mode: "mock", llm_cache: true, has_api_key: false }),
+  health: () => wait({ status: "ok", llm_mode: "mock", llm_cache: true, has_api_key: false, max_panel_size: 4 }),
   graph: () => wait(spec),
   models: () =>
     wait([

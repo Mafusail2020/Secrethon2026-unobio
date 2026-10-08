@@ -71,7 +71,7 @@ describe("groupPhases", () => {
   it("puts an unknown node id in the other phase", () => {
     const extra: GraphSpec = {
       ...spec,
-      nodes: [...spec.nodes, { id: "new_node", label: "New", kind: "analysis", description: "x", reads: [], writes: [], parent: null, correctable: true, critical: false }],
+      nodes: [...spec.nodes, { id: "new_node", label: "New", kind: "analysis", description: "x", reads: [], writes: [], parent: null, phase: null, correctable: true, critical: false }],
     }; // fmt: skip
     const phases = groupPhases(extra, {});
     expect(phases.at(-1)).toMatchObject({ id: "other" });

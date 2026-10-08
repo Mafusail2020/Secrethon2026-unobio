@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="fetch_opentargets",
     label="Open Targets",
     kind="data",
+    phase="fetch",
     description="Fetches target-disease associations by datatype, known drugs, safety liabilities and tractability.",
     reads=["program", "entities", "questions"],
     writes=["source_ids", "evidence_ids", "scratch"],

@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="valuation",
     label="Valuation",
     kind="quant",
+    phase="quant",
     description="Estimates capital and time to the next milestone and an rNPV range.",
     reads=["program", "entities", "twin_stats", "ledger", "claims"],
     writes=["valuation"],

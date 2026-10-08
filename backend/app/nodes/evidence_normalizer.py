@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="evidence_normalizer",
     label="Evidence normalizer",
     kind="processing",
+    phase="index",
     description="Dedupes and chunks fetched material into canonical evidence and source records.",
     reads=["source_ids", "evidence_ids", "scratch"],
     writes=["source_ids", "evidence_ids"],

@@ -4,6 +4,7 @@
       "id": "input_resolver",
       "label": "Input resolver",
       "kind": "processing",
+      "phase": "resolve",
       "description": "Resolves free-text indication, mechanism and drug into disease, target and drug ids plus therapeutic areas.",
       "reads": [
         "program"
@@ -19,6 +20,7 @@
       "id": "question_planner",
       "label": "Question planner",
       "kind": "analysis",
+      "phase": "plan",
       "description": "Decides which diligence questions matter for this specific program.",
       "reads": [
         "program",
@@ -35,6 +37,7 @@
       "id": "fetch_opentargets",
       "label": "Open Targets",
       "kind": "data",
+      "phase": "fetch",
       "description": "Fetches target-disease associations by datatype, known drugs, safety liabilities and tractability.",
       "reads": [
         "program",
@@ -54,6 +57,7 @@
       "id": "fetch_trials",
       "label": "ClinicalTrials.gov",
       "kind": "data",
+      "phase": "fetch",
       "description": "Fetches trials for the same target, drug or indication with status and stop reasons.",
       "reads": [
         "program",
@@ -73,6 +77,7 @@
       "id": "fetch_literature",
       "label": "Europe PMC",
       "kind": "data",
+      "phase": "fetch",
       "description": "Fetches literature, including preprints, relevant to the program.",
       "reads": [
         "program",
@@ -92,6 +97,7 @@
       "id": "fetch_regulatory",
       "label": "openFDA",
       "kind": "data",
+      "phase": "fetch",
       "description": "Fetches labels and approvals for standard of care and competitors.",
       "reads": [
         "program",
@@ -111,6 +117,7 @@
       "id": "ingest_user_input",
       "label": "User input",
       "kind": "data",
+      "phase": "fetch",
       "description": "Turns user notes, links and preclinical data into user-provided evidence.",
       "reads": [
         "program",
@@ -129,6 +136,7 @@
       "id": "twin_stats",
       "label": "Twin stats",
       "kind": "quant",
+      "phase": "fetch",
       "description": "Finds historical programs like this one and derives stage reached, stop reasons and a prior success range.",
       "reads": [
         "program",
@@ -147,6 +155,7 @@
       "id": "evidence_normalizer",
       "label": "Evidence normalizer",
       "kind": "processing",
+      "phase": "index",
       "description": "Dedupes and chunks fetched material into canonical evidence and source records.",
       "reads": [
         "source_ids",
@@ -165,6 +174,7 @@
       "id": "knowledge_indexer",
       "label": "Knowledge indexer",
       "kind": "knowledge",
+      "phase": "index",
       "description": "Builds the vector index and knowledge-graph edges over the frozen evidence set.",
       "reads": [
         "entities",
@@ -181,6 +191,7 @@
       "id": "bull_case",
       "label": "Bull case",
       "kind": "bull",
+      "phase": "cases",
       "description": "Finds the strongest supported reasons to invest.",
       "reads": [
         "entities",
@@ -200,6 +211,7 @@
       "id": "bull_query_planner",
       "label": "Bull query planner",
       "kind": "analysis",
+      "phase": "cases",
       "description": "Turns the open questions into bull-leaning retrieval queries.",
       "reads": [
         "entities",
@@ -216,6 +228,7 @@
       "id": "bull_retriever",
       "label": "Bull retriever",
       "kind": "knowledge",
+      "phase": "cases",
       "description": "Pulls the frozen evidence that matches the bull queries.",
       "reads": [
         "entities",
@@ -233,6 +246,7 @@
       "id": "bull_claim_writer",
       "label": "Bull claim writer",
       "kind": "analysis",
+      "phase": "cases",
       "description": "Drafts claims for the strongest supported reasons to invest, each citing evidence ids.",
       "reads": [
         "entities",
@@ -249,6 +263,7 @@
       "id": "bull_claim_gate",
       "label": "Bull claim gate",
       "kind": "processing",
+      "phase": "cases",
       "description": "Rejects or downgrades drafted claims whose evidence ids are not valid.",
       "reads": [
         "evidence_ids",
@@ -265,6 +280,7 @@
       "id": "bear_case",
       "label": "Bear case",
       "kind": "bear",
+      "phase": "cases",
       "description": "Finds the strongest supported reasons not to invest, including terminated trials, stop reasons, safety liabilities and null results.",
       "reads": [
         "entities",
@@ -284,6 +300,7 @@
       "id": "bear_query_planner",
       "label": "Bear query planner",
       "kind": "analysis",
+      "phase": "cases",
       "description": "Turns the open questions into bear-leaning retrieval queries.",
       "reads": [
         "entities",
@@ -300,6 +317,7 @@
       "id": "bear_retriever",
       "label": "Bear retriever",
       "kind": "knowledge",
+      "phase": "cases",
       "description": "Pulls the frozen evidence that matches the bear queries.",
       "reads": [
         "entities",
@@ -317,6 +335,7 @@
       "id": "bear_claim_writer",
       "label": "Bear claim writer",
       "kind": "analysis",
+      "phase": "cases",
       "description": "Drafts claims for the strongest supported reasons not to invest, including terminated trials, stop reasons, safety liabilities and null results, each citing evidence ids.",
       "reads": [
         "entities",
@@ -333,6 +352,7 @@
       "id": "bear_claim_gate",
       "label": "Bear claim gate",
       "kind": "processing",
+      "phase": "cases",
       "description": "Rejects or downgrades drafted claims whose evidence ids are not valid.",
       "reads": [
         "evidence_ids",
@@ -349,6 +369,7 @@
       "id": "section_analysts",
       "label": "Section analysts",
       "kind": "analysis",
+      "phase": "analyse",
       "description": "Writes each report section plus the translation chain, risks, unknowns and diligence questions.",
       "reads": [
         "program",
@@ -374,6 +395,7 @@
       "id": "evidence_ledger",
       "label": "Evidence ledger",
       "kind": "quant",
+      "phase": "quant",
       "description": "Combines the twin prior with likelihood ratios from evidence into a posterior range.",
       "reads": [
         "twin_stats",
@@ -392,6 +414,7 @@
       "id": "valuation",
       "label": "Valuation",
       "kind": "quant",
+      "phase": "quant",
       "description": "Estimates capital and time to the next milestone and an rNPV range.",
       "reads": [
         "program",
@@ -411,6 +434,7 @@
       "id": "verdict",
       "label": "Verdict",
       "kind": "quant",
+      "phase": "quant",
       "description": "Applies thresholds and reason codes to decide invest, conditional or do not invest.",
       "reads": [
         "ledger",
@@ -430,6 +454,7 @@
       "id": "report_assembler",
       "label": "Report assembler",
       "kind": "output",
+      "phase": "report",
       "description": "Assembles the underwriting report with its claims, evidence and sources.",
       "reads": [
         "program",

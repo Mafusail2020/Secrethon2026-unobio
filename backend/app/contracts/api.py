@@ -29,6 +29,7 @@ class HealthStatus(Contract):
     llm_mode: Literal["mock", "live"]
     llm_cache: bool
     has_api_key: bool
+    max_panel_size: int
 
 
 class ErrorBody(Contract):

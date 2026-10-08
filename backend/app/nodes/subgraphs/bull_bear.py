@@ -22,6 +22,7 @@ def container_spec(stance: CaseStance) -> NodeSpec:
         id=case_container(stance),
         label=f"{stance.capitalize()} case",
         kind=stance,
+        phase="cases",
         description=f"Finds the {_GOAL[stance]}.",
         reads=["entities", "questions", "evidence_ids", "twin_stats"],
         writes=["claims", "scratch"],
@@ -36,6 +37,7 @@ def _specs(stance: CaseStance) -> list[NodeSpec]:
             id=case_node(stance, "query_planner"),
             label=f"{label} query planner",
             kind="analysis",
+            phase="cases",
             description=f"Turns the open questions into {stance}-leaning retrieval queries.",
             reads=["entities", "questions"],
             writes=["scratch"],
@@ -45,6 +47,7 @@ def _specs(stance: CaseStance) -> list[NodeSpec]:
             id=case_node(stance, "retriever"),
             label=f"{label} retriever",
             kind="knowledge",
+            phase="cases",
             description=f"Pulls the frozen evidence that matches the {stance} queries.",
             reads=["entities", "evidence_ids", "scratch"],
             writes=["scratch"],
@@ -54,6 +57,7 @@ def _specs(stance: CaseStance) -> list[NodeSpec]:
             id=case_node(stance, "claim_writer"),
             label=f"{label} claim writer",
             kind="analysis",
+            phase="cases",
             description=f"Drafts claims for the {_GOAL[stance]}, each citing evidence ids.",
             reads=["entities", "scratch"],
             writes=["scratch"],
@@ -63,6 +67,7 @@ def _specs(stance: CaseStance) -> list[NodeSpec]:
             id=case_node(stance, "claim_gate"),
             label=f"{label} claim gate",
             kind="processing",
+            phase="cases",
             description="Rejects or downgrades drafted claims whose evidence ids are not valid.",
             reads=["evidence_ids", "scratch"],
             writes=["claims"],
@@ -103,7 +108,7 @@ def make_nodes(stance: CaseStance) -> dict[str, NodeRun]:
     async def claim_writer(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         await touch_llm(ctx, f"{writer}.draft")
         await nap(ctx.node_id)
-        drafts = [c for c in fixture_report().claims.values() if c.produced_by == gate]
+        drafts = [c for c in fixture_report().claims.values() if c.produced_by == writer]
         ctx.log(f"drafted {len(drafts)} claims (FIXTURE)")
         return {"scratch": {ctx.node_id: {"claims": [c.model_dump(mode="json") for c in drafts]}}}
 

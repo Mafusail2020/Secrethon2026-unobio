@@ -10,6 +10,7 @@ SPEC = NodeSpec(
     id="knowledge_indexer",
     label="Knowledge indexer",
     kind="knowledge",
+    phase="index",
     description="Builds the vector index and knowledge-graph edges over the frozen evidence set.",
     reads=["entities", "evidence_ids"],
     writes=["scratch"],

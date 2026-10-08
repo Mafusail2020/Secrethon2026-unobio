@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="fetch_regulatory",
     label="openFDA",
     kind="data",
+    phase="fetch",
     description="Fetches labels and approvals for standard of care and competitors.",
     reads=["program", "entities", "questions"],
     writes=["source_ids", "evidence_ids", "scratch"],

@@ -26,6 +26,7 @@ SPEC = NodeSpec(
     id="evidence_ledger",
     label="Evidence ledger",
     kind="quant",
+    phase="quant",
     description="Combines the twin prior with likelihood ratios from evidence into a posterior range.",
     reads=["twin_stats", "claims", "sections", "evidence_ids"],
     writes=["ledger"],

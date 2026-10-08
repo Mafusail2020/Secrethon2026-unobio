@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="report_assembler",
     label="Report assembler",
     kind="output",
+    phase="report",
     description="Assembles the underwriting report with its claims, evidence and sources.",
     reads=[
         "program",

@@ -14,6 +14,7 @@ def test_health(client: TestClient):
     body = HealthStatus.model_validate(client.get("/api/health").json())
     assert body.status == "ok"
     assert body.llm_mode == "mock"
+    assert body.max_panel_size == 4
 
 
 def test_graph_returns_every_node_with_kinds_and_colors(client: TestClient):

@@ -20,6 +20,7 @@ SPEC = NodeSpec(
     id="question_planner",
     label="Question planner",
     kind="analysis",
+    phase="plan",
     description="Decides which diligence questions matter for this specific program.",
     reads=["program", "entities"],
     writes=["questions"],

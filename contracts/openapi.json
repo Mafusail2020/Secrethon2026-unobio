@@ -119,6 +119,7 @@
             "type": "string"
           },
           "produced_by": {
+            "description": "Node that wrote the claim text (a claim writer or analyst), never a gate. A gate only sets status.",
             "title": "Produced By",
             "type": "string"
           },
@@ -637,6 +638,10 @@
             "title": "Llm Mode",
             "type": "string"
           },
+          "max_panel_size": {
+            "title": "Max Panel Size",
+            "type": "integer"
+          },
           "status": {
             "const": "ok",
             "default": "ok",
@@ -648,6 +653,7 @@
           "has_api_key",
           "llm_cache",
           "llm_mode",
+          "max_panel_size",
           "status"
         ],
         "title": "HealthStatus",
@@ -777,6 +783,17 @@
           },
           "likelihood_ratio": {
             "$ref": "#/components/schemas/Range"
+          },
+          "pos_after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Range"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Probability of success after this step (low, base, high); the last step equals the posterior."
           }
         },
         "required": [
@@ -786,7 +803,8 @@
           "direction",
           "evidence_ids",
           "factor",
-          "likelihood_ratio"
+          "likelihood_ratio",
+          "pos_after"
         ],
         "title": "LedgerStep",
         "type": "object"
@@ -1063,6 +1081,28 @@
             ],
             "title": "Parent"
           },
+          "phase": {
+            "anyOf": [
+              {
+                "enum": [
+                  "resolve",
+                  "plan",
+                  "fetch",
+                  "index",
+                  "cases",
+                  "analyse",
+                  "quant",
+                  "report"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pipeline phase the UI groups this step under.",
+            "title": "Phase"
+          },
           "reads": {
             "items": {
               "type": "string"
@@ -1086,6 +1126,7 @@
           "kind",
           "label",
           "parent",
+          "phase",
           "reads",
           "writes"
         ],
@@ -2292,6 +2333,20 @@
             "title": "Stage Distribution",
             "type": "object"
           },
+          "stop_reason_categories": {
+            "additionalProperties": {
+              "enum": [
+                "efficacy",
+                "safety",
+                "business",
+                "other"
+              ],
+              "type": "string"
+            },
+            "description": "Category of each key in stop_reasons, when the source provides one. Unmapped reasons are uncategorised.",
+            "title": "Stop Reason Categories",
+            "type": "object"
+          },
           "stop_reasons": {
             "additionalProperties": {
               "type": "integer"
@@ -2313,6 +2368,7 @@
           "notes",
           "prior_pos",
           "stage_distribution",
+          "stop_reason_categories",
           "stop_reasons",
           "twins"
         ],
