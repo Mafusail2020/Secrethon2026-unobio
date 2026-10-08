@@ -1,4 +1,31 @@
 # Quant owner fills these. Every entry needs a `citation` or `assumption: true`.
 prior_fallback: null          # Range used when twin stats find no programs
-likelihood_ratios: {}         # factor -> {low, base, high, citation | assumption: true}
+
+# Why programs stop, as shares of all failures. Used when twin stats have fewer stopped twins
+# than `min_stopped_twins`; the ledger splits the prior's cumulative hazard by these shares.
+failure_mix:
+  min_stopped_twins: {value: 10, assumption: true}
+  literature:
+    citation: >-
+      ASBMB Today, '90% of drugs fail clinical trials' (2022), quoting a 2016 analysis that the
+      article does not name (primary study not yet verified):
+      https://www.asbmb.org/asbmb-today/opinions/031222/90-of-drugs-fail-clinical-trials
+    # the article gives efficacy 40-50%, safety 30%, drug-like properties 10-15%, commercial/strategy 10%;
+    # the +-5 point low/high and the 'other' remainder are our assumption
+    shares:
+      efficacy: {low: 0.40, base: 0.45, high: 0.50}
+      safety: {low: 0.25, base: 0.30, high: 0.35}
+      pk_exposure: {low: 0.10, base: 0.125, high: 0.15}
+      commercial: {low: 0.08, base: 0.10, high: 0.12}
+      other: {low: 0.0, base: 0.025, high: 0.05}
+
+# Risk ratios the assessment lanes may apply, keyed 'cause.factor'. A ratio multiplies that cause's
+# cumulative hazard: below 1 lowers the risk (PoS up), above 1 raises it (PoS down).
+risk_ratios:
+  efficacy.genetic_support: {low: 0.70, base: 0.85, high: 0.95, assumption: true}
+  efficacy.terminated_twins: {low: 1.05, base: 1.15, high: 1.35, assumption: true}
+  efficacy.unproven_translation: {low: 1.00, base: 1.10, high: 1.30, assumption: true}
+  safety.target_liability: {low: 1.00, base: 1.15, high: 1.40, assumption: true}
+  pk_exposure.no_human_exposure: {low: 1.00, base: 1.05, high: 1.20, assumption: true}
+
 posterior_clamp: {low: 0.01, high: 0.95, assumption: true}

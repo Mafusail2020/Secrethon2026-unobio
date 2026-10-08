@@ -53,7 +53,7 @@ describe("correction form", () => {
     html(<CorrectionForm runId="r1" node={byId("verdict")} graph={spec} report={undefined} canCorrect {...props} />);
 
   it("previews how much would recompute", () => {
-    expect(form({})).toContain("Recomputes 2 of 23 steps (verdict, report assembler)");
+    expect(form({})).toContain("Recomputes 2 of 32 steps (verdict, report assembler)");
   });
 
   it("pre-fills the text and explains a rerouted node", () => {

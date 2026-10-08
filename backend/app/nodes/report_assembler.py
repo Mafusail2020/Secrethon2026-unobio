@@ -22,6 +22,7 @@ SPEC = NodeSpec(
         "critical_unknowns",
         "diligence_questions",
         "ledger",
+        "assessments",
         "valuation",
         "verdict",
         "evidence_ids",
@@ -46,6 +47,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         raise ValueError("cannot assemble a report without a ledger or twin prior")
 
     cited = list(state.get("claims", {}).values())
+    assessments = sorted(state.get("assessments", {}).values(), key=lambda a: a.cause)
     # the run's own evidence set; evidence the user excluded must not reappear via rejected claims
     excluded = {i for c in state.get("corrections", []) for i in c.exclude_evidence_ids}
     in_run = set(state.get("evidence_ids", [])) - excluded
@@ -55,6 +57,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
             for i in [
                 *(i for c in cited for i in c.evidence_ids),
                 *(i for step in (ledger.steps if ledger else []) for i in step.evidence_ids),
+                *(i for a in assessments for m in a.metrics for i in m.evidence_ids),
             ]
             if i in in_run
         )
@@ -85,6 +88,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         translation_chain=state.get("translation_chain", []),
         twin_stats=twin,
         ledger=ledger,
+        assessments=assessments,
         valuation=state.get("valuation"),
         key_risks=state.get("key_risks", []),
         critical_unknowns=state.get("critical_unknowns", []),

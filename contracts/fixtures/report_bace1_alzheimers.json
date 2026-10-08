@@ -47,6 +47,7 @@
         "code": "TARGET_LINK",
         "text": "FIXTURE: biological link supports the thesis",
         "direction": "positive",
+        "cause": "efficacy",
         "claim_ids": [
           "clm_b2f41d52a4efdea3"
         ]
@@ -55,6 +56,7 @@
         "code": "TWIN_TERMINATIONS",
         "text": "FIXTURE: prior programs were terminated",
         "direction": "negative",
+        "cause": "efficacy",
         "claim_ids": [
           "clm_579247c2de1297af"
         ]
@@ -63,8 +65,18 @@
         "code": "TRANSLATION_GAP",
         "text": "FIXTURE: human translation is unproven",
         "direction": "negative",
+        "cause": "efficacy",
         "claim_ids": [
-          "clm_1a2d6b3903f6a5dd"
+          "clm_d71dad8cb05af35f"
+        ]
+      },
+      {
+        "code": "SAFETY_LIABILITY",
+        "text": "FIXTURE: a brain safety liability is recorded for the target",
+        "direction": "negative",
+        "cause": "safety",
+        "claim_ids": [
+          "clm_58b18e53ada6c638"
         ]
       }
     ],
@@ -74,9 +86,9 @@
     "rationale": "FIXTURE: placeholder rationale for a conditional decision"
   },
   "pos": {
-    "low": 0.0067,
-    "base": 0.0396,
-    "high": 0.1597,
+    "low": 0.01,
+    "base": 0.0387,
+    "high": 0.1316,
     "unit": "probability"
   },
   "sections": {
@@ -132,12 +144,50 @@
         {
           "text": "FIXTURE: patient benefit unproven",
           "claim_ids": [
-            "clm_1a2d6b3903f6a5dd"
+            "clm_d71dad8cb05af35f"
+          ]
+        },
+        {
+          "text": "FIXTURE: no engagement data",
+          "claim_ids": [
+            "clm_8c6e04cb6cbfbd2b"
           ]
         }
       ],
       "unknowns": [
         "FIXTURE: human exposure data"
+      ],
+      "status": "partial",
+      "produced_by": "section_analysts",
+      "panel": null
+    },
+    "safety": {
+      "section": "safety",
+      "title": "Safety",
+      "summary": "FIXTURE: safety summary",
+      "key_points": [
+        {
+          "text": "FIXTURE: target liability",
+          "claim_ids": [
+            "clm_58b18e53ada6c638"
+          ]
+        },
+        {
+          "text": "FIXTURE: class signal",
+          "claim_ids": [
+            "clm_847fe82386be190f"
+          ]
+        },
+        {
+          "text": "FIXTURE: window unknown",
+          "claim_ids": [
+            "clm_8e7328ad8bf2c6dd"
+          ]
+        }
+      ],
+      "unknowns": [
+        "FIXTURE: therapeutic window",
+        "FIXTURE: tissue selectivity"
       ],
       "status": "partial",
       "produced_by": "section_analysts",
@@ -262,14 +312,14 @@
       "step": "target_engagement",
       "status": "weak",
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
       "step": "biological_response",
       "status": "weak",
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
@@ -322,6 +372,60 @@
       "high": 0.1,
       "unit": "probability"
     },
+    "failure_mix": {
+      "shares": [
+        {
+          "cause": "efficacy",
+          "share": {
+            "low": 0.4,
+            "base": 0.45,
+            "high": 0.5,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "safety",
+          "share": {
+            "low": 0.25,
+            "base": 0.3,
+            "high": 0.35,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "pk_exposure",
+          "share": {
+            "low": 0.1,
+            "base": 0.125,
+            "high": 0.15,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "commercial",
+          "share": {
+            "low": 0.08,
+            "base": 0.1,
+            "high": 0.12,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "other",
+          "share": {
+            "low": 0.0,
+            "base": 0.025,
+            "high": 0.05,
+            "unit": "share"
+          }
+        }
+      ],
+      "source": "literature",
+      "n_stopped": 1,
+      "basis": "sourced",
+      "citation": "ASBMB Today, '90% of drugs fail clinical trials' (2022), quoting a 2016 analysis whose source it does not name: https://www.asbmb.org/asbmb-today/opinions/031222/90-of-drugs-fail-clinical-trials",
+      "note": "FIXTURE: too few stopped twins, so the literature split is used; the low and high of each share are a +-5 point assumption"
+    },
     "notes": [
       "FIXTURE: placeholder twin statistics"
     ]
@@ -333,87 +437,431 @@
       "high": 0.1,
       "unit": "probability"
     },
+    "failure_mix": {
+      "shares": [
+        {
+          "cause": "efficacy",
+          "share": {
+            "low": 0.4,
+            "base": 0.45,
+            "high": 0.5,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "safety",
+          "share": {
+            "low": 0.25,
+            "base": 0.3,
+            "high": 0.35,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "pk_exposure",
+          "share": {
+            "low": 0.1,
+            "base": 0.125,
+            "high": 0.15,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "commercial",
+          "share": {
+            "low": 0.08,
+            "base": 0.1,
+            "high": 0.12,
+            "unit": "share"
+          }
+        },
+        {
+          "cause": "other",
+          "share": {
+            "low": 0.0,
+            "base": 0.025,
+            "high": 0.05,
+            "unit": "share"
+          }
+        }
+      ],
+      "source": "literature",
+      "n_stopped": 1,
+      "basis": "sourced",
+      "citation": "ASBMB Today, '90% of drugs fail clinical trials' (2022), quoting a 2016 analysis whose source it does not name: https://www.asbmb.org/asbmb-today/opinions/031222/90-of-drugs-fail-clinical-trials",
+      "note": "FIXTURE: too few stopped twins, so the literature split is used; the low and high of each share are a +-5 point assumption"
+    },
     "steps": [
       {
-        "factor": "FIXTURE: terminated late-stage twin trials",
-        "direction": "down",
-        "likelihood_ratio": {
-          "low": 0.5,
-          "base": 0.7,
-          "high": 0.9,
-          "unit": "ratio"
-        },
-        "basis": "assumption",
-        "citation": null,
-        "claim_ids": [
-          "clm_579247c2de1297af"
-        ],
-        "evidence_ids": [
-          "ev_692b194034153ddd",
-          "ev_703b525423824370"
-        ],
-        "pos_after": {
-          "low": 0.0101,
-          "base": 0.0355,
-          "high": 0.0909,
-          "unit": "probability"
-        }
-      },
-      {
         "factor": "FIXTURE: biological link to the indication",
+        "cause": "efficacy",
         "direction": "up",
-        "likelihood_ratio": {
-          "low": 1.1,
-          "base": 1.4,
-          "high": 2.0,
-          "unit": "ratio"
-        },
-        "basis": "assumption",
-        "citation": null,
-        "claim_ids": [
-          "clm_b2f41d52a4efdea3"
-        ],
-        "evidence_ids": [
-          "ev_a689ea04c9546031",
-          "ev_d81f1b38b8694f2b"
-        ],
-        "pos_after": {
-          "low": 0.0111,
-          "base": 0.049,
-          "high": 0.1667,
-          "unit": "probability"
-        }
-      },
-      {
-        "factor": "FIXTURE: unproven translation chain",
-        "direction": "down",
-        "likelihood_ratio": {
-          "low": 0.6,
-          "base": 0.8,
+        "risk_ratio": {
+          "low": 0.7,
+          "base": 0.85,
           "high": 0.95,
           "unit": "ratio"
         },
         "basis": "assumption",
         "citation": null,
         "claim_ids": [
-          "clm_1a2d6b3903f6a5dd"
+          "clm_f1b6cc84606d06db"
+        ],
+        "evidence_ids": [
+          "ev_a689ea04c9546031"
+        ],
+        "pos_after": {
+          "low": 0.0218,
+          "base": 0.0612,
+          "high": 0.1365,
+          "unit": "probability"
+        }
+      },
+      {
+        "factor": "FIXTURE: terminated late-stage twin trials",
+        "cause": "efficacy",
+        "direction": "down",
+        "risk_ratio": {
+          "low": 1.05,
+          "base": 1.15,
+          "high": 1.35,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [],
+        "evidence_ids": [
+          "ev_692b194034153ddd",
+          "ev_703b525423824370"
+        ],
+        "pos_after": {
+          "low": 0.0122,
+          "base": 0.0515,
+          "high": 0.1316,
+          "unit": "probability"
+        }
+      },
+      {
+        "factor": "FIXTURE: unproven translation chain",
+        "cause": "efficacy",
+        "direction": "down",
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.1,
+          "high": 1.3,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [
+          "clm_d71dad8cb05af35f"
         ],
         "evidence_ids": [],
         "pos_after": {
-          "low": 0.0067,
-          "base": 0.0396,
-          "high": 0.1597,
+          "low": 0.01,
+          "base": 0.0452,
+          "high": 0.1316,
+          "unit": "probability"
+        }
+      },
+      {
+        "factor": "FIXTURE: target safety liability in the brain",
+        "cause": "safety",
+        "direction": "down",
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.15,
+          "high": 1.4,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [
+          "clm_58b18e53ada6c638",
+          "clm_847fe82386be190f"
+        ],
+        "evidence_ids": [
+          "ev_2c069beb487c44b4",
+          "ev_88a374702014d81a"
+        ],
+        "pos_after": {
+          "low": 0.01,
+          "base": 0.0395,
+          "high": 0.1316,
+          "unit": "probability"
+        }
+      },
+      {
+        "factor": "FIXTURE: no human exposure data",
+        "cause": "pk_exposure",
+        "direction": "down",
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.05,
+          "high": 1.2,
+          "unit": "ratio"
+        },
+        "basis": "assumption",
+        "citation": null,
+        "claim_ids": [],
+        "evidence_ids": [],
+        "pos_after": {
+          "low": 0.01,
+          "base": 0.0387,
+          "high": 0.1316,
           "unit": "probability"
         }
       }
     ],
+    "by_cause": [
+      {
+        "cause": "efficacy",
+        "share": {
+          "low": 0.4,
+          "base": 0.45,
+          "high": 0.5,
+          "unit": "share"
+        },
+        "hazard_prior": {
+          "low": 1.0361632918473205,
+          "base": 1.348079523099296,
+          "high": 1.7604103524426657,
+          "unit": ""
+        },
+        "hazard_posterior": {
+          "low": 0.7615800195077805,
+          "base": 1.449522507212518,
+          "high": 2.9350441601100346,
+          "unit": ""
+        },
+        "risk_ratio": {
+          "low": 0.735,
+          "base": 1.07525,
+          "high": 1.6672500000000001,
+          "unit": ""
+        }
+      },
+      {
+        "cause": "safety",
+        "share": {
+          "low": 0.25,
+          "base": 0.3,
+          "high": 0.35,
+          "unit": "share"
+        },
+        "hazard_prior": {
+          "low": 0.6907755278982136,
+          "base": 0.8987196820661972,
+          "high": 1.1736069016284438,
+          "unit": ""
+        },
+        "hazard_posterior": {
+          "low": 0.6907755278982136,
+          "base": 1.0335276343761268,
+          "high": 1.6430496622798212,
+          "unit": ""
+        },
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.15,
+          "high": 1.4,
+          "unit": ""
+        }
+      },
+      {
+        "cause": "pk_exposure",
+        "share": {
+          "low": 0.1,
+          "base": 0.125,
+          "high": 0.15,
+          "unit": "share"
+        },
+        "hazard_prior": {
+          "low": 0.2878231366242557,
+          "base": 0.37446653419424886,
+          "high": 0.48900287567851825,
+          "unit": ""
+        },
+        "hazard_posterior": {
+          "low": 0.2878231366242557,
+          "base": 0.3931898609039613,
+          "high": 0.5868034508142219,
+          "unit": ""
+        },
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.05,
+          "high": 1.2,
+          "unit": ""
+        }
+      },
+      {
+        "cause": "commercial",
+        "share": {
+          "low": 0.08,
+          "base": 0.1,
+          "high": 0.12,
+          "unit": "share"
+        },
+        "hazard_prior": {
+          "low": 0.23025850929940456,
+          "base": 0.2995732273553991,
+          "high": 0.39120230054281463,
+          "unit": ""
+        },
+        "hazard_posterior": {
+          "low": 0.23025850929940456,
+          "base": 0.2995732273553991,
+          "high": 0.39120230054281463,
+          "unit": ""
+        },
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.0,
+          "high": 1.0,
+          "unit": ""
+        }
+      },
+      {
+        "cause": "other",
+        "share": {
+          "low": 0.0,
+          "base": 0.025,
+          "high": 0.05,
+          "unit": "share"
+        },
+        "hazard_prior": {
+          "low": 0.05756462732485114,
+          "base": 0.07489330683884977,
+          "high": 0.09780057513570366,
+          "unit": ""
+        },
+        "hazard_posterior": {
+          "low": 0.05756462732485114,
+          "base": 0.07489330683884977,
+          "high": 0.09780057513570366,
+          "unit": ""
+        },
+        "risk_ratio": {
+          "low": 1.0,
+          "base": 1.0,
+          "high": 1.0,
+          "unit": ""
+        }
+      }
+    ],
     "posterior": {
-      "low": 0.0067,
-      "base": 0.0396,
-      "high": 0.1597,
+      "low": 0.01,
+      "base": 0.0387,
+      "high": 0.1316,
       "unit": "probability"
     }
   },
+  "assessments": [
+    {
+      "cause": "efficacy",
+      "rating": "weak",
+      "headline": "FIXTURE: genetic support is moderate, but one of five translation steps is supported and earlier same-target programs stopped",
+      "metrics": [
+        {
+          "key": "genetic_support",
+          "label": "Human genetic support",
+          "value": 0.55,
+          "unit": "score 0-1",
+          "note": "FIXTURE: association score from human genetics",
+          "basis": "assumption",
+          "citation": null,
+          "evidence_ids": [
+            "ev_a689ea04c9546031"
+          ]
+        },
+        {
+          "key": "chain_supported_share",
+          "label": "Translation steps supported",
+          "value": 0.2,
+          "unit": "fraction",
+          "note": "FIXTURE: share of the five translation steps with support",
+          "basis": "assumption",
+          "citation": null,
+          "evidence_ids": []
+        },
+        {
+          "key": "class_efficacy_stop_rate",
+          "label": "Same-target programs stopped for efficacy",
+          "value": 0.5,
+          "unit": "fraction",
+          "note": "FIXTURE: share of same-target programs that stopped for lack of efficacy",
+          "basis": "assumption",
+          "citation": null,
+          "evidence_ids": [
+            "ev_692b194034153ddd",
+            "ev_703b525423824370"
+          ]
+        }
+      ],
+      "claim_ids": [
+        "clm_f1b6cc84606d06db",
+        "clm_d71dad8cb05af35f",
+        "clm_8c6e04cb6cbfbd2b"
+      ],
+      "gaps": [
+        "FIXTURE: no human target-engagement data",
+        "FIXTURE: no exposure data"
+      ],
+      "produced_by": "efficacy_score"
+    },
+    {
+      "cause": "safety",
+      "rating": "concerning",
+      "headline": "FIXTURE: a brain liability is recorded and the class shows an adverse-event signal; the therapeutic window cannot be judged",
+      "metrics": [
+        {
+          "key": "target_safety_events",
+          "label": "Recorded target safety events",
+          "value": 3.0,
+          "unit": "events",
+          "note": "FIXTURE: safety liabilities recorded for the target",
+          "basis": "assumption",
+          "citation": null,
+          "evidence_ids": [
+            "ev_2c069beb487c44b4"
+          ]
+        },
+        {
+          "key": "class_ae_signal",
+          "label": "Class adverse-event signal",
+          "value": 2.4,
+          "unit": "ratio",
+          "note": "FIXTURE: proportional reporting ratio for the class",
+          "basis": "assumption",
+          "citation": null,
+          "evidence_ids": [
+            "ev_88a374702014d81a"
+          ]
+        },
+        {
+          "key": "class_safety_stop_rate",
+          "label": "Same-target programs stopped for safety",
+          "value": 0.0,
+          "unit": "fraction",
+          "note": "FIXTURE: share of same-target programs that stopped for safety",
+          "basis": "assumption",
+          "citation": null,
+          "evidence_ids": []
+        }
+      ],
+      "claim_ids": [
+        "clm_58b18e53ada6c638",
+        "clm_847fe82386be190f",
+        "clm_8e7328ad8bf2c6dd"
+      ],
+      "gaps": [
+        "FIXTURE: no exposure data to judge the therapeutic window",
+        "FIXTURE: tissue expression not available"
+      ],
+      "produced_by": "safety_score"
+    }
+  ],
   "valuation": {
     "next_milestone": "FIXTURE: phase 1 readout",
     "capital_to_milestone": {
@@ -457,7 +905,7 @@
       "text": "FIXTURE: efficacy may not translate",
       "severity": "high",
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
@@ -482,7 +930,7 @@
       ],
       "priority": 1,
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
@@ -493,7 +941,7 @@
       ],
       "priority": 2,
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
@@ -504,7 +952,7 @@
       ],
       "priority": 3,
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
@@ -515,7 +963,7 @@
       ],
       "priority": 4,
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     },
     {
@@ -526,7 +974,7 @@
       ],
       "priority": 5,
       "claim_ids": [
-        "clm_1a2d6b3903f6a5dd"
+        "clm_d71dad8cb05af35f"
       ]
     }
   ],
@@ -589,15 +1037,81 @@
       "status": "accepted",
       "rejection_reason": null
     },
-    "clm_1a2d6b3903f6a5dd": {
-      "id": "clm_1a2d6b3903f6a5dd",
+    "clm_d71dad8cb05af35f": {
+      "id": "clm_d71dad8cb05af35f",
       "text": "FIXTURE: the link from human target engagement to patient benefit is unproven for this mechanism",
       "section": "translation",
       "stance": "con",
       "label": "hypothesis",
       "evidence_ids": [],
       "confidence": "low",
-      "produced_by": "section_analysts",
+      "produced_by": "efficacy_extract",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_8c6e04cb6cbfbd2b": {
+      "id": "clm_8c6e04cb6cbfbd2b",
+      "text": "FIXTURE: no human target-engagement readout exists for this program",
+      "section": "translation",
+      "stance": "con",
+      "label": "unknown",
+      "evidence_ids": [],
+      "confidence": "low",
+      "produced_by": "efficacy_extract",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_f1b6cc84606d06db": {
+      "id": "clm_f1b6cc84606d06db",
+      "text": "FIXTURE: human genetic evidence links the target to the disease",
+      "section": "scientific_thesis",
+      "stance": "pro",
+      "label": "extracted",
+      "evidence_ids": [
+        "ev_a689ea04c9546031"
+      ],
+      "confidence": "medium",
+      "produced_by": "efficacy_extract",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_58b18e53ada6c638": {
+      "id": "clm_58b18e53ada6c638",
+      "text": "FIXTURE: a safety liability affecting the brain is recorded for this target",
+      "section": "safety",
+      "stance": "con",
+      "label": "extracted",
+      "evidence_ids": [
+        "ev_2c069beb487c44b4"
+      ],
+      "confidence": "medium",
+      "produced_by": "safety_extract",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_847fe82386be190f": {
+      "id": "clm_847fe82386be190f",
+      "text": "FIXTURE: reports for the drug class show a raised cognitive-worsening signal",
+      "section": "safety",
+      "stance": "con",
+      "label": "derived",
+      "evidence_ids": [
+        "ev_88a374702014d81a"
+      ],
+      "confidence": "low",
+      "produced_by": "safety_extract",
+      "status": "accepted",
+      "rejection_reason": null
+    },
+    "clm_8e7328ad8bf2c6dd": {
+      "id": "clm_8e7328ad8bf2c6dd",
+      "text": "FIXTURE: the therapeutic window cannot be judged without exposure data",
+      "section": "safety",
+      "stance": "neutral",
+      "label": "hypothesis",
+      "evidence_ids": [],
+      "confidence": "low",
+      "produced_by": "safety_extract",
       "status": "accepted",
       "rejection_reason": null
     },
@@ -760,6 +1274,38 @@
       ],
       "kind": "text",
       "data": null
+    },
+    "ev_2c069beb487c44b4": {
+      "id": "ev_2c069beb487c44b4",
+      "source_id": "src_5265ef666768bf45",
+      "excerpt": "FIXTURE: reported target safety liability: cognitive worsening",
+      "locator": "safetyLiabilities[0]",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "structured",
+      "data": {
+        "fixture": true,
+        "event": "FIXTURE: cognitive worsening",
+        "organ": "brain"
+      }
+    },
+    "ev_88a374702014d81a": {
+      "id": "ev_88a374702014d81a",
+      "source_id": "src_5265ef666768bf45",
+      "excerpt": "FIXTURE: class adverse-event signal for cognitive worsening",
+      "locator": "adverseEvents[0]",
+      "entity_ids": [
+        "FIXTURE:target:BACE1",
+        "FIXTURE:disease:alzheimers"
+      ],
+      "kind": "structured",
+      "data": {
+        "fixture": true,
+        "reports": 3,
+        "prr": 2.4
+      }
     }
   },
   "sources": {
@@ -815,6 +1361,16 @@
       "title": "FIXTURE: standard-of-care label",
       "url": "https://example.org/fixture/label-soc",
       "publisher": "FIXTURE: regulator label",
+      "published_at": null,
+      "retrieved_at": "2026-10-05T12:00:00Z",
+      "identifiers": {}
+    },
+    "src_5265ef666768bf45": {
+      "id": "src_5265ef666768bf45",
+      "type": "db_record",
+      "title": "FIXTURE: target safety liability record",
+      "url": "https://example.org/fixture/opentargets-safety",
+      "publisher": "FIXTURE: Open Targets Platform",
       "published_at": null,
       "retrieved_at": "2026-10-05T12:00:00Z",
       "identifiers": {}

@@ -257,6 +257,69 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AssessmentMetric
+         * @description One number an assessment computed, with what it means and where it came from.
+         */
+        AssessmentMetric: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "sourced" | "assumption";
+            /** Citation */
+            citation: string | null;
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /**
+             * Key
+             * @description Stable id of the formula output, e.g. genetic_support.
+             */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Note
+             * @description One line on what the number says.
+             */
+            note: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Value */
+            value: number | null;
+        };
+        /**
+         * AssessmentResult
+         * @description What the efficacy or safety lane found, in numbers a reader can check.
+         *
+         *     The metrics come from formulas; the claims are model-written and gated. The headline is composed
+         *     by code from the metrics, never by a model.
+         */
+        AssessmentResult: {
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "efficacy" | "safety";
+            /** Claim Ids */
+            claim_ids: string[];
+            /**
+             * Gaps
+             * @description What could not be checked, and why. Unknown is valid.
+             */
+            gaps: string[];
+            /** Headline */
+            headline: string;
+            /** Metrics */
+            metrics: components["schemas"]["AssessmentMetric"][];
+            /** Produced By */
+            produced_by: string;
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "strong" | "moderate" | "weak" | "concerning" | "unknown";
+        };
         /** Assumption */
         Assumption: {
             /**
@@ -269,6 +332,29 @@ export interface components {
             /** Name */
             name: string;
             value: components["schemas"]["Range"];
+        };
+        /** CauseOutcome */
+        CauseOutcome: {
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "efficacy" | "safety" | "pk_exposure" | "commercial" | "other";
+            hazard_posterior: components["schemas"]["Range"];
+            hazard_prior: components["schemas"]["Range"];
+            /** @description Net multiplier of every adjustment to this cause. */
+            risk_ratio: components["schemas"]["Range"];
+            share: components["schemas"]["Range"];
+        };
+        /** CauseShare */
+        CauseShare: {
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "efficacy" | "safety" | "pk_exposure" | "commercial" | "other";
+            /** @description Fraction of all failures this cause explains (low, base, high); unit 'share'. */
+            share: components["schemas"]["Range"];
         };
         /** ChatMessage */
         ChatMessage: {
@@ -311,7 +397,7 @@ export interface components {
              * Section
              * @enum {string}
              */
-            section: "disease_need" | "scientific_thesis" | "translation" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks";
+            section: "disease_need" | "scientific_thesis" | "translation" | "safety" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks";
             /**
              * Stance
              * @enum {string}
@@ -439,12 +525,54 @@ export interface components {
             evidence: components["schemas"]["Evidence"];
             source: components["schemas"]["SourceRef"];
         };
-        /** EvidenceLedger */
+        /**
+         * EvidenceLedger
+         * @description prior -> posterior, by cause.
+         *
+         *     H = -ln(prior); each cause i gets H_i = share_i * H; adjustments multiply H_i by their
+         *     risk_ratio; posterior = exp(-sum(H_i)). The low end of every range is the pessimistic one
+         *     (a lower prior, higher risk ratios), the high end the optimistic one.
+         */
         EvidenceLedger: {
+            /** By Cause */
+            by_cause: components["schemas"]["CauseOutcome"][];
+            failure_mix: components["schemas"]["FailureMix"] | null;
             posterior: components["schemas"]["Range"];
             prior: components["schemas"]["Range"];
             /** Steps */
             steps: components["schemas"]["LedgerStep"][];
+        };
+        /**
+         * FailureMix
+         * @description Where a program's failure probability goes, by cause.
+         *
+         *     Taken from the stop reasons of stopped twin programs when there are enough of them, otherwise
+         *     from the literature figures in config/ledger.yaml. The ledger splits the prior's failure
+         *     budget with it, so each kind of evidence can move only the risk it speaks to.
+         */
+        FailureMix: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "sourced" | "assumption";
+            /** Citation */
+            citation: string | null;
+            /**
+             * N Stopped
+             * @description Stopped twin programs behind the shares; 0 for literature.
+             * @default 0
+             */
+            n_stopped: number;
+            /** Note */
+            note: string | null;
+            /** Shares */
+            shares: components["schemas"]["CauseShare"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "twins" | "literature";
         };
         /** GraphEdge */
         GraphEdge: {
@@ -518,12 +646,18 @@ export interface components {
              * @enum {string}
              */
             basis: "sourced" | "assumption";
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "efficacy" | "safety" | "pk_exposure" | "commercial" | "other";
             /** Citation */
             citation: string | null;
             /** Claim Ids */
             claim_ids: string[];
             /**
              * Direction
+             * @description Effect on the probability of success: up lowers the cause's risk (ratio <= 1).
              * @enum {string}
              */
             direction: "up" | "down";
@@ -531,9 +665,9 @@ export interface components {
             evidence_ids: string[];
             /** Factor */
             factor: string;
-            likelihood_ratio: components["schemas"]["Range"];
             /** @description Probability of success after this step (low, base, high); the last step equals the posterior. */
-            pos_after: components["schemas"]["Range"] | null;
+            pos_after: components["schemas"]["Range"];
+            risk_ratio: components["schemas"]["Range"];
         };
         /** LogLine */
         LogLine: {
@@ -629,7 +763,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "data" | "processing" | "knowledge" | "quant" | "bull" | "bear" | "analysis" | "output";
+            kind: "data" | "processing" | "knowledge" | "quant" | "bull" | "bear" | "efficacy" | "safety" | "analysis" | "output";
             /** Label */
             label: string;
             /** Parent */
@@ -638,7 +772,7 @@ export interface components {
              * Phase
              * @description Pipeline phase the UI groups this step under.
              */
-            phase: ("resolve" | "plan" | "fetch" | "index" | "cases" | "analyse" | "quant" | "report") | null;
+            phase: ("resolve" | "plan" | "fetch" | "index" | "assess" | "cases" | "analyse" | "quant" | "report") | null;
             /** Reads */
             reads: string[];
             /** Writes */
@@ -678,7 +812,7 @@ export interface components {
              * Section
              * @enum {string}
              */
-            section: "disease_need" | "scientific_thesis" | "translation" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks";
+            section: "disease_need" | "scientific_thesis" | "translation" | "safety" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks";
         };
         /** ProgramInput */
         ProgramInput: {
@@ -719,6 +853,11 @@ export interface components {
         };
         /** ReasonCode */
         ReasonCode: {
+            /**
+             * Cause
+             * @description The failure cause this reason speaks to, when it is about one.
+             */
+            cause: ("efficacy" | "safety" | "pk_exposure" | "commercial" | "other") | null;
             /** Claim Ids */
             claim_ids: string[];
             /** Code */
@@ -736,7 +875,7 @@ export interface components {
             /** Added Claim Ids */
             added_claim_ids: string[];
             /** Changed Sections */
-            changed_sections: ("disease_need" | "scientific_thesis" | "translation" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks")[];
+            changed_sections: ("disease_need" | "scientific_thesis" | "translation" | "safety" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks")[];
             /** Decision After */
             decision_after: ("invest" | "conditional" | "do_not_invest") | null;
             /** Decision Before */
@@ -785,6 +924,45 @@ export interface components {
             severity: "low" | "medium" | "high";
             /** Text */
             text: string;
+        };
+        /**
+         * RiskAdjustment
+         * @description One piece of evidence that moves one cause's risk.
+         *
+         *     Written by the assessment lanes (any node may add one) and applied by evidence_ledger:
+         *     the cause's cumulative hazard is multiplied by risk_ratio. Below 1 lowers that risk.
+         */
+        RiskAdjustment: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "sourced" | "assumption";
+            /**
+             * Cause
+             * @enum {string}
+             */
+            cause: "efficacy" | "safety" | "pk_exposure" | "commercial" | "other";
+            /**
+             * Citation
+             * @default null
+             */
+            citation: string | null;
+            /** Claim Ids */
+            claim_ids: string[];
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /** Factor */
+            factor: string;
+            /**
+             * Inputs
+             * @description The numbers the formula used, so a reader can recompute the ratio.
+             */
+            inputs: {
+                [key: string]: number | string | null;
+            };
+            /** @description Multiplier on the cause's hazard; low = optimistic, high = pessimistic. */
+            risk_ratio: components["schemas"]["Range"];
         };
         /** RunDetail */
         RunDetail: {
@@ -928,7 +1106,7 @@ export interface components {
              * Section
              * @enum {string}
              */
-            section: "disease_need" | "scientific_thesis" | "translation" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks";
+            section: "disease_need" | "scientific_thesis" | "translation" | "safety" | "clinical_plan" | "competition" | "commercial_adoption" | "capital" | "risks";
             /**
              * Status
              * @enum {string}
@@ -1005,6 +1183,8 @@ export interface components {
         };
         /** TwinStats */
         TwinStats: {
+            /** @description Failure causes among the stopped twins, or the literature split. */
+            failure_mix: components["schemas"]["FailureMix"] | null;
             /**
              * Match Level
              * @enum {string}
@@ -1035,6 +1215,11 @@ export interface components {
         };
         /** UnderwritingReport */
         UnderwritingReport: {
+            /**
+             * Assessments
+             * @description The efficacy and safety lanes' results.
+             */
+            assessments: components["schemas"]["AssessmentResult"][];
             /** Claims */
             claims: {
                 [key: string]: components["schemas"]["Claim"];

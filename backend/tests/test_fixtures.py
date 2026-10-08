@@ -1,5 +1,6 @@
 import json
 import re
+from math import log
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -43,7 +44,7 @@ def test_program_fixture_validates():
 def test_report_fixture_validates_and_is_synthetic(report: UnderwritingReport):
     assert report.meta.synthetic is True
     assert report.verdict.decision == "conditional"
-    assert len(report.sections) == 8
+    assert len(report.sections) == 9
     assert 5 <= len(report.diligence_questions) <= 10
     assert 3 <= len(report.verdict.reason_codes) <= 5
 
@@ -136,3 +137,42 @@ def test_claims_are_authored_by_writers_never_gates(report: UnderwritingReport):
     registry = get_registry()
     assert producers <= set(registry)
     assert all(registry[p].spec.correctable for p in producers)
+
+
+def test_assessment_lanes_cite_only_their_own_claims_and_cover_both_causes(
+    report: UnderwritingReport,
+):
+    """Lanes run in parallel, so an adjustment may cite only its own lane's claims or evidence."""
+    lane_of = {
+        "efficacy": "efficacy_extract",
+        "pk_exposure": "efficacy_extract",
+        "safety": "safety_extract",
+    }
+    assert report.ledger is not None
+    for step in report.ledger.steps:
+        for claim_id in step.claim_ids:
+            assert report.claims[claim_id].produced_by == lane_of[step.cause], step.factor
+    assert {a.cause for a in report.assessments} == {"efficacy", "safety"}
+    for assessment in report.assessments:
+        assert assessment.produced_by == f"{assessment.cause}_score"
+        for claim_id in assessment.claim_ids:
+            assert report.claims[claim_id].produced_by == f"{assessment.cause}_extract"
+        for metric in assessment.metrics:
+            assert set(metric.evidence_ids) <= set(report.evidence)
+
+
+def test_the_failure_mix_cites_its_source_and_the_ledger_splits_the_prior_by_it(
+    report: UnderwritingReport,
+):
+    assert report.ledger is not None and report.twin_stats is not None
+    mix = report.ledger.failure_mix
+    assert mix is not None and mix == report.twin_stats.failure_mix
+    assert mix.source == "literature" and mix.citation and "asbmb.org" in mix.citation
+    by = {c.cause: c for c in report.ledger.by_cause}
+    assert abs(sum(c.hazard_prior.base for c in by.values()) + log(report.ledger.prior.base)) < 1e-9
+    assert by["safety"].risk_ratio.base > 1 and by["commercial"].risk_ratio.base == 1
+
+
+def test_every_reason_names_a_cause_only_when_it_is_about_one(report: UnderwritingReport):
+    causes = {r.code: r.cause for r in report.verdict.reason_codes}
+    assert causes["SAFETY_LIABILITY"] == "safety" and causes["TARGET_LINK"] == "efficacy"

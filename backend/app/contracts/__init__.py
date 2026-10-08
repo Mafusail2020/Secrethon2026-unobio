@@ -8,6 +8,12 @@ from app.contracts.api import (
     EvidenceDetail,
     HealthStatus,
 )
+from app.contracts.assessment import (
+    AssessedCause,
+    AssessmentMetric,
+    AssessmentRating,
+    AssessmentResult,
+)
 from app.contracts.claims import (
     Claim,
     DiligenceQuestion,
@@ -37,10 +43,16 @@ from app.contracts.graph_spec import GraphEdge, GraphSpec, NodeKind, NodeSpec
 from app.contracts.llm import ChatMessage, ModelInfo
 from app.contracts.program import ProgramInput, RunOptions
 from app.contracts.quant import (
+    FAILURE_CAUSES,
     Assumption,
+    CauseOutcome,
+    CauseShare,
     EvidenceLedger,
+    FailureCause,
+    FailureMix,
     LedgerStep,
     ReasonCode,
+    RiskAdjustment,
     TwinProgram,
     TwinStats,
     Valuation,
@@ -78,8 +90,14 @@ API_MODELS: tuple[type[BaseModel], ...] = (
     Range,
     TwinProgram,
     TwinStats,
+    CauseShare,
+    FailureMix,
+    RiskAdjustment,
     LedgerStep,
+    CauseOutcome,
     EvidenceLedger,
+    AssessmentMetric,
+    AssessmentResult,
     Assumption,
     Valuation,
     ReasonCode,
@@ -109,8 +127,15 @@ API_MODELS: tuple[type[BaseModel], ...] = (
 
 __all__ = [
     "API_MODELS",
+    "FAILURE_CAUSES",
     "SECTION_IDS",
+    "AssessedCause",
+    "AssessmentMetric",
+    "AssessmentRating",
+    "AssessmentResult",
     "Assumption",
+    "CauseOutcome",
+    "CauseShare",
     "CaseStance",
     "ChatMessage",
     "Claim",
@@ -128,6 +153,8 @@ __all__ = [
     "Evidence",
     "EvidenceDetail",
     "EvidenceLedger",
+    "FailureCause",
+    "FailureMix",
     "GraphEdge",
     "GraphSpec",
     "HealthStatus",
@@ -146,6 +173,7 @@ __all__ = [
     "ProgramInput",
     "Range",
     "ReasonCode",
+    "RiskAdjustment",
     "ReportDiff",
     "ResolvedEntities",
     "Risk",

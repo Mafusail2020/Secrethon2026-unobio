@@ -85,7 +85,7 @@ describe("diff view", () => {
 describe("waterfall", () => {
   const ledger = report.ledger!;
 
-  it("chains the base ratios from the prior and keeps the posterior from the data", () => {
+  it("starts at the prior, links the steps and keeps the posterior from the data", () => {
     const w = buildWaterfall(ledger);
     expect(w.steps).toHaveLength(ledger.steps.length);
     expect(w.steps[0]!.start).toBeCloseTo(ledger.prior.base);
@@ -94,7 +94,7 @@ describe("waterfall", () => {
     expect(w.chainedEnd).toBeCloseTo(w.steps.at(-1)!.end);
   });
 
-  it("moves down for ratios under one and up for ratios over one, with whiskers around the end", () => {
+  it("moves down for risk ratios over one and up for ratios under one, with whiskers around the end", () => {
     for (const s of buildWaterfall(ledger).steps) {
       expect(s.end < s.start).toBe(s.step.direction === "down");
       expect(s.lowEnd).toBeLessThanOrEqual(s.end + 1e-9);
@@ -102,7 +102,7 @@ describe("waterfall", () => {
     }
   });
 
-  it("flags a chain that disagrees with the posterior and stays quiet when they agree", () => {
+  it("flags steps that disagree with the posterior and stays quiet when they agree", () => {
     expect(buildWaterfall({ ...ledger, posterior: { low: 0.3, base: 0.3, high: 0.4, unit: "probability" } }).driftNotable).toBe(true);
     const w = buildWaterfall(ledger);
     expect(buildWaterfall({ ...ledger, posterior: { ...ledger.posterior, base: w.chainedEnd } }).driftNotable).toBe(false);
@@ -201,19 +201,16 @@ describe("markdown export", () => {
 describe("backend-provided fields win over the browser's guesses", () => {
   const ledger = report.ledger!;
 
-  it("draws the waterfall from pos_after when every step has it", () => {
+  it("draws the waterfall from each step's own pos_after", () => {
     const w = buildWaterfall(ledger);
-    expect(w.exact).toBe(true);
-    expect(w.steps.at(-1)!.end).toBe(ledger.steps.at(-1)!.pos_after!.base);
-    expect(w.steps[0]!.lowEnd).toBe(ledger.steps[0]!.pos_after!.low);
+    expect(w.steps.at(-1)!.end).toBe(ledger.steps.at(-1)!.pos_after.base);
+    expect(w.steps[0]!.lowEnd).toBe(ledger.steps[0]!.pos_after.low);
     expect(w.driftNotable).toBe(false);
   });
 
-  it("falls back to chaining ratios when a step lacks pos_after", () => {
-    const stripped = { ...ledger, steps: ledger.steps.map((s, i) => (i === 0 ? { ...s, pos_after: null } : s)) };
-    const w = buildWaterfall(stripped);
-    expect(w.exact).toBe(false);
-    expect(w.steps[0]!.end).toBeCloseTo(ledger.steps[0]!.pos_after!.base, 3); // same maths, so the same picture
+  it("names the failure cause each step moves", () => {
+    expect(new Set(ledger.steps.map((s) => s.cause))).toEqual(new Set(["efficacy", "safety", "pk_exposure"]));
+    expect(ledger.failure_mix?.source).toBe("literature");
   });
 
   it("flags a ledger whose own steps do not reach its posterior", () => {

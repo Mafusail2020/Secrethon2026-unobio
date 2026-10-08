@@ -13,7 +13,8 @@ _ASKS = {
     "competition": "what standard of care and competitors must this beat?",
     "commercial_adoption": "would prescribers and payers adopt it?",
     "capital": "what does it cost to reach the next milestone?",
-    "risks": "which safety, CMC and IP risks could stop it?",
+    "safety": "which toxicities and side effects of {mechanism} could stop it in people?",
+    "risks": "which regulatory, CMC and IP risks could stop it?",
 }
 
 SPEC = NodeSpec(

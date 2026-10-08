@@ -46,13 +46,25 @@ async def touch_llm(ctx: NodeContext, purpose: str) -> LLMResult | None:
 
 
 async def register_fixture_sources(
-    ctx: NodeContext, state: GraphState, source_type: str
+    ctx: NodeContext,
+    state: GraphState,
+    source_type: str,
+    *,
+    title_has: str | None = None,
+    title_lacks: str | None = None,
 ) -> tuple[int, int]:
     """Register fixture sources of a type plus their evidence, minus corrected-away evidence."""
     report = fixture_report()
     excluded = excluded_ids(state)
     n_sources = n_evidence = 0
-    for source in (s for s in report.sources.values() if s.type == source_type):
+    wanted = (
+        s
+        for s in report.sources.values()
+        if s.type == source_type
+        and (title_has is None or title_has in s.title.lower())
+        and (title_lacks is None or title_lacks not in s.title.lower())
+    )
+    for source in wanted:
         evidence = [
             e for e in report.evidence.values() if e.source_id == source.id and e.id not in excluded
         ]

@@ -7,6 +7,7 @@ export type PhaseId =
   | "plan"
   | "fetch"
   | "index"
+  | "assess"
   | "cases"
   | "analyse"
   | "quant"
@@ -20,6 +21,7 @@ export const PHASE_DEFS: { id: PhaseId; label: string; description: string }[] =
   { id: "plan", label: "Plan the questions", description: "Decide which questions matter for this program" },
   { id: "fetch", label: "Gather public evidence", description: "Trials, literature, regulators, Open Targets and your notes" },
   { id: "index", label: "Freeze and index the evidence", description: "Deduplicate and index the evidence set" },
+  { id: "assess", label: "Check efficacy and safety", description: "Gather the biology and precedents, then rate whether it works and whether it is safe" },
   { id: "cases", label: "Argue both sides", description: "Strongest reasons to invest and not to, built in parallel" },
   { id: "analyse", label: "Write the analysis", description: "Sections, risks, unknowns and diligence questions" },
   { id: "quant", label: "Quantify and decide", description: "Evidence ledger, valuation and verdict" },
@@ -39,6 +41,9 @@ const NODE_PHASE: Record<string, PhaseId> = {
   twin_stats: "fetch",
   evidence_normalizer: "index",
   knowledge_indexer: "index",
+  fetch_safety: "fetch",
+  efficacy_assessment: "assess",
+  safety_assessment: "assess",
   section_analysts: "analyse",
   evidence_ledger: "quant",
   valuation: "quant",
@@ -46,8 +51,16 @@ const NODE_PHASE: Record<string, PhaseId> = {
   report_assembler: "report",
 };
 
+// inner steps of a container belong to its phase
+const PARENT_PHASE: Record<string, PhaseId> = {
+  bull_case: "cases",
+  bear_case: "cases",
+  efficacy_assessment: "assess",
+  safety_assessment: "assess",
+};
+
 export function phaseOf(node: NodeSpec): PhaseId {
-  return node.phase ?? NODE_PHASE[node.id] ?? (node.parent ? "cases" : "other");
+  return node.phase ?? NODE_PHASE[node.id] ?? (node.parent ? PARENT_PHASE[node.parent] : undefined) ?? "other";
 }
 
 export interface PhaseProblem {

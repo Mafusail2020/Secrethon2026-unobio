@@ -38,7 +38,7 @@
       "label": "Open Targets",
       "kind": "data",
       "phase": "fetch",
-      "description": "Fetches target-disease associations by datatype, known drugs, safety liabilities and tractability.",
+      "description": "Fetches target-disease associations by datatype, known drugs and tractability.",
       "reads": [
         "program",
         "entities",
@@ -99,6 +99,26 @@
       "kind": "data",
       "phase": "fetch",
       "description": "Fetches labels and approvals for standard of care and competitors.",
+      "reads": [
+        "program",
+        "entities",
+        "questions"
+      ],
+      "writes": [
+        "source_ids",
+        "evidence_ids",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "fetch_safety",
+      "label": "Safety data",
+      "kind": "data",
+      "phase": "fetch",
+      "description": "Fetches target safety liabilities, tissue expression, label warnings and adverse-event counts for the target and its drug class.",
       "reads": [
         "program",
         "entities",
@@ -185,6 +205,200 @@
       ],
       "parent": null,
       "correctable": false,
+      "critical": false
+    },
+    {
+      "id": "efficacy_assessment",
+      "label": "Efficacy assessment",
+      "kind": "efficacy",
+      "phase": "assess",
+      "description": "Checks whether the drug does what it is meant to do in people: gathers the biology and the precedent, extracts what the evidence says, then scores it with formulas.",
+      "reads": [
+        "program",
+        "entities",
+        "questions",
+        "evidence_ids",
+        "twin_stats"
+      ],
+      "writes": [
+        "claims",
+        "risk_adjustments",
+        "assessments",
+        "scratch",
+        "translation_chain"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "efficacy_gather",
+      "label": "Efficacy gatherer",
+      "kind": "knowledge",
+      "phase": "assess",
+      "description": "Collects what bears on efficacy from the frozen evidence and the precedent base: association evidence by data type, same-target trial outcomes, class history and your preclinical data. No model.",
+      "reads": [
+        "program",
+        "entities",
+        "evidence_ids",
+        "twin_stats"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "efficacy_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "efficacy_extract",
+      "label": "Efficacy extractor",
+      "kind": "analysis",
+      "phase": "assess",
+      "description": "Fills the five-step translation chain and drafts efficacy claims from the gathered material, each citing evidence ids.",
+      "reads": [
+        "program",
+        "entities",
+        "scratch"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "efficacy_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "efficacy_gate",
+      "label": "Efficacy claim gate",
+      "kind": "processing",
+      "phase": "assess",
+      "description": "Rejects or downgrades drafted claims whose evidence ids are not valid and settles the translation chain.",
+      "reads": [
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "claims",
+        "translation_chain"
+      ],
+      "parent": "efficacy_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "efficacy_score",
+      "label": "Efficacy scorer",
+      "kind": "quant",
+      "phase": "assess",
+      "description": "Turns the gathered numbers and the accepted claims into risk adjustments for the efficacy and exposure hazards, by formula.",
+      "reads": [
+        "claims",
+        "twin_stats",
+        "scratch"
+      ],
+      "writes": [
+        "risk_adjustments",
+        "assessments"
+      ],
+      "parent": "efficacy_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "safety_assessment",
+      "label": "Safety assessment",
+      "kind": "safety",
+      "phase": "assess",
+      "description": "Checks whether people will tolerate the drug: gathers the biology and the precedent, extracts what the evidence says, then scores it with formulas.",
+      "reads": [
+        "program",
+        "entities",
+        "questions",
+        "evidence_ids",
+        "twin_stats"
+      ],
+      "writes": [
+        "claims",
+        "risk_adjustments",
+        "assessments",
+        "scratch"
+      ],
+      "parent": null,
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "safety_gather",
+      "label": "Safety gatherer",
+      "kind": "knowledge",
+      "phase": "assess",
+      "description": "Collects target safety liabilities, tissue expression, label warnings, class adverse events and safety-tagged stop reasons from the frozen evidence and the precedent base. No model.",
+      "reads": [
+        "program",
+        "entities",
+        "evidence_ids",
+        "twin_stats"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "safety_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "safety_extract",
+      "label": "Safety extractor",
+      "kind": "analysis",
+      "phase": "assess",
+      "description": "Names the liabilities (organ, on or off target, severity) and drafts safety claims and risk candidates, each citing evidence ids.",
+      "reads": [
+        "program",
+        "entities",
+        "scratch"
+      ],
+      "writes": [
+        "scratch"
+      ],
+      "parent": "safety_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "safety_gate",
+      "label": "Safety claim gate",
+      "kind": "processing",
+      "phase": "assess",
+      "description": "Rejects or downgrades drafted claims whose evidence ids are not valid.",
+      "reads": [
+        "evidence_ids",
+        "scratch"
+      ],
+      "writes": [
+        "claims"
+      ],
+      "parent": "safety_assessment",
+      "correctable": true,
+      "critical": false
+    },
+    {
+      "id": "safety_score",
+      "label": "Safety scorer",
+      "kind": "quant",
+      "phase": "assess",
+      "description": "Turns liabilities, adverse-event signals, tissue selectivity and precedent into risk adjustments for the safety hazard, by formula.",
+      "reads": [
+        "claims",
+        "twin_stats",
+        "scratch"
+      ],
+      "writes": [
+        "risk_adjustments",
+        "assessments"
+      ],
+      "parent": "safety_assessment",
+      "correctable": true,
       "critical": false
     },
     {
@@ -370,19 +584,21 @@
       "label": "Section analysts",
       "kind": "analysis",
       "phase": "analyse",
-      "description": "Writes each report section plus the translation chain, risks, unknowns and diligence questions.",
+      "description": "Writes each report section plus the risks, unknowns and diligence questions, using the efficacy and safety lanes' claims and scores.",
       "reads": [
         "program",
         "entities",
         "questions",
         "claims",
         "twin_stats",
+        "translation_chain",
+        "assessments",
+        "scratch",
         "evidence_ids"
       ],
       "writes": [
         "sections",
         "claims",
-        "translation_chain",
         "key_risks",
         "critical_unknowns",
         "diligence_questions"
@@ -396,9 +612,10 @@
       "label": "Evidence ledger",
       "kind": "quant",
       "phase": "quant",
-      "description": "Combines the twin prior with likelihood ratios from evidence into a posterior range.",
+      "description": "Splits the prior's failure risk by cause, applies the lanes' risk adjustments to each cause and gives the posterior range.",
       "reads": [
         "twin_stats",
+        "risk_adjustments",
         "claims",
         "sections",
         "evidence_ids"
@@ -441,7 +658,8 @@
         "valuation",
         "claims",
         "key_risks",
-        "twin_stats"
+        "twin_stats",
+        "assessments"
       ],
       "writes": [
         "verdict"
@@ -467,6 +685,7 @@
         "critical_unknowns",
         "diligence_questions",
         "ledger",
+        "assessments",
         "valuation",
         "verdict",
         "evidence_ids",
@@ -515,6 +734,14 @@
     },
     {
       "source": "fetch_regulatory",
+      "target": "evidence_normalizer"
+    },
+    {
+      "source": "question_planner",
+      "target": "fetch_safety"
+    },
+    {
+      "source": "fetch_safety",
       "target": "evidence_normalizer"
     },
     {
@@ -578,6 +805,46 @@
       "target": "section_analysts"
     },
     {
+      "source": "knowledge_indexer",
+      "target": "efficacy_gather"
+    },
+    {
+      "source": "efficacy_gather",
+      "target": "efficacy_extract"
+    },
+    {
+      "source": "efficacy_extract",
+      "target": "efficacy_gate"
+    },
+    {
+      "source": "efficacy_gate",
+      "target": "efficacy_score"
+    },
+    {
+      "source": "efficacy_score",
+      "target": "section_analysts"
+    },
+    {
+      "source": "knowledge_indexer",
+      "target": "safety_gather"
+    },
+    {
+      "source": "safety_gather",
+      "target": "safety_extract"
+    },
+    {
+      "source": "safety_extract",
+      "target": "safety_gate"
+    },
+    {
+      "source": "safety_gate",
+      "target": "safety_score"
+    },
+    {
+      "source": "safety_score",
+      "target": "section_analysts"
+    },
+    {
       "source": "section_analysts",
       "target": "evidence_ledger"
     },
@@ -601,6 +868,8 @@
     "quant": "#7c3aed",
     "bull": "#16a34a",
     "bear": "#dc2626",
+    "efficacy": "#0891b2",
+    "safety": "#be185d",
     "analysis": "#d97706",
     "output": "#0f172a"
   }

@@ -21,7 +21,7 @@ def test_graph_returns_every_node_with_kinds_and_colors(client: TestClient):
     spec = GraphSpec.model_validate(client.get("/api/graph").json())
     ids = {n.id for n in spec.nodes}
     assert {"bull_claim_gate", "bear_query_planner", "bull_case", "verdict"} <= ids
-    assert len(ids) == 25
+    assert len(ids) == 36
     assert all(n.kind in spec.kind_colors for n in spec.nodes)
 
 

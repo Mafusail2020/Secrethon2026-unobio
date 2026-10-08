@@ -1,6 +1,159 @@
 {
   "components": {
     "schemas": {
+      "AssessmentMetric": {
+        "additionalProperties": false,
+        "description": "One number an assessment computed, with what it means and where it came from.",
+        "properties": {
+          "basis": {
+            "enum": [
+              "sourced",
+              "assumption"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citation"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "key": {
+            "description": "Stable id of the formula output, e.g. genetic_support.",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "One line on what the number says.",
+            "title": "Note"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "basis",
+          "citation",
+          "evidence_ids",
+          "key",
+          "label",
+          "note",
+          "unit",
+          "value"
+        ],
+        "title": "AssessmentMetric",
+        "type": "object"
+      },
+      "AssessmentResult": {
+        "additionalProperties": false,
+        "description": "What the efficacy or safety lane found, in numbers a reader can check.\n\nThe metrics come from formulas; the claims are model-written and gated. The headline is composed\nby code from the metrics, never by a model.",
+        "properties": {
+          "cause": {
+            "enum": [
+              "efficacy",
+              "safety"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "gaps": {
+            "description": "What could not be checked, and why. Unknown is valid.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Gaps",
+            "type": "array"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentMetric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "produced_by": {
+            "title": "Produced By",
+            "type": "string"
+          },
+          "rating": {
+            "enum": [
+              "strong",
+              "moderate",
+              "weak",
+              "concerning",
+              "unknown"
+            ],
+            "title": "Rating",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cause",
+          "claim_ids",
+          "gaps",
+          "headline",
+          "metrics",
+          "produced_by",
+          "rating"
+        ],
+        "title": "AssessmentResult",
+        "type": "object"
+      },
       "Assumption": {
         "additionalProperties": false,
         "properties": {
@@ -38,6 +191,70 @@
           "value"
         ],
         "title": "Assumption",
+        "type": "object"
+      },
+      "CauseOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "cause": {
+            "enum": [
+              "efficacy",
+              "safety",
+              "pk_exposure",
+              "commercial",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "hazard_posterior": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "hazard_prior": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "risk_ratio": {
+            "$ref": "#/components/schemas/Range",
+            "description": "Net multiplier of every adjustment to this cause."
+          },
+          "share": {
+            "$ref": "#/components/schemas/Range"
+          }
+        },
+        "required": [
+          "cause",
+          "hazard_posterior",
+          "hazard_prior",
+          "risk_ratio",
+          "share"
+        ],
+        "title": "CauseOutcome",
+        "type": "object"
+      },
+      "CauseShare": {
+        "additionalProperties": false,
+        "properties": {
+          "cause": {
+            "enum": [
+              "efficacy",
+              "safety",
+              "pk_exposure",
+              "commercial",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "share": {
+            "$ref": "#/components/schemas/Range",
+            "description": "Fraction of all failures this cause explains (low, base, high); unit 'share'."
+          }
+        },
+        "required": [
+          "cause",
+          "share"
+        ],
+        "title": "CauseShare",
         "type": "object"
       },
       "ChatMessage": {
@@ -139,6 +356,7 @@
               "disease_need",
               "scientific_thesis",
               "translation",
+              "safety",
               "clinical_plan",
               "competition",
               "commercial_adoption",
@@ -532,7 +750,25 @@
       },
       "EvidenceLedger": {
         "additionalProperties": false,
+        "description": "prior -> posterior, by cause.\n\nH = -ln(prior); each cause i gets H_i = share_i * H; adjustments multiply H_i by their\nrisk_ratio; posterior = exp(-sum(H_i)). The low end of every range is the pessimistic one\n(a lower prior, higher risk ratios), the high end the optimistic one.",
         "properties": {
+          "by_cause": {
+            "items": {
+              "$ref": "#/components/schemas/CauseOutcome"
+            },
+            "title": "By Cause",
+            "type": "array"
+          },
+          "failure_mix": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureMix"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "posterior": {
             "$ref": "#/components/schemas/Range"
           },
@@ -548,11 +784,81 @@
           }
         },
         "required": [
+          "by_cause",
+          "failure_mix",
           "posterior",
           "prior",
           "steps"
         ],
         "title": "EvidenceLedger",
+        "type": "object"
+      },
+      "FailureMix": {
+        "additionalProperties": false,
+        "description": "Where a program's failure probability goes, by cause.\n\nTaken from the stop reasons of stopped twin programs when there are enough of them, otherwise\nfrom the literature figures in config/ledger.yaml. The ledger splits the prior's failure\nbudget with it, so each kind of evidence can move only the risk it speaks to.",
+        "properties": {
+          "basis": {
+            "enum": [
+              "sourced",
+              "assumption"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Citation"
+          },
+          "n_stopped": {
+            "default": 0,
+            "description": "Stopped twin programs behind the shares; 0 for literature.",
+            "minimum": 0.0,
+            "title": "N Stopped",
+            "type": "integer"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "shares": {
+            "items": {
+              "$ref": "#/components/schemas/CauseShare"
+            },
+            "title": "Shares",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "twins",
+              "literature"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "basis",
+          "citation",
+          "n_stopped",
+          "note",
+          "shares",
+          "source"
+        ],
+        "title": "FailureMix",
         "type": "object"
       },
       "GraphEdge": {
@@ -596,6 +902,8 @@
                 "quant",
                 "bull",
                 "bear",
+                "efficacy",
+                "safety",
                 "analysis",
                 "output"
               ]
@@ -744,6 +1052,17 @@
             "title": "Basis",
             "type": "string"
           },
+          "cause": {
+            "enum": [
+              "efficacy",
+              "safety",
+              "pk_exposure",
+              "commercial",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
           "citation": {
             "anyOf": [
               {
@@ -763,6 +1082,7 @@
             "type": "array"
           },
           "direction": {
+            "description": "Effect on the probability of success: up lowers the cause's risk (ratio <= 1).",
             "enum": [
               "up",
               "down"
@@ -781,30 +1101,24 @@
             "title": "Factor",
             "type": "string"
           },
-          "likelihood_ratio": {
-            "$ref": "#/components/schemas/Range"
-          },
           "pos_after": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Range"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "$ref": "#/components/schemas/Range",
             "description": "Probability of success after this step (low, base, high); the last step equals the posterior."
+          },
+          "risk_ratio": {
+            "$ref": "#/components/schemas/Range"
           }
         },
         "required": [
           "basis",
+          "cause",
           "citation",
           "claim_ids",
           "direction",
           "evidence_ids",
           "factor",
-          "likelihood_ratio",
-          "pos_after"
+          "pos_after",
+          "risk_ratio"
         ],
         "title": "LedgerStep",
         "type": "object"
@@ -1060,6 +1374,8 @@
               "quant",
               "bull",
               "bear",
+              "efficacy",
+              "safety",
               "analysis",
               "output"
             ],
@@ -1089,6 +1405,7 @@
                   "plan",
                   "fetch",
                   "index",
+                  "assess",
                   "cases",
                   "analyse",
                   "quant",
@@ -1225,6 +1542,7 @@
               "disease_need",
               "scientific_thesis",
               "translation",
+              "safety",
               "clinical_plan",
               "competition",
               "commercial_adoption",
@@ -1414,6 +1732,25 @@
       "ReasonCode": {
         "additionalProperties": false,
         "properties": {
+          "cause": {
+            "anyOf": [
+              {
+                "enum": [
+                  "efficacy",
+                  "safety",
+                  "pk_exposure",
+                  "commercial",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The failure cause this reason speaks to, when it is about one.",
+            "title": "Cause"
+          },
           "claim_ids": {
             "items": {
               "type": "string"
@@ -1439,6 +1776,7 @@
           }
         },
         "required": [
+          "cause",
           "claim_ids",
           "code",
           "direction",
@@ -1463,6 +1801,7 @@
                 "disease_need",
                 "scientific_thesis",
                 "translation",
+                "safety",
                 "clinical_plan",
                 "competition",
                 "commercial_adoption",
@@ -1681,6 +2020,98 @@
           "text"
         ],
         "title": "Risk",
+        "type": "object"
+      },
+      "RiskAdjustment": {
+        "additionalProperties": false,
+        "description": "One piece of evidence that moves one cause's risk.\n\nWritten by the assessment lanes (any node may add one) and applied by evidence_ledger:\nthe cause's cumulative hazard is multiplied by risk_ratio. Below 1 lowers that risk.",
+        "properties": {
+          "basis": {
+            "enum": [
+              "sourced",
+              "assumption"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "cause": {
+            "enum": [
+              "efficacy",
+              "safety",
+              "pk_exposure",
+              "commercial",
+              "other"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Citation"
+          },
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "factor": {
+            "title": "Factor",
+            "type": "string"
+          },
+          "inputs": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "The numbers the formula used, so a reader can recompute the ratio.",
+            "title": "Inputs",
+            "type": "object"
+          },
+          "risk_ratio": {
+            "$ref": "#/components/schemas/Range",
+            "description": "Multiplier on the cause's hazard; low = optimistic, high = pessimistic."
+          }
+        },
+        "required": [
+          "basis",
+          "cause",
+          "citation",
+          "claim_ids",
+          "evidence_ids",
+          "factor",
+          "inputs",
+          "risk_ratio"
+        ],
+        "title": "RiskAdjustment",
         "type": "object"
       },
       "RunDetail": {
@@ -2071,6 +2502,7 @@
               "disease_need",
               "scientific_thesis",
               "translation",
+              "safety",
               "clinical_plan",
               "competition",
               "commercial_adoption",
@@ -2300,6 +2732,17 @@
       "TwinStats": {
         "additionalProperties": false,
         "properties": {
+          "failure_mix": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureMix"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Failure causes among the stopped twins, or the literature split."
+          },
           "match_level": {
             "enum": [
               "exact_target_indication",
@@ -2363,6 +2806,7 @@
           }
         },
         "required": [
+          "failure_mix",
           "match_level",
           "n_programs",
           "notes",
@@ -2378,6 +2822,14 @@
       "UnderwritingReport": {
         "additionalProperties": false,
         "properties": {
+          "assessments": {
+            "description": "The efficacy and safety lanes' results.",
+            "items": {
+              "$ref": "#/components/schemas/AssessmentResult"
+            },
+            "title": "Assessments",
+            "type": "array"
+          },
           "claims": {
             "additionalProperties": {
               "$ref": "#/components/schemas/Claim"
@@ -2449,6 +2901,7 @@
                 "disease_need",
                 "scientific_thesis",
                 "translation",
+                "safety",
                 "clinical_plan",
                 "competition",
                 "commercial_adoption",
@@ -2498,6 +2951,7 @@
           }
         },
         "required": [
+          "assessments",
           "claims",
           "critical_unknowns",
           "diligence_questions",

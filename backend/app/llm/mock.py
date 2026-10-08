@@ -7,6 +7,7 @@ from typing import Annotated, Any, Literal, Union, get_args, get_origin
 from annotated_types import Ge, Gt, MinLen
 from pydantic import BaseModel, ValidationError
 
+from app.contracts import FailureMix, LedgerStep, RiskAdjustment
 from app.llm.backend import RawCompletion
 from app.llm.types import LLMParseError, LLMTask
 
@@ -18,7 +19,37 @@ def register_mock_fixture(purpose: str, data: dict[str, Any]) -> None:
     MOCK_FIXTURES[purpose] = data
 
 
+_SHARE = {"low": 0.4, "base": 0.5, "high": 0.6, "unit": "share"}
+# models with cross-field rules that the smallest-instance builder cannot satisfy
+_OVERRIDES: dict[type[BaseModel], dict[str, Any]] = {
+    FailureMix: {
+        "shares": [
+            {"cause": "efficacy", "share": _SHARE},
+            {"cause": "safety", "share": _SHARE},
+        ],
+        "source": "literature",
+        "basis": "assumption",
+    },
+    LedgerStep: {
+        "factor": "mock",
+        "cause": "efficacy",
+        "direction": "up",
+        "risk_ratio": {"low": 1.0, "base": 1.0, "high": 1.0, "unit": "ratio"},
+        "basis": "assumption",
+        "pos_after": {"low": 0.1, "base": 0.1, "high": 0.1, "unit": "probability"},
+    },
+    RiskAdjustment: {
+        "cause": "efficacy",
+        "factor": "mock",
+        "risk_ratio": {"low": 1.0, "base": 1.0, "high": 1.0, "unit": "ratio"},
+        "basis": "assumption",
+    },
+}
+
+
 def _value(tp: Any, meta: tuple[Any, ...], pick: int) -> Any:
+    if isinstance(tp, type) and tp in _OVERRIDES:
+        return _OVERRIDES[tp]
     origin = get_origin(tp)
     if origin is Annotated:
         base, *extra = get_args(tp)
@@ -77,6 +108,8 @@ def _fields(model: type[BaseModel], pick: int) -> dict[str, Any]:
 
 def default_instance(model: type[BaseModel]) -> BaseModel:
     """Smallest valid instance; retries with the last literal member to dodge validators."""
+    if model in _OVERRIDES:
+        return model.model_validate(_OVERRIDES[model])
     error: ValidationError | None = None
     for pick in (0, -1):
         try:

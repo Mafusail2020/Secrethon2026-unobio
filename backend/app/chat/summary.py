@@ -13,7 +13,8 @@ Rules:
 - Structure, in this order, with ## headings:
   ## Verdict - the call in bold, the probability of success with its range, the confidence, one sentence of why.
   ## Why this call - 3 to 5 bullets: the strongest reasons for and against, each saying what it rests on.
-  ## What the report found - one ### subsection per report section that has content (disease need, scientific thesis, translation, clinical plan, competition, commercial adoption, capital), each with one or two sentences or 2 to 3 short bullets.
+  ## What the report found - one ### subsection per report section that has content (disease need, scientific thesis, translation, safety, clinical plan, competition, commercial adoption, capital), each with one or two sentences or 2 to 3 short bullets.
+  ## Efficacy and safety checks - one bullet each, with its rating and what drives it, from the ASSESSMENT lines; say what could not be checked.
   ## Funding to the next milestone - only if the report has a valuation: the milestone, capital, time and risk-adjusted value, with their ranges.
   ## Risks and unknowns - short bullets, most severe first, and what could not be established.
   ## What to do next - the conditions to proceed and the diligence questions worth running first.
@@ -27,6 +28,7 @@ SECTION_ORDER = (
     "disease_need",
     "scientific_thesis",
     "translation",
+    "safety",
     "clinical_plan",
     "competition",
     "commercial_adoption",
@@ -91,6 +93,13 @@ def template_summary(report: UnderwritingReport, run_id: str) -> ChatMessage:
                     "\n".join(f"- {p.text}{_cite(p.claim_ids, valid)}" for p in sec.key_points[:3])
                 )
             out.append("\n\n".join(body))
+    if report.assessments:
+        out.append("## Efficacy and safety checks")
+        lines = []
+        for a in report.assessments:
+            gaps = f" Could not check: {'; '.join(a.gaps[:2])}." if a.gaps else ""
+            lines.append(f"- **{a.cause.capitalize()}: {a.rating}.** {a.headline}.{gaps}")
+        out.append("\n".join(lines))
     if report.valuation:
         v = report.valuation
         out.append("## Funding to the next milestone")

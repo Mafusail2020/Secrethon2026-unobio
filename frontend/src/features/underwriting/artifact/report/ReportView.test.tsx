@@ -26,7 +26,7 @@ describe("report on the BACE1 fixture", () => {
 
   it("carries the synthetic banner and the navigator", () => {
     expect(markup).toContain("Synthetic data: this report contains placeholder content");
-    for (const label of ["Overview", "Translation chain", "Clinical plan", "All claims (11)", "Run"]) expect(markup).toContain(label);
+    for (const label of ["Overview", "Translation chain", "Clinical plan", "All claims (16)", "Run"]) expect(markup).toContain(label);
   });
 
   it("shows the quant visuals and their honest warnings", () => {

@@ -24,6 +24,7 @@ const SECTION_ORDER: SectionId[] = [
   "disease_need",
   "scientific_thesis",
   "translation",
+  "safety",
   "clinical_plan",
   "competition",
   "commercial_adoption",

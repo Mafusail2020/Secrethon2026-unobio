@@ -62,7 +62,7 @@ describe("mock scenarios", () => {
     const report = adjustReport(structuredClone(fixture), "large");
     expect(Object.keys(report.claims)).toHaveLength(Object.keys(fixture.claims).length + 150);
     const markup = render(report);
-    expect(markup).toContain("All claims (161)");
+    expect(markup).toContain("All claims (166)");
     expect(markup).toContain("bulk claim 149");
   });
 });
