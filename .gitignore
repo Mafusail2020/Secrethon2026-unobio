@@ -1,6 +1,7 @@
 CLAUDE.md
 CLAUDE.local.md
 .claude/
+system/
 
 .env
 .env.*
