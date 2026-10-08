@@ -7,6 +7,7 @@ from app.nodes._data import client, entity_ids, force_refresh, register
 from app.nodes._fixture import excluded_ids, nap, register_fixture_sources
 from app.nodes.base import NodeContext
 from app.nodes.fetch_regulatory import _approved
+from app.quant.assessment import infer_modality, ot_modality
 from app.sources.base import SourceError
 from app.sources.openfda import FAERS_COUNT, OpenFDAClient, faers_search
 from app.sources.opentargets import OpenTargetsClient
@@ -56,6 +57,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     records: list[Record | None] = []
     facts: dict[str, Any] = {}
     same_target: list[str] = []
+    modalities: dict[str, str] = {}
 
     if ot is not None and entities.target is not None:
         try:
@@ -70,16 +72,27 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
                     f"{entities.target.label} in Open Targets"
                 )
             rows = await ot.target_drugs(entities.target.id, force_refresh=fr)
-            same_target = [r["drug"]["name"] for r in _approved(rows, False)]
+            for r in _approved(rows, False):
+                same_target.append(r["drug"]["name"])
+                found = ot_modality(r["drug"].get("drugType"))
+                if found:
+                    modalities[parent_name(r["drug"]["name"])] = found
         except SourceError as exc:
             ctx.log(f"Open Targets safety lookup failed: {exc}", "warn")
     elif entities.target is None:
         ctx.log("no resolved target: no target safety liabilities to look up", "warn")
 
+    # labels of drugs of the program's own modality say the most about it, so read them first
+    modality = program.modality or infer_modality(program.mechanism)
+    same_target = sorted(
+        same_target,
+        key=lambda n: modality is not None and modalities.get(parent_name(n)) != modality,
+    )
     own = entities.drug.label if entities.drug else program.drug_name
     names = [n for n in (own, *same_target) if n]
     lookups = list(dict.fromkeys(parent_name(n) for n in names))[: 1 + ctx.effort.n_queries // 2]
     facts["same_target_approved"] = [parent_name(n) for n in same_target]
+    facts["drug_modalities"] = modalities
     facts["labels"], facts["boxed_warning_evidence_ids"], facts["faers"] = {}, {}, {}
     if fda is not None:
         for name in lookups:
