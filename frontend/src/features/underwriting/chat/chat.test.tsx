@@ -117,15 +117,26 @@ describe("run thread", () => {
     expect(running).toContain("Show steps");
   });
 
-  it("reads the summary in plain paragraphs with the claims it rests on", () => {
-    const message = { role: "assistant", run_id: "r1", content: "First point.\n\nSecond point.", cited_claim_ids: ["c1"] } as ChatMessage;
+  it("draws the summary as a Markdown briefing with numbered citations and a list of the claims cited", () => {
+    const message = {
+      role: "assistant",
+      run_id: "r1",
+      content: "## Verdict\n\n**Conditional** call [[c2]] and more [[c1]].\n\n- first risk [[c2]]\n- <b>not html</b>\n\n### Detail\n\nBody.",
+      cited_claim_ids: ["c2", "c1"],
+    } as ChatMessage;
     const markup = html(
       <RunThread run={run} spec={spec} stream={events.reduce(applyEvent, initialStream)} decision="conditional" report={undefined} summary={{ message, pending: false, failed: false, retry: () => {} }} onOpenReport={() => {}} onReconnect={() => {}} />,
     );
-    expect(markup).toContain("First point.");
-    expect(markup).toContain("Second point.");
-    expect(markup.match(/<p[^>]*>(First point|Second point)\./g)).toHaveLength(2);
-    expect(markup).toContain("Claims this answer rests on");
+    expect(markup).toMatch(/<h2[^>]*>Verdict<\/h2>/);
+    expect(markup).toMatch(/<h3[^>]*>Detail<\/h3>/);
+    expect(markup).toContain("<strong");
+    expect(markup).toMatch(/<li>first risk/);
+    // c2 is cited first, so it is number 1; the marks themselves never show
+    expect(markup).toMatch(/aria-label="Open claim 1"[^>]*>1<\/button>/);
+    expect(markup).toMatch(/aria-label="Open claim 2"[^>]*>2<\/button>/);
+    expect(markup).not.toContain("[[");
+    expect(markup).toContain("Claims cited (2)");
+    expect(markup).not.toContain("<b>"); // raw HTML from the model is shown as text, never rendered
   });
 
   it("says when the summary is being written or could not be", () => {

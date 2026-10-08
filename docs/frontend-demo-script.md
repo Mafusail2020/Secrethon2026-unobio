@@ -32,9 +32,10 @@ the ✕, to close it). Below 1280 px the panel covers the conversation; below 76
    line (model calls, tokens, cost; "mock model, no spend" in mock) is inside it. A **stub data** chip is expected: the
    nodes are still fixtures.
 5. Click **Graph** in the top bar while it runs: turn on **Follow running step**; the camera follows. Open **Legend**.
-6. When it completes, a short plain-language read-out appears (three or four paragraphs) with chips for the claims it
-   rests on; a chip opens the report at that claim. Under it, the verdict card: click **Open report** (or **Report** in
-   the top bar). Reload: the same text is there, it is written once per run.
+6. When it completes, a structured briefing appears in the thread (a smaller version of the report: Verdict, Why this
+   call, What the report found, Funding, Risks and unknowns, What to do next). The small numbers are citations: a number
+   opens the report at that claim, and **Claims cited** at the end lists them. Under it, the verdict card: click **Open
+   report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run.
 
 ## 2. Drill-down (recommendation → claims → evidence → sources)
 

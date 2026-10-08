@@ -14,8 +14,8 @@ import type {
   RunSummary,
   UnderwritingReport,
 } from "../types";
-import { DECISION_LABEL } from "../../lib/format";
 import { TERMINAL_EVENTS } from "../types";
+import { briefing } from "./briefing";
 import { adjustDrafts, adjustReport, scenarioFromSearch, stepDelayFactor, type Draft, type Scenario } from "./scenarios";
 
 // Mirrors the backend stub run closely enough to demo with no server:
@@ -296,22 +296,8 @@ export const mockApi: Api = {
     const run = need(runId);
     if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
     if (!run.readout) {
-      const { verdict, pos } = run.report;
-      const pct = (x: number) => `${Math.round(x * 100)}%`;
-      const side = (direction: string) => verdict.reason_codes.filter((r) => r.direction === direction).map((r) => r.text);
-      const paragraphs = [
-        `${DECISION_LABEL[verdict.decision]} at ${verdict.confidence} confidence. The probability of success is about ${pct(pos.base)} (range ${pct(pos.low)} to ${pct(pos.high)}). ${verdict.rationale}`,
-        [side("positive").length ? `In favour: ${side("positive").join("; ")}.` : "", side("negative").length ? `Against: ${side("negative").join("; ")}.` : ""]
-          .filter(Boolean)
-          .join(" "),
-        verdict.conditions.length ? `Before funding: ${verdict.conditions.join("; ")}.` : "",
-      ].filter(Boolean);
-      run.readout = {
-        role: "assistant",
-        run_id: runId,
-        content: paragraphs.join("\n\n"),
-        cited_claim_ids: [...new Set(verdict.reason_codes.flatMap((r) => r.claim_ids))].slice(0, 4),
-      };
+      const { text, cited } = briefing(run.report);
+      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited };
     }
     return wait({ ...run.readout });
   },

@@ -11,7 +11,7 @@ import { runElapsed } from "../elapsed";
 import { currentStep, groupPhases, nowLabel } from "../phases";
 import type { RunStream } from "../reduceEvents";
 import { useNow } from "../useNow";
-import { ClaimChips } from "./ClaimChips";
+import { MarkdownText } from "./MarkdownText";
 import { PhaseBlock } from "./PhaseBlock";
 import { WorkTrace } from "./WorkTrace";
 
@@ -86,17 +86,24 @@ function SummaryBlock({
     );
   }
   if (!summary.message) return null;
+  const { content, cited_claim_ids: ids } = summary.message;
   return (
-    <div className="space-y-3 text-[0.95rem] leading-relaxed">
-      {summary.message.content
-        .split(/\n{2,}/)
-        .filter(Boolean)
-        .map((paragraph, i) => (
-          <p key={i} className="whitespace-pre-wrap">
-            {paragraph}
-          </p>
-        ))}
-      <ClaimChips ids={summary.message.cited_claim_ids} report={report} onOpen={onOpenClaim} />
+    <div className="text-[0.95rem] leading-relaxed">
+      <MarkdownText text={content} ids={ids} report={report} onOpenClaim={onOpenClaim} />
+      {ids.length > 0 && (
+        <details className="mt-4 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
+          <summary className="cursor-pointer select-none text-muted">Claims cited ({ids.length})</summary>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            {ids.map((id) => (
+              <li key={id}>
+                <button type="button" onClick={() => onOpenClaim(id)} className="text-left text-brand hover:underline">
+                  {report?.claims[id]?.text ?? id}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </div>
   );
 }

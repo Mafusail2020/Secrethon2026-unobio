@@ -167,11 +167,13 @@ answer marked supported with no valid citation is replaced by a fixed refusal, s
 to a claim. In `mock` mode the answer is canned from the verdict's reason claims. Live calls are logged to `llm_calls` with
 node id `chat`, so they count in the trace and cost.
 
-`summary.py` writes the read-out that sits under a finished run: three or four short paragraphs of plain prose (the call and
-why, the strongest evidence each way, what is unknown, what to do next), built from the same report text and gated the same
-way (cited ids must exist; a draft that cites none is replaced by `template_summary`, which is composed from the report's own
-verdict, reasons, unknowns and conditions with no model call). One model call per run, logged under node id `summary`. The
-frontend asks for it when the run completes; the endpoint is idempotent, so a reload shows the stored text.
+`summary.py` writes the briefing that sits under a finished run: a compact Markdown report of 400 to 650 words (Verdict, Why this
+call, What the report found with one subsection per report section, Funding to the next milestone, Risks and unknowns, What
+to do next). Each statement carries inline `[[claim_id]]` marks. The gate strikes marks whose id is not a usable claim, numbers
+the rest by first use (`cited_claim_ids` is that order), and a briefing that cites nothing real is replaced by
+`template_summary`, which composes the same structure from the report's own verdict, sections, valuation, risks and
+diligence questions with no model call. One model call per run, logged under node id `summary`. The frontend asks for it when
+the run completes; the endpoint is idempotent, so a reload shows the stored text.
 
 ## 7. Effort and panel [1b]
 
@@ -209,8 +211,9 @@ The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` 
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`, example pills) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
 blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
-evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the read-out
-(`SummaryBlock`, claim chips under it) and a compact verdict card follow, then the follow-up thread (`FollowUpMessages`) with its reply box
+evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the briefing
+(`SummaryBlock`: Markdown through `react-markdown`, raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
+open the claim, and a "Claims cited" list) and a compact verdict card follow, then the follow-up thread (`FollowUpMessages`) with its reply box
 (`FollowUpInput`) docked at the bottom; both read `useFollowUp`, which is backed by the chat endpoints (history is loaded
 per run; a 429 locks the box with a note). `TopBar` has toggle buttons for the four views; opening one shows it in a side
 panel (`ArtifactPanel`), split beside the conversation from 1280 px and covering it below that. A correction or a version
