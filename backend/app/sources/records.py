@@ -175,9 +175,7 @@ def association_records(
     return source, [_evidence(source, text, "associatedTargets.rows[0]", entity_ids, data=data)]
 
 
-def target_profile_records(
-    profile: dict[str, Any], entity_ids: list[str]
-) -> tuple[SourceRef, list[Evidence]]:
+def _profile_source(profile: dict[str, Any]) -> tuple[SourceRef, str]:
     tid, symbol = profile["id"], profile.get("approvedSymbol") or profile["id"]
     source = ot_source(
         "target",
@@ -185,6 +183,13 @@ def target_profile_records(
         f"Open Targets target profile: {symbol}",
         f"https://platform.opentargets.org/target/{tid}",
     )
+    return source, symbol
+
+
+def safety_liability_records(
+    profile: dict[str, Any], entity_ids: list[str]
+) -> tuple[SourceRef, list[Evidence]]:
+    source, symbol = _profile_source(profile)
     evidence: list[Evidence] = []
     for i, s in enumerate(profile.get("safetyLiabilities") or []):
         if not s.get("event"):
@@ -193,9 +198,14 @@ def target_profile_records(
             "/".join(x for x in (e.get("direction"), e.get("dosing")) if x)
             for e in s.get("effects") or []
         )
+        tissues = sorted(
+            {b.get("tissueLabel") for b in s.get("biosamples") or [] if b.get("tissueLabel")}
+        )
         text = f"Safety liability for {symbol} ({s.get('datasource')}): {s['event']}"
         if effects:
             text += f"; effects: {effects}"
+        if tissues:
+            text += f"; tissues: {', '.join(tissues[:5])}"
         evidence.append(
             _evidence(
                 source,
@@ -205,6 +215,15 @@ def target_profile_records(
                 data={k: s.get(k) for k in ("event", "eventId", "datasource", "literature", "url")},
             )
         )
+    return source, evidence
+
+
+def target_profile_records(
+    profile: dict[str, Any], entity_ids: list[str]
+) -> tuple[SourceRef, list[Evidence]]:
+    """Tractability and class; safety liabilities are fetch_safety's (safety_liability_records)."""
+    source, symbol = _profile_source(profile)
+    evidence: list[Evidence] = []
     by_modality: dict[str, list[str]] = {}
     for t in profile.get("tractability") or []:
         if t.get("value"):
@@ -270,8 +289,15 @@ def drug_landscape_records(
     return source, evidence
 
 
+LABEL_CORE = ("indications_and_usage", "boxed_warning", "mechanism_of_action")
+LABEL_SAFETY = ("boxed_warning", "warnings_and_cautions", "adverse_reactions")
+
+
 def label_records(
-    label: dict[str, Any], entity_ids: list[str], section_max: int = 1500
+    label: dict[str, Any],
+    entity_ids: list[str],
+    section_max: int = 1500,
+    sections: tuple[str, ...] = LABEL_CORE,
 ) -> tuple[SourceRef, list[Evidence]] | None:
     if not label.get("set_id"):
         return None
@@ -289,9 +315,33 @@ def label_records(
     evidence = [
         _evidence(source, text[:section_max], section, entity_ids)
         for section, text in (label.get("sections") or {}).items()
-        if section in ("indications_and_usage", "boxed_warning", "mechanism_of_action")
+        if section in sections
     ]
     return source, evidence
+
+
+def faers_records(
+    drug: str, reactions: list[dict[str, Any]], entity_ids: list[str], api_url: str
+) -> tuple[SourceRef, list[Evidence]] | None:
+    """Spontaneous reports: counts of reports, not incidence, and not proof the drug caused them."""
+    if not reactions:
+        return None
+    source = SourceRef(
+        id=source_id("db_record", f"faers:{drug.lower()}"),
+        type="db_record",
+        title=f"FDA adverse event reports (FAERS): {drug}",
+        url=api_url,
+        publisher="U.S. FDA (openFDA FAERS)",
+        retrieved_at=utcnow(),
+        identifiers={"faers_generic_name": drug.lower()},
+    )
+    top = ", ".join(f"{r['term'].lower()} ({r['count']})" for r in reactions)
+    text = (
+        f"Most reported adverse reactions for {drug} in FAERS (number of reports, not incidence): "
+        f"{top}."
+    )
+    data = {"drug": drug, "reactions": {r["term"]: r["count"] for r in reactions}}
+    return source, [_evidence(source, text, "count:reactionmeddrapt", entity_ids, data=data)]
 
 
 def application_records(
