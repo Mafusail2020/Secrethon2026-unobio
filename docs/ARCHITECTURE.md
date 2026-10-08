@@ -153,6 +153,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
 | GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
 | GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
+| POST | `/runs/{id}/summary` | the plain-language read-out of a completed run (`ChatMessage` with cited claim ids). Written once and stored in `run_summaries`; asking again returns the same text. 409 until the run completed |
 | GET | `/runs/{id}/messages` | chat history of the run, oldest first |
 | POST | `/runs/{id}/messages` | follow-up question (`role: user`, 1–2000 chars); returns the assistant `ChatMessage`. 409 until the run completed, 422 on a bad message, 429 after `MAX_CHAT_QUESTIONS`, 502 `chat_failed` if the model reply is unreadable |
 
@@ -165,6 +166,12 @@ data; the system prompt says to use only the report text. `gate_answer` drops ci
 answer marked supported with no valid citation is replaced by a fixed refusal, so the chat never states what it cannot tie
 to a claim. In `mock` mode the answer is canned from the verdict's reason claims. Live calls are logged to `llm_calls` with
 node id `chat`, so they count in the trace and cost.
+
+`summary.py` writes the read-out that sits under a finished run: three or four short paragraphs of plain prose (the call and
+why, the strongest evidence each way, what is unknown, what to do next), built from the same report text and gated the same
+way (cited ids must exist; a draft that cites none is replaced by `template_summary`, which is composed from the report's own
+verdict, reasons, unknowns and conditions with no model call). One model call per run, logged under node id `summary`. The
+frontend asks for it when the run completes; the endpoint is idempotent, so a reload shows the stored text.
 
 ## 7. Effort and panel [1b]
 
@@ -184,7 +191,7 @@ Panel never applies to data, processing or quant nodes. In 1b panel is an interf
 
 SQLite at `backend/data/app.db` via SQLAlchemy 2 async, `create_all` at startup, no migrations. Tables: `runs` (with
 report JSON), `run_events`, `node_executions` (compact output for the UI plus the full state delta for replay),
-`corrections`, `chat_messages`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
+`corrections`, `chat_messages`, `run_summaries`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
 real stores; until then `store/fakes.py` keeps them in memory (so `/evidence/{id}` only knows evidence from the running
 process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
 
@@ -201,7 +208,9 @@ Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is no
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`, example pills) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible
-blocks), live model usage, a verdict card, then the follow-up thread (`FollowUpMessages`) with its reply box
+blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
+evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the read-out
+(`SummaryBlock`, claim chips under it) and a compact verdict card follow, then the follow-up thread (`FollowUpMessages`) with its reply box
 (`FollowUpInput`) docked at the bottom; both read `useFollowUp`, which is backed by the chat endpoints (history is loaded
 per run; a 429 locks the box with a note). `TopBar` has toggle buttons for the four views; opening one shows it in a side
 panel (`ArtifactPanel`), split beside the conversation from 1280 px and covering it below that. A correction or a version

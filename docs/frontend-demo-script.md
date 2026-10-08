@@ -27,11 +27,14 @@ the ✕, to close it). Below 1280 px the panel covers the conversation; below 76
 2. Effort: hover **Panel** and read the hint ("Several models analyse independently…"), then click back to **Medium**.
 3. Press **⌘/Ctrl+Enter** or the arrow button. The URL becomes `/underwriting/runs/<id>`; the run appears in the
    history on the left.
-4. Conversation: phases open while running and collapse when done. The status line shows the current phase, steps done
-   and elapsed time; the usage line shows model calls, tokens and cost ("mock model, no spend" in mock). A
-   **stub data** chip is expected: the nodes are still fixtures.
+4. Conversation: the working is folded into one line that names the step in progress ("Gather public evidence:
+   openFDA, Europe PMC …") with steps done and elapsed time. Click **Show steps** for the full list of phases; the usage
+   line (model calls, tokens, cost; "mock model, no spend" in mock) is inside it. A **stub data** chip is expected: the
+   nodes are still fixtures.
 5. Click **Graph** in the top bar while it runs: turn on **Follow running step**; the camera follows. Open **Legend**.
-6. When it completes, the verdict card appears in the thread. Click **Open report** (or **Report** in the top bar).
+6. When it completes, a short plain-language read-out appears (three or four paragraphs) with chips for the claims it
+   rests on; a chip opens the report at that claim. Under it, the verdict card: click **Open report** (or **Report** in
+   the top bar). Reload: the same text is there, it is written once per run.
 
 ## 2. Drill-down (recommendation → claims → evidence → sources)
 
