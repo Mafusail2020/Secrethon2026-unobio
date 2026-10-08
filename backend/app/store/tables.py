@@ -111,3 +111,13 @@ class LLMCacheRow(Base):
     model: Mapped[str] = mapped_column(String)
     response: Mapped[dict[str, Any]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
+class SourceCacheRow(Base):
+    __tablename__ = "source_cache"
+
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    source: Mapped[str] = mapped_column(String)
+    value: Mapped[Any] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime)
