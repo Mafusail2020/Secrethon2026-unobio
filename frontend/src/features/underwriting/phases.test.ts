@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import eventsRaw from "../../../../contracts/fixtures/events_bace1_alzheimers.jsonl?raw";
 import graphSpecJson from "../../../../contracts/fixtures/graph_spec.json";
 import type { GraphSpec, RunEvent } from "../../api/types";
-import { groupPhases } from "./phases";
+import { currentStep, groupPhases, nowLabel } from "./phases";
 import { applyEvent, initialStream } from "./reduceEvents";
 
 const spec = graphSpecJson as GraphSpec;
@@ -117,5 +117,25 @@ describe("phase from the spec", () => {
   it("falls back to the id map when a spec declares no phase", () => {
     const bare: GraphSpec = { ...spec, nodes: spec.nodes.map((n) => ({ ...n, phase: null })) };
     expect(groupPhases(bare, {}).map((p) => p.id)).toEqual(groupPhases(spec, {}).map((p) => p.id));
+  });
+});
+
+describe("current step", () => {
+  it("names the phase and the steps running in it, and nothing once the run is over", () => {
+    // the first events start the input resolver, so the first phase is the one running
+    const early = after(3);
+    const step = currentStep(groupPhases(spec, early.nodes), early.nodes);
+    expect(step.phase).toBe("Understand the program");
+    expect(step.tools).toEqual(["Input resolver"]);
+
+    const done = events.reduce(applyEvent, initialStream);
+    expect(currentStep(groupPhases(spec, done.nodes), done.nodes)).toEqual({ tools: [] });
+  });
+
+  it("writes it as one short line and caps the list of steps", () => {
+    expect(nowLabel({ phase: "Gather public evidence", tools: ["openFDA"] })).toBe("Gather public evidence: openFDA");
+    expect(nowLabel({ phase: "Gather public evidence", tools: ["a", "b", "c", "d", "e"] })).toBe("Gather public evidence: a, b, c +2");
+    expect(nowLabel({ phase: "Plan the questions", tools: [] })).toBe("Plan the questions");
+    expect(nowLabel({ tools: [] })).toBe("Working");
   });
 });

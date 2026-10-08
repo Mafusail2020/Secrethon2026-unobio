@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent }
 import type { UnderwritingReport } from "../../../api/types";
 import { ArrowUpIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
+import { ClaimChips } from "./ClaimChips";
 import type { FollowUp } from "./useFollowUp";
 
 const NOTICE = {
@@ -33,25 +34,7 @@ export function FollowUpMessages({
             ) : (
               <div className="text-[0.95rem] leading-relaxed">
                 <p className="whitespace-pre-wrap">{m.content}</p>
-                {m.cited_claim_ids.length > 0 && (
-                  <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Claims this answer rests on">
-                    {m.cited_claim_ids.map((id) => {
-                      const claim = report?.claims[id];
-                      return (
-                        <li key={id}>
-                          <button
-                            type="button"
-                            onClick={() => onOpenClaim(id)}
-                            className="max-w-[18rem] truncate rounded-full border border-line bg-surface px-2.5 py-1 text-xs text-brand hover:border-brand"
-                            title={claim?.text}
-                          >
-                            {claim ? claim.text : id}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                <ClaimChips ids={m.cited_claim_ids} report={report} onOpen={onOpenClaim} />
               </div>
             )}
           </li>

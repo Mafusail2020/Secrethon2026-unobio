@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import eventsRaw from "../../../../../contracts/fixtures/events_bace1_alzheimers.jsonl?raw";
 import graphSpecJson from "../../../../../contracts/fixtures/graph_spec.json";
-import type { GraphSpec, RunEvent, RunSummary } from "../../../api/types";
+import type { ChatMessage, GraphSpec, RunEvent, RunSummary } from "../../../api/types";
 import { applyEvent, initialStream } from "../reduceEvents";
 import { Composer } from "./Composer";
 import { ExampleCards } from "./ExampleCards";
@@ -105,5 +105,36 @@ describe("run thread", () => {
 
   it("shows how long a finished run took", () => {
     expect(thread()).toMatch(/Analysis complete \(23 steps\) · \d/);
+  });
+
+  it("keeps the step list folded and shows only what is being worked on", () => {
+    const running = html(
+      <RunThread run={run} spec={spec} stream={events.slice(0, 3).reduce(applyEvent, initialStream)} decision={undefined} report={undefined} onOpenReport={() => {}} onReconnect={() => {}} />,
+    );
+    expect(running).toContain('aria-expanded="false"');
+    expect(running).toMatch(/<div id="work-trace" hidden=""/);
+    expect(running).toContain("Understand the program: Input resolver");
+    expect(running).toContain("Show steps");
+  });
+
+  it("reads the summary in plain paragraphs with the claims it rests on", () => {
+    const message = { role: "assistant", run_id: "r1", content: "First point.\n\nSecond point.", cited_claim_ids: ["c1"] } as ChatMessage;
+    const markup = html(
+      <RunThread run={run} spec={spec} stream={events.reduce(applyEvent, initialStream)} decision="conditional" report={undefined} summary={{ message, pending: false, failed: false, retry: () => {} }} onOpenReport={() => {}} onReconnect={() => {}} />,
+    );
+    expect(markup).toContain("First point.");
+    expect(markup).toContain("Second point.");
+    expect(markup.match(/<p[^>]*>(First point|Second point)\./g)).toHaveLength(2);
+    expect(markup).toContain("Claims this answer rests on");
+  });
+
+  it("says when the summary is being written or could not be", () => {
+    const stream = events.reduce(applyEvent, initialStream);
+    const view = (summary: { message: ChatMessage | undefined; pending: boolean; failed: boolean }) =>
+      html(<RunThread run={run} spec={spec} stream={stream} decision="conditional" report={undefined} summary={{ ...summary, retry: () => {} }} onOpenReport={() => {}} onReconnect={() => {}} />);
+    expect(view({ message: undefined, pending: true, failed: false })).toContain("Writing the summary");
+    const failed = view({ message: undefined, pending: false, failed: true });
+    expect(failed).toContain("Could not write the summary");
+    expect(failed).toContain("Try again");
   });
 });

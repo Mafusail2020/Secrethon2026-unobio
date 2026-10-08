@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type UIEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useGraph, useRunDetail } from "../../api/hooks";
+import { useGraph, useRunDetail, useSummary } from "../../api/hooks";
 import type { Decision } from "../../api/types";
 import { ErrorBox } from "../../components/ui/ErrorBox";
 import { readPref, writePref } from "../../lib/storage";
@@ -40,6 +40,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
   const completed = stream.status === "completed" && run?.status === "completed";
   const decision: Decision | undefined = run?.decision ?? (stream.decision as Decision | undefined);
   const follow = useFollowUp(runId ?? "", !!runId && completed);
+  const readout = useSummary(runId ?? "", !!runId && completed);
 
   const sourceCounts = Object.fromEntries((detail.data?.nodes ?? []).map((n) => [n.node_id, n.source_ids.length]));
 
@@ -60,7 +61,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
     const el = event.currentTarget;
     pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 96;
   };
-  const grew = `${stream.events.length}:${follow.messages.length}:${follow.ask.isPending}:${detail.isPending}`;
+  const grew = `${stream.events.length}:${follow.messages.length}:${follow.ask.isPending}:${detail.isPending}:${readout.isLoading}:${!!readout.data}`;
   useEffect(() => {
     const el = scroller.current;
     if (el && pinned.current) el.scrollTo({ top: el.scrollHeight });
@@ -129,7 +130,13 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
                       stream={stream}
                       decision={decision}
                       report={report}
+                      summary={
+                        completed
+                          ? { message: readout.data, pending: readout.isLoading, failed: readout.isError, retry: () => void readout.refetch() }
+                          : undefined
+                      }
                       onOpenReport={() => setPanel("report")}
+                      onOpenClaim={openClaim}
                       onReconnect={() => setAttempt((a) => a + 1)}
                     />
                   )}

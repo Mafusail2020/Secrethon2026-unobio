@@ -2,16 +2,25 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getApi } from "../../../api/client";
-import type { Decision, GraphSpec, RunSummary, UnderwritingReport } from "../../../api/types";
+import type { ChatMessage, Decision, GraphSpec, RunSummary, UnderwritingReport } from "../../../api/types";
 import { Badge } from "../../../components/ui/Badge";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { Spinner } from "../../../components/ui/Spinner";
 import { DECISION_LABEL, DECISION_STYLE, formatCost, formatTokens, pctRange } from "../../../lib/format";
 import { runElapsed } from "../elapsed";
-import { groupPhases } from "../phases";
+import { currentStep, groupPhases, nowLabel } from "../phases";
 import type { RunStream } from "../reduceEvents";
 import { useNow } from "../useNow";
+import { ClaimChips } from "./ClaimChips";
 import { PhaseBlock } from "./PhaseBlock";
+import { WorkTrace } from "./WorkTrace";
+
+export interface SummaryState {
+  message: ChatMessage | undefined;
+  pending: boolean;
+  failed: boolean;
+  retry: () => void;
+}
 
 function ProgramMessage({ run }: { run: RunSummary }) {
   const p = run.program;
@@ -44,6 +53,54 @@ function UsageLine({ stream }: { stream: RunStream }) {
   );
 }
 
+/** The read-out in plain prose, with the claims it rests on. */
+function SummaryBlock({
+  summary,
+  report,
+  onOpenClaim,
+}: {
+  summary: SummaryState;
+  report: UnderwritingReport | undefined;
+  onOpenClaim: (claimId: string) => void;
+}) {
+  if (summary.pending) {
+    return (
+      <div role="status" aria-busy="true" className="space-y-2.5">
+        <p className="flex items-center gap-2 text-sm text-muted">
+          <Spinner className="h-3.5 w-3.5" /> Writing the summary…
+        </p>
+        <div className="h-3 w-11/12 animate-pulse rounded bg-slate-100 motion-reduce:animate-none" />
+        <div className="h-3 w-10/12 animate-pulse rounded bg-slate-100 motion-reduce:animate-none" />
+        <div className="h-3 w-7/12 animate-pulse rounded bg-slate-100 motion-reduce:animate-none" />
+      </div>
+    );
+  }
+  if (summary.failed) {
+    return (
+      <p role="alert" className="text-sm text-red-700">
+        Could not write the summary.{" "}
+        <button type="button" onClick={summary.retry} className="font-medium underline">
+          Try again
+        </button>
+      </p>
+    );
+  }
+  if (!summary.message) return null;
+  return (
+    <div className="space-y-3 text-[0.95rem] leading-relaxed">
+      {summary.message.content
+        .split(/\n{2,}/)
+        .filter(Boolean)
+        .map((paragraph, i) => (
+          <p key={i} className="whitespace-pre-wrap">
+            {paragraph}
+          </p>
+        ))}
+      <ClaimChips ids={summary.message.cited_claim_ids} report={report} onOpen={onOpenClaim} />
+    </div>
+  );
+}
+
 function VerdictCard({
   decision,
   report,
@@ -53,36 +110,18 @@ function VerdictCard({
   report: UnderwritingReport | undefined;
   onOpenReport: () => void;
 }) {
-  const reasons = report?.verdict.reason_codes.slice(0, 3) ?? [];
   return (
-    <div className="rounded-lg border border-line bg-surface p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge className={`px-3 py-1 text-sm ${DECISION_STYLE[decision]}`}>{DECISION_LABEL[decision]}</Badge>
-        {report && (
-          <span className="text-sm text-muted">
-            Probability of success <strong className="text-ink">{pctRange(report.pos)}</strong>
-          </span>
-        )}
-      </div>
-      {reasons.length > 0 && (
-        <ul className="mt-2 space-y-1">
-          {reasons.map((r) => (
-            <li key={r.code} className="flex items-start gap-2 text-sm">
-              <span className={r.direction === "positive" ? "text-emerald-600" : "text-red-600"} aria-hidden="true">
-                {r.direction === "positive" ? "▲" : "▼"}
-              </span>
-              <span>
-                <span className="sr-only">{r.direction}: </span>
-                {r.text}
-              </span>
-            </li>
-          ))}
-        </ul>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-3 py-2.5">
+      <Badge className={`px-3 py-1 text-sm ${DECISION_STYLE[decision]}`}>{DECISION_LABEL[decision]}</Badge>
+      {report && (
+        <span className="text-sm text-muted">
+          Probability of success <strong className="text-ink">{pctRange(report.pos)}</strong>
+        </span>
       )}
       <button
         type="button"
         onClick={onOpenReport}
-        className="mt-3 rounded-full border border-line px-3 py-1 text-sm font-medium text-brand hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+        className="ml-auto rounded-full border border-line px-3 py-1 text-sm font-medium text-brand hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
       >
         Open report
       </button>
@@ -96,7 +135,9 @@ export function RunThread({
   stream,
   decision,
   report,
+  summary,
   onOpenReport,
+  onOpenClaim = () => {},
   onReconnect,
 }: {
   run: RunSummary;
@@ -104,7 +145,10 @@ export function RunThread({
   stream: RunStream;
   decision: Decision | undefined;
   report: UnderwritingReport | undefined;
+  /** the plain-language read-out; absent until the run has completed */
+  summary?: SummaryState;
   onOpenReport: () => void;
+  onOpenClaim?: (claimId: string) => void;
   onReconnect: () => void;
 }) {
   const navigate = useNavigate();
@@ -113,10 +157,20 @@ export function RunThread({
   const total = phases.reduce((n, p) => n + p.nodes.length, 0);
   const finished = phases.reduce((n, p) => n + p.finished, 0);
   const reused = Object.values(stream.nodes).filter((n) => n.status === "reused").length;
-  const active = phases.find((p) => p.status === "running");
+  const step = currentStep(phases, stream.nodes);
   const now = useNow(stream.status === "running" || stream.status === "queued");
   const elapsed = runElapsed(stream, now);
   const lost = stream.connection === "closed" && (stream.status === "running" || stream.status === "queued");
+
+  const headline =
+    stream.status === "queued"
+      ? "Waiting for a free slot"
+      : stream.status === "running"
+        ? nowLabel(step)
+        : stream.status === "completed"
+          ? `Analysis complete (${total} steps)${elapsed ? ` · ${elapsed}` : ""}`
+          : `The run failed${elapsed ? ` after ${elapsed}` : ""}`;
+  const progress = stream.status === "running" ? `${finished}/${total} steps${elapsed ? ` · ${elapsed}` : ""}` : undefined;
 
   const rerun = useMutation({
     mutationFn: async () => (await getApi()).createRun({ program: run.program, options: run.options }),
@@ -129,26 +183,21 @@ export function RunThread({
   return (
     <div className="@container space-y-6">
       <ProgramMessage run={run} />
-      <div className="space-y-3">
+      <div className="space-y-4">
         {run.parent_run_id && (
           <p className="rounded-md bg-brand/10 p-2 text-xs text-royal">
             Re-run of <Link className="underline" to={`/underwriting/runs/${run.parent_run_id}`}>the previous version</Link>{" "}
             after a correction{stream.status !== "queued" ? `: ${reused} steps reused, the rest recompute` : ""}.
           </p>
         )}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium" role="status">
-          {(stream.status === "running" || stream.status === "queued") && <Spinner />}
-          {stream.status === "completed" && <span className="text-emerald-600">✓</span>}
-          {stream.status === "failed" && <span className="text-red-600">✕</span>}
-          <span className="min-w-0">
-            {stream.status === "queued" && "Waiting for a free slot"}
-            {stream.status === "running" && `${active?.label ?? "Working"} (${finished}/${total} steps)${elapsed ? ` · ${elapsed}` : ""}`}
-            {stream.status === "completed" && `Analysis complete (${total} steps)${elapsed ? ` · ${elapsed}` : ""}`}
-            {stream.status === "failed" && `The run failed${elapsed ? ` after ${elapsed}` : ""}`}
-          </span>
-          {stream.stubData && <Badge className="border-amber-300 bg-amber-50 text-amber-800">stub data</Badge>}
-        </div>
-        <UsageLine stream={stream} />
+        <WorkTrace status={stream.status} text={headline} progress={progress} stubData={stream.stubData}>
+          <UsageLine stream={stream} />
+          <ol className="space-y-1.5">
+            {phases.map((phase) => (
+              <PhaseBlock key={phase.id} phase={phase} live={stream.nodes} />
+            ))}
+          </ol>
+        </WorkTrace>
         {stream.connection === "connecting" && stream.status === "running" && (
           <p role="status" className="text-xs text-amber-700">Reconnecting to the live stream…</p>
         )}
@@ -174,11 +223,7 @@ export function RunThread({
             {rerun.error && <ErrorBox error={rerun.error} title="Could not restart" />}
           </div>
         )}
-        <ol className="space-y-1.5">
-          {phases.map((phase) => (
-            <PhaseBlock key={phase.id} phase={phase} live={stream.nodes} />
-          ))}
-        </ol>
+        {decision && summary && <SummaryBlock summary={summary} report={report} onOpenClaim={onOpenClaim} />}
         {decision && <VerdictCard decision={decision} report={report} onOpenReport={onOpenReport} />}
         {run.status === "failed" && !stream.error && run.error && (
           <ErrorBox error={new Error(run.error)} title="The run failed" />

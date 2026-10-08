@@ -31,6 +31,8 @@ export interface Api {
   getEvidence(evidenceId: string): Promise<EvidenceDetail>;
   /** Earlier follow-up questions and answers of a run, oldest first. */
   getMessages(runId: string): Promise<ChatMessage[]>;
+  /** The plain-language read-out of a completed run. Written once; asking again returns the same text. */
+  postSummary(runId: string): Promise<ChatMessage>;
   /** Follow-up question about a completed run; the reply cites claims of its report. */
   postMessage(runId: string, message: ChatMessage): Promise<ChatMessage>;
   /** Replays the full history, then streams live. Returns an unsubscribe function. */
@@ -89,6 +91,7 @@ export const liveApi: Api = {
   createCorrection: (id, nodeId, body) => post(`/runs/${id}/nodes/${nodeId}/corrections`, body),
   getDiff: (from, to) => request(`/runs/${from}/diff/${to}`),
   getEvidence: (id) => request(`/evidence/${id}`),
+  postSummary: (id) => post(`/runs/${id}/summary`, {}),
   getMessages: (id) => request(`/runs/${id}/messages`),
   postMessage: (id, message) => post(`/runs/${id}/messages`, message),
   subscribe(runId, onEvent, onState) {

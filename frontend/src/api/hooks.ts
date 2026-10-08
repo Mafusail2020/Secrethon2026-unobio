@@ -59,3 +59,13 @@ export const useMessages = (runId: string, enabled = true) =>
     enabled,
     retry: false,
   });
+
+/** The read-out of a finished run. The backend writes it on the first ask and returns it as stored after that. */
+export const useSummary = (runId: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["summary", runId],
+    queryFn: async () => (await getApi()).postSummary(runId),
+    enabled,
+    retry: false,
+    staleTime: Infinity,
+  });

@@ -141,3 +141,20 @@ export function groupPhases(spec: GraphSpec, live: Record<string, NodeLive>): Ph
     ];
   });
 }
+
+/** What is happening now: the phase that is running and the steps in it that are running. */
+export function currentStep(phases: PhaseView[], live: Record<string, NodeLive>): { phase?: string; tools: string[] } {
+  const active = phases.find((p) => p.status === "running");
+  if (!active) return { tools: [] };
+  return { phase: active.label, tools: active.nodes.filter((n) => live[n.id]?.status === "running").map((n) => n.label) };
+}
+
+const MAX_TOOLS = 3;
+
+/** The running step as one line: the phase, then the steps running in it (the first few). */
+export function nowLabel({ phase, tools }: { phase?: string; tools: string[] }): string {
+  if (!phase) return "Working";
+  if (!tools.length) return phase;
+  const more = tools.length > MAX_TOOLS ? ` +${tools.length - MAX_TOOLS}` : "";
+  return `${phase}: ${tools.slice(0, MAX_TOOLS).join(", ")}${more}`;
+}
