@@ -5,6 +5,7 @@ from app.core.events import EventBus
 from app.core.settings import Settings
 from app.llm.factory import LLMStack, build_llm_stack
 from app.sources.base import SourceRegistry
+from app.sources.factory import build_sources
 from app.store.chat_repo import ChatRepo
 from app.store.corrections_repo import CorrectionsRepo
 from app.store.db import Database
@@ -13,6 +14,7 @@ from app.store.fakes import InMemoryStore
 from app.store.llm_repo import LLMRepo
 from app.store.node_exec_repo import NodeExecRepo
 from app.store.runs_repo import RunsRepo
+from app.store.source_cache import SqliteSourceCache
 
 if TYPE_CHECKING:
     from app.graph.runner import RunManager
@@ -50,6 +52,7 @@ async def build_services(settings: Settings) -> Services:
     llm_repo = LLMRepo(db)
     bus = EventBus(events)
     await bus.start()
+    store = InMemoryStore(source_cache=SqliteSourceCache(db, settings.cache_ttl_days))
     services = Services(
         settings=settings,
         db=db,
@@ -61,8 +64,8 @@ async def build_services(settings: Settings) -> Services:
         llm_repo=llm_repo,
         bus=bus,
         llm=await build_llm_stack(settings, llm_repo),
-        store=InMemoryStore(),
-        sources=SourceRegistry(),
+        store=store,
+        sources=build_sources(settings, store.source_cache),
         manager=None,  # type: ignore[arg-type]  set below, it needs the rest
     )
     services.manager = RunManager(services, settings.max_concurrent_runs)
