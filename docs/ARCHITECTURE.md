@@ -207,8 +207,12 @@ after scrolling). Every link and button is inert (no `href`); the exceptions are
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 
-Motion (`styles/motion.css`) is arrival-only and short: the history sidebar and the view panels slide in (the sidebar by width on
-desktop, by translate as a drawer on phones, and `inert` while closed), "Add details" opens by animating grid rows, and new
+Motion (`styles/motion.css`) is arrival-only and short: the history sidebar slides (by width on desktop, by translate as a
+drawer on phones, `inert` while closed); the view area grows its width from the right edge while the conversation shrinks
+with it, and the dock inside keeps one fixed pixel width so the views are laid out once and only revealed (below 1280 px it
+slides in as an overlay; dragging the splitter turns the easing off so it follows the pointer); "Add details" opens through
+`uw-collapse` (grid rows with an even ease, content fading in a beat later) and the welcome screen is anchored from the
+top so the heading does not move as it grows; new
 thread content, history rows and the finished call rise or flash once (`uw-rise`, `uw-fade`, `uw-flash`, `uw-ring`,
 `uw-stagger` for the briefing). Nothing loops. `prefers-reduced-motion` removes all of it, and printing does too.
 

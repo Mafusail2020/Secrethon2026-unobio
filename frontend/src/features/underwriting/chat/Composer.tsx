@@ -257,7 +257,8 @@ export function Composer() {
       <div
         id={`${uid}-details`}
         inert={!detailsOpen}
-        className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${detailsOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+        data-open={detailsOpen}
+        className="uw-collapse"
       >
         <div className="min-h-0 overflow-hidden">
         <div className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
@@ -329,7 +330,7 @@ export function Composer() {
           aria-controls={`${uid}-details`}
           className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm text-muted hover:border-brand hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >
-          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform duration-200" : "transition-transform duration-200"} />
+          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform duration-300" : "transition-transform duration-300"} />
           Add details
         </button>
         <EffortPicker value={form.effort} onChange={(v) => set("effort", v)} />

@@ -9,11 +9,14 @@ export function SplitHandle({
   value,
   onChange,
   onCommit,
+  onDragging,
   row,
 }: {
   value: number;
   onChange: (percent: number) => void;
   onCommit: (percent: number) => void;
+  /** true while the bar is being dragged, so the panel can follow it without easing */
+  onDragging?: (dragging: boolean) => void;
   row: RefObject<HTMLElement | null>;
 }) {
   const dragging = useRef(false);
@@ -28,6 +31,7 @@ export function SplitHandle({
   const end = (event: PointerEvent) => {
     if (!dragging.current) return;
     dragging.current = false;
+    onDragging?.(false);
     event.currentTarget.releasePointerCapture(event.pointerId);
     onCommit(latest.current);
   };
@@ -50,6 +54,7 @@ export function SplitHandle({
       tabIndex={0}
       onPointerDown={(event) => {
         dragging.current = true;
+        onDragging?.(true);
         latest.current = value;
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
@@ -58,7 +63,7 @@ export function SplitHandle({
       onPointerCancel={end}
       onKeyDown={onKeyDown}
       data-print-hide
-      className="group hidden w-1.5 shrink-0 cursor-col-resize touch-none bg-line/40 transition-colors hover:bg-brand/40 focus-visible:bg-brand/50 focus-visible:outline-none xl:block"
+      className="absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-line/40 transition-colors hover:bg-brand/40 focus-visible:bg-brand/50 focus-visible:outline-none xl:block"
     />
   );
 }

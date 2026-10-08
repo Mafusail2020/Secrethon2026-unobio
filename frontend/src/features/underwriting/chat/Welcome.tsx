@@ -3,7 +3,7 @@ import { Composer } from "./Composer";
 /** The new-chat screen: a short greeting and the big composer. */
 export function Welcome() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-4 py-10">
+    <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 pb-10 pt-[max(2.5rem,18vh)]">
       <div className="uw-rise mb-8 text-center">
         {/* inline: the unlayered h2 rule in tokens.css beats a font-serif utility */}
         <h2 className="text-3xl leading-tight tracking-tight sm:text-4xl md:text-5xl" style={{ fontFamily: "var(--font-serif)" }}>

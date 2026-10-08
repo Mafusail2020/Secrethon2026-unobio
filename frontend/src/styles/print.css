@@ -41,6 +41,14 @@
   body[data-print="report"] .dv-resize-container:not(:has(header[data-print-header])) {
     display: none !important;
   }
+  /* the dock lays its groups out with inline pixel sizes; on paper the report takes the full width */
+  body[data-print="report"] [class*="dv-"] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+    flex: none !important;
+  }
   body[data-print="report"] [role="tablist"] {
     display: none !important;
   }
