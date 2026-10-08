@@ -283,7 +283,10 @@ the node wrappers) while the box fades, and once the steps have left it the came
 reader's, so a resize leaves it alone; Group all and Ungroup all refit the whole graph unless the reader panned or zoomed. Box names
 are centred; the status icon is balanced by a hidden spacer so the name itself sits at the centre.
 Nodes are always handed to React Flow in one fixed order, because React moving a node in the list restarts its style and
-the transition never plays.
+the transition never plays. A step's hover text fades and rises into place after a short pause and fades out when the pointer
+leaves. Clicking a step slides its details in from the right edge and closing slides them back out before they are removed;
+moving from one step to another does not slide again (one shell lives as long as a step is open). Reduced motion turns all of
+it off.
 
 Layout is dagre for ranks and order, with the rest done in `graph/layout.ts`: each frame reserves room above its first
 step and below its last, a fork's branches start on the same row, and every wire is routed square through the gaps

@@ -86,7 +86,7 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
       </button>
       <div
         role="tooltip"
-        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-line bg-surface p-2 text-xs shadow-lg group-hover:visible"
+        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-2 w-64 origin-top-left translate-y-1 scale-95 rounded-sm border border-line bg-surface p-2 text-xs opacity-0 shadow-lg transition-[opacity,transform,visibility] duration-150 ease-out group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-hover:delay-300 motion-reduce:transition-none"
       >
         <span className="block font-semibold">{data.spec.label}</span>
         <span className="block text-muted">{data.spec.description}</span>
@@ -182,7 +182,7 @@ export function PhaseGroupNodeView({ data }: NodeProps<PhaseFlowNode>) {
       </button>
       <div
         role="tooltip"
-        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-2 w-64 rounded-lg border border-line bg-surface p-2 text-xs shadow-lg group-hover:visible"
+        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-2 w-64 origin-top-left translate-y-1 scale-95 rounded-sm border border-line bg-surface p-2 text-xs opacity-0 shadow-lg transition-[opacity,transform,visibility] duration-150 ease-out group-hover:visible group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-hover:delay-300 motion-reduce:transition-none"
       >
         <span className="block font-semibold">{data.group.label}</span>
         <span className="block text-muted">{data.group.description}</span>

@@ -222,7 +222,7 @@ export function NodeDrawer({
     <aside
       aria-label={`${node.label} details`}
       onKeyDown={(e) => e.key === "Escape" && onClose()}
-      className="absolute right-0 top-0 z-10 flex h-full w-[26rem] max-w-full flex-col border-l border-line bg-surface shadow-lg"
+      className="flex h-full w-full flex-col border-l border-line bg-surface shadow-lg"
     >
       <div className="border-b border-line p-3">
         <div className="flex items-start justify-between gap-2">
