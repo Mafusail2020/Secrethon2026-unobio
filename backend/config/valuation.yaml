@@ -1,2 +1,60 @@
 # Quant owner fills these. Every entry needs a `citation` or `assumption: true`.
-assumptions: {}               # name -> {low, base, high, unit, citation | assumption: true}
+# Ranges are {low, base, high} of the quantity itself; the model picks the pessimistic end per input.
+
+cost_per_patient_usd:
+  {low: 100000, base: 150000, high: 200000, citation: "Unobio opening session, Secrethon 2026-10-02 ($100-200K per patient)"}
+
+discount_rate: {low: 0.08, base: 0.10, high: 0.12, assumption: true}
+
+# report area (config/base_rates.yaml) -> trial-size and market group
+area_groups:
+  oncology: oncology
+  rare: rare
+  cardiovascular: cardiometabolic
+  metabolic: cardiometabolic
+  endocrine: cardiometabolic
+  neurology: cns
+  psychiatry: cns
+
+# patients per trial; rare and oncology run small trials, cardiometabolic outcome trials are huge
+trial_size:
+  assumption: true
+  general:         {p1: {low: 30, base: 60, high: 100}, p2: {low: 100, base: 200, high: 400}, p3: {low: 300, base: 600, high: 1200}}
+  oncology:        {p1: {low: 20, base: 40, high: 80},  p2: {low: 40, base: 100, high: 200},  p3: {low: 300, base: 500, high: 900}}
+  rare:            {p1: {low: 10, base: 20, high: 40},  p2: {low: 20, base: 40, high: 80},    p3: {low: 40, base: 100, high: 200}}
+  cardiometabolic: {p1: {low: 40, base: 80, high: 120}, p2: {low: 200, base: 400, high: 800}, p3: {low: 1000, base: 3000, high: 10000}}
+  cns:             {p1: {low: 30, base: 60, high: 100}, p2: {low: 150, base: 300, high: 500}, p3: {low: 800, base: 1500, high: 2500}}
+
+# per-phase fixed cost on top of patients (CMC, sites, regulatory, operations), USD
+fixed_cost_usd:
+  assumption: true
+  ind_enabling: {low: 2000000, base: 5000000, high: 10000000}
+  p1: {low: 2000000, base: 4000000, high: 8000000}
+  p2: {low: 5000000, base: 10000000, high: 20000000}
+  p3: {low: 15000000, base: 30000000, high: 60000000}
+  nda: {low: 2000000, base: 4000000, high: 8000000}
+
+duration_months:
+  assumption: true
+  ind_enabling: {low: 9, base: 12, high: 18}
+  p1: {low: 12, base: 18, high: 24}
+  p2: {low: 18, base: 30, high: 42}
+  p3: {low: 24, base: 36, high: 54}
+  nda: {low: 10, base: 12, high: 18}
+
+# yearly peak net sales, USD
+peak_sales_usd:
+  assumption: true
+  general:         {low: 200000000, base: 600000000, high: 1500000000}
+  oncology:        {low: 300000000, base: 1000000000, high: 3000000000}
+  rare:            {low: 150000000, base: 400000000, high: 1000000000}
+  cardiometabolic: {low: 300000000, base: 1000000000, high: 3000000000}
+  cns:             {low: 300000000, base: 1000000000, high: 3000000000}
+
+commercial:
+  assumption: true
+  operating_margin: {low: 0.25, base: 0.35, high: 0.45}
+  ramp_years: 5            # linear ramp to peak
+  years_on_market: 10      # before loss of exclusivity
+
+default_stage: {value: phase1, assumption: true}   # when the user gives no stage

@@ -1,0 +1,57 @@
+# Phase-transition success rates by disease area. Every entry needs a `citation` or `assumption: true`.
+# Numbers checked against the report's Figure 2b (disease areas) and Figure 8 (rare diseases) on 2026-10-08.
+# 'p1' = Phase I -> II, 'p2' = Phase II -> III, 'p3' = Phase III -> NDA/BLA, 'nda' = NDA/BLA -> approval.
+citation: >-
+  BIO, Biomedtracker, Amplion. Clinical Development Success Rates 2006-2015 (June 2016), Figure 2b and
+  Figure 8. 9,985 phase transitions of FDA programs, 2006-2015.
+  Copy read: https://cdn.vanderbilt.edu/t2-main/medschool-prd/wp-content/uploads/sites/106/2025/05/BiomedtrackerPDF.pdf
+
+areas:
+  all:              {p1: 0.632, p2: 0.307, p3: 0.581, nda: 0.853}
+  hematology:       {p1: 0.733, p2: 0.566, p3: 0.750, nda: 0.840}
+  infectious:       {p1: 0.695, p2: 0.427, p3: 0.727, nda: 0.887}
+  ophthalmology:    {p1: 0.848, p2: 0.446, p3: 0.583, nda: 0.775}
+  metabolic:        {p1: 0.611, p2: 0.452, p3: 0.714, nda: 0.778}
+  gastroenterology: {p1: 0.756, p2: 0.357, p3: 0.606, nda: 0.923}
+  allergy:          {p1: 0.676, p2: 0.325, p3: 0.714, nda: 0.938}
+  endocrine:        {p1: 0.589, p2: 0.401, p3: 0.650, nda: 0.860}
+  respiratory:      {p1: 0.653, p2: 0.291, p3: 0.711, nda: 0.946}
+  urology:          {p1: 0.571, p2: 0.327, p3: 0.714, nda: 0.857}
+  autoimmune:       {p1: 0.657, p2: 0.317, p3: 0.622, nda: 0.860}
+  neurology:        {p1: 0.591, p2: 0.297, p3: 0.574, nda: 0.832}
+  cardiovascular:   {p1: 0.589, p2: 0.241, p3: 0.555, nda: 0.842}
+  psychiatry:       {p1: 0.539, p2: 0.237, p3: 0.557, nda: 0.879}
+  oncology:         {p1: 0.628, p2: 0.246, p3: 0.401, nda: 0.824}
+  rare:             {p1: 0.760, p2: 0.506, p3: 0.736, nda: 0.892}  # Figure 8, non-oncology rare
+
+# Open Targets therapeutic-area names -> report areas, first match wins (most specific first).
+area_map:
+  - {match: "cancer or benign tumor", area: oncology}
+  - {match: "hematologic disease", area: hematology}
+  - {match: "infectious disease", area: infectious}
+  - {match: "cardiovascular disease", area: cardiovascular}
+  - {match: "nutritional or metabolic disease", area: metabolic}
+  - {match: "endocrine system disease", area: endocrine}
+  - {match: "nervous system disorder", area: neurology}
+  - {match: "psychiatric disorder", area: psychiatry}
+  - {match: "immune system disease", area: autoimmune}
+  - {match: "respiratory or thoracic disease", area: respiratory}
+  - {match: "digestive system disease", area: gastroenterology}
+  - {match: "disorder of visual system", area: ophthalmology}
+  - {match: "urinary system disease", area: urology}
+# Phenotype-only disease terms (e.g. HP_0003124 hypercholesterolemia) carry no therapeutic area;
+# fall back to keywords in the disease name. Our assumption, not from the report.
+name_keywords:
+  assumption: true
+  rules:
+    - {pattern: "cholesterol|lipid|diabet|obes|metabolic", area: metabolic}
+    - {pattern: "cancer|carcinoma|tumou?r|lymphoma|leuk(a)?emia|melanoma|sarcoma|myeloma", area: oncology}
+    - {pattern: "hypertension|heart|cardi|coronary|atheroscl", area: cardiovascular}
+
+# Twin-stats parameters (our assumptions).
+twins:
+  min_decided: {value: 3, assumption: true}          # approved + stopped twins needed at a match level
+  pseudo_count: {value: 5, assumption: true}         # weight of the area base rate in the Beta prior
+  active_window_years: {value: 3, assumption: true}  # a trial started this recently = still running
+  max_twins_shown: {value: 15, assumption: true}
+  interval: {low: 0.05, high: 0.95, assumption: true}  # percentiles of the Beta posterior

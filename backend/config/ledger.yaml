@@ -4,13 +4,16 @@ prior_fallback: null          # Range used when twin stats find no programs
 # Why programs stop, as shares of all failures. Used when twin stats have fewer stopped twins
 # than `min_stopped_twins`; the ledger splits the prior's cumulative hazard by these shares.
 failure_mix:
-  min_stopped_twins: {value: 10, assumption: true}
+  # 10 is never reached on the demo cases (BACE1 has 4 stopped twins with a reason); 5 is our assumption
+  min_stopped_twins: {value: 5, assumption: true}
   literature:
     citation: >-
-      ASBMB Today, '90% of drugs fail clinical trials' (2022), quoting a 2016 analysis that the
-      article does not name (primary study not yet verified):
-      https://www.asbmb.org/asbmb-today/opinions/031222/90-of-drugs-fail-clinical-trials
-    # the article gives efficacy 40-50%, safety 30%, drug-like properties 10-15%, commercial/strategy 10%;
+      Sun D, Gao W, Hu H, Zhou S. Why 90% of clinical drug development fails and how to improve it?
+      Acta Pharm Sin B 2022;12(7):3049-3062, PMID 35865092 ("analyses of clinical trial data from 2010
+      to 2017"), citing Dowden & Munro, Nat Rev Drug Discov 2019;18:495 and Harrison, Nat Rev Drug
+      Discov 2016;15:817 (the "2016 analysis" in ASBMB Today 2022). Split read in Sun 2022; the two
+      primary papers not yet read.
+    # Sun 2022 gives efficacy 40-50%, safety 30%, drug-like properties 10-15%, commercial/strategy 10%;
     # the +-5 point low/high and the 'other' remainder are our assumption
     shares:
       efficacy: {low: 0.40, base: 0.45, high: 0.50}

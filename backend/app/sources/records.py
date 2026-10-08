@@ -360,3 +360,29 @@ def chunk_text(text: str, size: int = 0) -> list[str]:
     if current:
         chunks.append(current)
     return chunks
+
+
+def twin_records(
+    program: dict[str, Any], text: str, entity_ids: list[str]
+) -> tuple[SourceRef, list[Evidence]]:
+    """One historical program (drug x disease) as Open Targets records it."""
+    source = ot_source(
+        "clinical_indication",
+        f"{program['drug_id']}-{program['disease_id']}",
+        f"Open Targets clinical record: {program['drug']} × {program['disease']}",
+        f"https://platform.opentargets.org/drug/{program['drug_id']}",
+    )
+    return source, [_evidence(source, text, "clinical_indication", entity_ids, data=program)]
+
+
+def trial_source(nct: str, title: str | None) -> SourceRef:
+    """Same id as the ClinicalTrials.gov record fetch_trials registers for this NCT."""
+    return SourceRef(
+        id=source_id("trial", nct),
+        type="trial",
+        title=f"{title or nct} ({nct})",
+        url=f"https://clinicaltrials.gov/study/{nct}",
+        publisher="ClinicalTrials.gov",
+        retrieved_at=utcnow(),
+        identifiers={"nct": nct},
+    )
