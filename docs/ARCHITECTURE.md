@@ -319,6 +319,11 @@ builds corrected runs the same way the backend does, so the whole UI works with 
 it, and a page reload rebuilds them by replaying the stream. The report drill-down (claim, evidence, source) reads from the
 report itself.
 
+`components/glyph-field` draws a flowing field of colour as text, in two WebGL2 passes: a domain-warped noise field at half
+resolution, then one glyph per cell chosen by the cell's darkness with a Bayer dither, over the soft field. The pointer
+pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written from scratch (not
+Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to.
+
 ## 9c. Implementing and testing a node [1b]
 
 1. Edit the node module; keep `SPEC` and the `run(state, ctx)` signature. Return only keys listed in `SPEC.writes`

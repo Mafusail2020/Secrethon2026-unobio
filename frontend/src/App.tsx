@@ -1,4 +1,5 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import GlyphFieldLab from "./features/lab/GlyphFieldLab";
 import UnderwritingPage from "./features/underwriting/UnderwritingPage";
 import { ChatLayout } from "./shell/ChatLayout";
 import { GravityShell } from "./shell/GravityShell";
@@ -10,6 +11,7 @@ const router = createBrowserRouter([
     element: <UnobioShell />,
     children: [{ path: "/", element: <HomePage /> }],
   },
+  { path: "/lab/glyph-field", element: <GlyphFieldLab /> },
   {
     element: <GravityShell />,
     children: [
