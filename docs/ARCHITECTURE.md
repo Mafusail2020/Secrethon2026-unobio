@@ -330,9 +330,10 @@ resolution, then one letter per cell (DNA bases A T C G plus `/` and `\`) chosen
 density mix like a read sequence, over the soft field. The pointer
 pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written from scratch (not
 Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. A lattice of small tall rhombi, bent by the same noise, lies over the field in
-patches, each rhombus a pane of glass (the field is looked up through it magnified and shifted, with a bevel and its own
+patches that are fixed to the screen (the lattice reads only the position, so its edges never move, and a test holds that;
+only the colours seen through it flow), each rhombus a pane of glass (the field is looked up through it magnified and shifted, with a bevel and its own
 shade) with soft gaussian edges; the second pass colours each line from the average of the cells around it
-mixed with a tint that floats along the palette with time and across the screen (with glow, never darker than the field). The `mist` preset (pale blue into grey, strokes only lighter than the ground, slow, shy of the
+mostly its own tint, which floats slowly along the palette, with a slight pull from the colours behind it (with glow, never darker than the field). The `mist` preset (pale blue into grey, strokes only lighter than the ground, slow, shy of the
 pointer) sits behind the history sidebar; its darkest stop is
 the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as the graph,
 spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.

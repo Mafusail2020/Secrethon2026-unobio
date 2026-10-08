@@ -45,25 +45,27 @@ vec3 ramp(float v) {
 
 void main() {
   vec2 frag = gl_FragCoord.xy / uRes;
-  vec2 uv = gl_FragCoord.xy / uRes.y;
+  vec2 uv0 = gl_FragCoord.xy / uRes.y;
+  vec2 uv = uv0;
   vec2 pointer = uPointer * vec2(uRes.x / uRes.y, 1.0);
   vec2 d = uv - pointer;
   uv += d * exp(-dot(d, d) * 14.0) * 0.4 * uPush;
 
   float t = uTime * 0.05;
 
-  // a lattice of tall rhombi, bent by noise, in patches. Each rhombus is a pane: (gu, gw) count panes along the two
-  // diagonals, and c is where this point sits in its pane, -0.5 to 0.5 each way
-  vec2 lw = uv + 0.05 * (vec2(fbm(uv * 3.0 + t * 0.8), fbm(uv * 3.0 + 7.0 - t * 0.8)) - 0.5);
+  // A lattice of tall rhombi, bent by noise, in patches. It is fixed to the screen: it reads only the position (uv0),
+  // never the time or the pointer, so its edges do not move; only the colours seen through it do. Each rhombus is a
+  // pane: (gu, gw) count panes along the two diagonals, and c is where this point sits in its pane, -0.5 to 0.5 each way.
+  vec2 lw = uv0 + 0.05 * (vec2(fbm(uv0 * 3.0), fbm(uv0 * 3.0 + 7.0)) - 0.5);
   vec2 lp = vec2(lw.x / 0.075, lw.y / 0.125);
   float gu = lp.x + lp.y;
   float gw = lp.x - lp.y;
   vec2 pane = vec2(floor(gu), floor(gw));
   vec2 c = vec2(fract(gu), fract(gw)) - 0.5;
-  float pocket = smoothstep(0.3, 0.6, fbm(uv * 1.2 + vec2(3.0, t)));
+  float pocket = smoothstep(0.3, 0.6, fbm(uv0 * 1.2 + vec2(3.0, 0.0)));
   float g = pocket * uGlass;
 
-  // look through the pane like glass: each one shows a magnified, slightly shifted piece of the field, so the
+  // look through the pane like glass: each one shows a magnified, slightly shifted piece of the moving field, so the
   // picture jumps where two panes meet
   vec2 off = vec2((c.x + c.y) * 0.5 * 0.075, (c.x - c.y) * 0.5 * 0.125);
   vec2 shift = (vec2(hash(pane), hash(pane + 3.7)) - 0.5) * 0.04;
@@ -142,11 +144,11 @@ vec3 lineTint(vec2 uv) {
   return ramp(mix(0.25, 0.9, ph));
 }
 
-// the field at a point with the lattice laid over it. A line is part the colour of the cells around it and part the
-// drifting tint; with glow it is also never darker than the field.
+// the field at a point with the lattice laid over it. A line is mostly its own tint, which drifts slowly along the
+// palette, and slightly the colour of the cells around it; with glow it is also never darker than the field.
 vec3 laid(vec2 uv) {
   vec4 f = texture(uField, uv);
-  vec3 line = mix(around(uv), lineTint(uv), 0.6);
+  vec3 line = mix(lineTint(uv), around(uv), 0.3);
   line = uGlow > 0.5 ? max(f.rgb, mix(line, vec3(1.0), 0.2)) : mix(line, vec3(1.0), 0.1);
   return mix(f.rgb, line, f.a * uLattice);
 }
