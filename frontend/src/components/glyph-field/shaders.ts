@@ -15,7 +15,6 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uPush;
-uniform float uGlass;
 uniform vec3 uPal[6];
 out vec4 o;
 
@@ -45,31 +44,12 @@ vec3 ramp(float v) {
 
 void main() {
   vec2 frag = gl_FragCoord.xy / uRes;
-  vec2 uv0 = gl_FragCoord.xy / uRes.y;
-  vec2 uv = uv0;
+  vec2 uv = gl_FragCoord.xy / uRes.y;
   vec2 pointer = uPointer * vec2(uRes.x / uRes.y, 1.0);
   vec2 d = uv - pointer;
   uv += d * exp(-dot(d, d) * 14.0) * 0.4 * uPush;
 
   float t = uTime * 0.05;
-
-  // A lattice of tall rhombi, bent by noise, in patches. It is fixed to the screen: it reads only the position (uv0),
-  // never the time or the pointer, so its edges do not move; only the colours seen through it do. Each rhombus is a
-  // pane: (gu, gw) count panes along the two diagonals, and c is where this point sits in its pane, -0.5 to 0.5 each way.
-  vec2 lw = uv0 + 0.05 * (vec2(fbm(uv0 * 3.0), fbm(uv0 * 3.0 + 7.0)) - 0.5);
-  vec2 lp = vec2(lw.x / 0.075, lw.y / 0.125);
-  float gu = lp.x + lp.y;
-  float gw = lp.x - lp.y;
-  vec2 pane = vec2(floor(gu), floor(gw));
-  vec2 c = vec2(fract(gu), fract(gw)) - 0.5;
-  float pocket = smoothstep(0.3, 0.6, fbm(uv0 * 1.2 + vec2(3.0, 0.0)));
-  float g = pocket * uGlass;
-
-  // look through the pane like glass: each one shows a magnified, slightly shifted piece of the moving field, so the
-  // picture jumps where two panes meet
-  vec2 off = vec2((c.x + c.y) * 0.5 * 0.075, (c.x - c.y) * 0.5 * 0.125);
-  vec2 shift = (vec2(hash(pane), hash(pane + 3.7)) - 0.5) * 0.04;
-  uv -= (off * 0.6 + shift) * g;
 
   // tall, narrow structures that rise: squeeze the noise across and stretch it up, and let it climb
   vec2 p = vec2(uv.x * 2.2 + uv.y * 0.35, uv.y * 0.95 - t * 0.9);
@@ -81,15 +61,7 @@ void main() {
   float v = f * 1.35 - 0.12 + (1.0 - frag.x) * 0.3 + frag.y * 0.35 - 0.3;
   v = smoothstep(0.08, 0.92, v);
 
-  // each pane a little lighter or darker than its neighbours, and bevelled: light on two of its edges, shade on the
-  // other two
-  float edge = smoothstep(0.2, 0.5, max(abs(c.x), abs(c.y)));
-  v = clamp(v + (hash(pane + 9.1) - 0.5) * 0.09 * g + edge * (c.x - c.y) * 0.18 * g, 0.0, 1.0);
-
-  // the pane edges themselves, with a gaussian falloff so they are soft on both sides; the second pass colours them
-  float lat = max(exp(-pow((1.0 - abs(c.x) * 2.0) / 0.3, 2.0)), exp(-pow((1.0 - abs(c.y) * 2.0) / 0.3, 2.0)));
-
-  o = vec4(ramp(v), lat * pocket);
+  o = vec4(ramp(v), 1.0);
 }`;
 
 /**
@@ -105,10 +77,6 @@ uniform vec2 uRes;
 uniform vec2 uCell;
 uniform float uCount;
 uniform vec2 uLum;
-uniform float uLattice;
-uniform float uNear;
-uniform float uTime;
-uniform vec3 uPal[6];
 uniform float uBackdrop;
 uniform float uStroke;
 uniform float uGlow;
@@ -119,45 +87,11 @@ float jitter(vec2 c) {
   return fract(sin(dot(c, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-// the average colour of the field in a ring around a point: what a line there should take after
-vec3 around(vec2 uv) {
-  vec2 r = vec2(uNear) / uRes;
-  vec2 d = r * 0.7071;
-  vec3 s = texture(uField, uv + vec2(r.x, 0.0)).rgb + texture(uField, uv - vec2(r.x, 0.0)).rgb
-         + texture(uField, uv + vec2(0.0, r.y)).rgb + texture(uField, uv - vec2(0.0, r.y)).rgb
-         + texture(uField, uv + d).rgb + texture(uField, uv - d).rgb
-         + texture(uField, uv + vec2(d.x, -d.y)).rgb + texture(uField, uv + vec2(-d.x, d.y)).rgb;
-  return s / 8.0;
-}
-
-vec3 ramp(float v) {
-  float x = clamp(v, 0.0, 1.0) * 5.0;
-  int i = int(min(floor(x), 4.0));
-  float f = x - float(i);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(uPal[i], uPal[i + 1], f);
-}
-
-// the colour a line wears here: it floats along the palette with time, and differently across the screen
-vec3 lineTint(vec2 uv) {
-  float ph = 0.5 + 0.5 * sin(uTime * 0.035 + uv.x * 4.0 + uv.y * 2.5 + sin(uTime * 0.022 + uv.y * 3.0));
-  return ramp(mix(0.25, 0.9, ph));
-}
-
-// the field at a point with the lattice laid over it. A line is mostly its own tint, which drifts slowly along the
-// palette, and slightly the colour of the cells around it; with glow it is also never darker than the field.
-vec3 laid(vec2 uv) {
-  vec4 f = texture(uField, uv);
-  vec3 line = mix(lineTint(uv), around(uv), 0.3);
-  line = uGlow > 0.5 ? max(f.rgb, mix(line, vec3(1.0), 0.2)) : mix(line, vec3(1.0), 0.1);
-  return mix(f.rgb, line, f.a * uLattice);
-}
-
 void main() {
   vec2 px = gl_FragCoord.xy;
   vec2 cell = floor(px / uCell);
-  vec3 under = laid(px / uRes);
-  vec3 c = laid((cell + 0.5) * uCell / uRes);
+  vec3 under = texture(uField, px / uRes).rgb;
+  vec3 c = texture(uField, (cell + 0.5) * uCell / uRes).rgb;
   float lum = dot(c, vec3(0.299, 0.587, 0.114));
 
   // darkness within this palette's own range, so a pale palette still uses every glyph

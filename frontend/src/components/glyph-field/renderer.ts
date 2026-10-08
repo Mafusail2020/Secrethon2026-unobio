@@ -17,10 +17,6 @@ export interface GlyphFieldOptions {
   stroke: number;
   /** strokes only ever lighter than the field, so the field's darkest colour stays the darkest thing on screen */
   glow: boolean;
-  /** 0 to 1: how strongly the lattice of rhombi shows */
-  lattice: number;
-  /** 0 to 1: how much each rhombus acts as a pane of glass, bending and bevelling what is behind it */
-  glass: number;
 }
 
 export interface GlyphFieldHandle {
@@ -118,7 +114,6 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
     gl.uniform1f(loc(fieldProg, "uTime"), seconds);
     gl.uniform2f(loc(fieldProg, "uPointer"), pointerX, pointerY);
     gl.uniform1f(loc(fieldProg, "uPush"), push);
-    gl.uniform1f(loc(fieldProg, "uGlass"), opts.glass);
     gl.uniform3fv(loc(fieldProg, "uPal"), palFlat);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -133,10 +128,6 @@ function build(canvas: HTMLCanvasElement, opts: GlyphFieldOptions): GlyphFieldHa
     gl.uniform2f(loc(glyphProg, "uLum"), Math.min(...lums), Math.max(...lums));
     gl.uniform1f(loc(glyphProg, "uBackdrop"), opts.backdrop);
     gl.uniform1f(loc(glyphProg, "uStroke"), opts.stroke);
-    gl.uniform1f(loc(glyphProg, "uLattice"), opts.lattice);
-    gl.uniform1f(loc(glyphProg, "uTime"), seconds);
-    gl.uniform3fv(loc(glyphProg, "uPal"), palFlat);
-    gl.uniform1f(loc(glyphProg, "uNear"), size.cw * 2.5);
     gl.uniform1f(loc(glyphProg, "uGlow"), opts.glow ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
