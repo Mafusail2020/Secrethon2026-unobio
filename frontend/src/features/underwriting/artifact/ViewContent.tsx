@@ -139,7 +139,7 @@ export function ViewContent({
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-canvas">
+    <div className="uw-fade flex h-full min-h-0 flex-col bg-canvas">
       {stubbed && tab !== "report" && (
         <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-1 text-xs text-amber-900">
           Synthetic data: parts of this run come from stub steps and contain placeholder content.

@@ -79,20 +79,25 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
 
   return (
     <div data-uw data-print-flow className="relative flex h-full min-h-0">
-      {sidebarOpen && (
-        <button
-          type="button"
-          aria-label="Close the history"
-          onClick={toggleSidebar}
-          className="absolute inset-0 z-20 bg-navy/30 md:hidden"
-        />
-      )}
+      <button
+        type="button"
+        aria-label="Close the history"
+        onClick={toggleSidebar}
+        tabIndex={sidebarOpen ? 0 : -1}
+        aria-hidden={!sidebarOpen}
+        className={`absolute inset-0 z-20 bg-navy/30 transition-opacity duration-200 md:hidden ${sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      />
       <aside
         data-print-hide
         aria-label="History"
-        className={`${sidebarOpen ? "flex" : "hidden"} absolute inset-y-0 left-0 z-30 w-72 max-w-[85vw] shrink-0 flex-col border-r border-line bg-canvas shadow-xl md:static md:z-auto md:shadow-none`}
+        inert={!sidebarOpen}
+        className={`absolute inset-y-0 left-0 z-30 w-72 max-w-[85vw] shrink-0 overflow-hidden bg-canvas transition-[translate,width,box-shadow] duration-200 ease-out md:static md:z-auto md:shadow-none ${
+          sidebarOpen ? "translate-x-0 shadow-xl md:w-72" : "-translate-x-full shadow-none md:w-0 md:translate-x-0"
+        }`}
       >
-        <Sidebar currentId={runId} onNavigate={() => !isWide() && setSidebarOpen(false)} />
+        <div className="h-full w-72 max-w-[85vw] border-r border-line">
+          <Sidebar currentId={runId} onNavigate={() => !isWide() && setSidebarOpen(false)} />
+        </div>
       </aside>
 
       <div data-print-flow className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface">
@@ -166,7 +171,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
           <div
             data-print-flow
             style={{ "--dock": `${dockPercent}%` } as CSSProperties}
-            className={hasViews ? "absolute inset-0 z-10 xl:static xl:z-auto xl:flex-none xl:basis-(--dock)" : "hidden"}
+            className={hasViews ? "uw-slide-right absolute inset-0 z-10 xl:static xl:z-auto xl:flex-none xl:basis-(--dock)" : "hidden"}
           >
             <ViewDataContext.Provider
               value={{

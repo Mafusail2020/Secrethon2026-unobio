@@ -28,7 +28,7 @@ export function FollowUpMessages({
     <section aria-label="Follow-up questions" className="space-y-5">
       <ul aria-live="polite" className="space-y-5">
         {messages.map((m, i) => (
-          <li key={i} className={m.role === "user" ? "flex justify-end" : ""}>
+          <li key={i} className={`uw-rise ${m.role === "user" ? "flex justify-end" : ""}`}>
             {m.role === "user" ? (
               <p className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-slate-100 px-4 py-2.5 text-[0.95rem]">{m.content}</p>
             ) : (
@@ -41,10 +41,10 @@ export function FollowUpMessages({
         ))}
         {ask.isPending && (
           <>
-            <li className="flex justify-end">
+            <li className="uw-rise flex justify-end">
               <p className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-slate-100 px-4 py-2.5 text-[0.95rem] opacity-70">{ask.variables}</p>
             </li>
-            <li className="flex items-center gap-2 text-sm text-muted">
+            <li className="uw-fade flex items-center gap-2 text-sm text-muted">
               <Spinner className="h-3.5 w-3.5" /> Reading the report…
             </li>
           </>
@@ -121,7 +121,7 @@ export function FollowUpInput({ follow, ready }: { follow: FollowUp; ready: bool
           type="submit"
           aria-label="Send question"
           disabled={closed || ask.isPending || !draft.trim()}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-royal text-white transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:bg-slate-300 disabled:text-white"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-royal text-white transition active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:bg-slate-300 disabled:text-white"
         >
           {ask.isPending ? <Spinner className="h-3.5 w-3.5" /> : <ArrowUpIcon width={18} height={18} />}
         </button>

@@ -19,7 +19,7 @@ export function ClaimCard({ claim, domId, focused = false }: { claim: Claim; dom
     <li
       id={domId}
       className={`scroll-mt-32 overflow-hidden rounded-lg border bg-surface [content-visibility:auto] ${
-        focused ? "border-brand ring-2 ring-brand/30" : "border-line"
+        focused ? "uw-flash border-brand ring-2 ring-brand/30" : "border-line"
       } ${rejected ? "opacity-70" : ""}`}
     >
       <div className="flex">

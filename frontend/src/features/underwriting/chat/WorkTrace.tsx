@@ -45,7 +45,7 @@ export function WorkTrace({
           <ChevronDownIcon width={14} height={14} className={open ? "rotate-180" : ""} />
         </span>
       </button>
-      <div id="work-trace" hidden={!open} className="mt-2 space-y-2">
+      <div id="work-trace" hidden={!open} className="uw-rise mt-2 space-y-2">
         {children}
       </div>
     </div>

@@ -254,8 +254,13 @@ export function Composer() {
         </Field>
       </div>
 
-      {detailsOpen && (
-        <div id={`${uid}-details`} className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
+      <div
+        id={`${uid}-details`}
+        inert={!detailsOpen}
+        className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${detailsOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
+        <div className="min-h-0 overflow-hidden">
+        <div className="mx-3 mt-3 grid grid-cols-2 gap-2 rounded-lg border border-line/70 p-3">
           <Field id={`${uid}-drug`} name="drug_name" title="Drug name" errors={errors}>
             {(p) => <input {...p} className={input} value={form.drug_name} onChange={(e) => set("drug_name", e.target.value)} />}
           </Field>
@@ -307,7 +312,8 @@ export function Composer() {
             </Field>
           </div>
         </div>
-      )}
+        </div>
+      </div>
 
       {general && (
         <div className="px-4 pt-3">
@@ -323,7 +329,7 @@ export function Composer() {
           aria-controls={`${uid}-details`}
           className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm text-muted hover:border-brand hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >
-          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform" : "transition-transform"} />
+          <PlusIcon width={15} height={15} strokeWidth={2.2} className={detailsOpen ? "rotate-45 transition-transform duration-200" : "transition-transform duration-200"} />
           Add details
         </button>
         <EffortPicker value={form.effort} onChange={(v) => set("effort", v)} />
@@ -365,7 +371,7 @@ export function Composer() {
             aria-label="Underwrite"
             title="Underwrite (⌘ Enter)"
             disabled={create.isPending}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition hover:opacity-90 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
           >
             {create.isPending ? <Spinner className="h-4 w-4" /> : <ArrowUpIcon />}
           </button>

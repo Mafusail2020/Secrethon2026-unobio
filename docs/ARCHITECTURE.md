@@ -207,6 +207,11 @@ after scrolling). Every link and button is inert (no `href`); the exceptions are
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
 
+Motion (`styles/motion.css`) is arrival-only and short: the history sidebar and the view panels slide in (the sidebar by width on
+desktop, by translate as a drawer on phones, and `inert` while closed), "Add details" opens by animating grid rows, and new
+thread content, history rows and the finished call rise or flash once (`uw-rise`, `uw-fade`, `uw-flash`, `uw-ring`,
+`uw-stagger` for the briefing). Nothing loops. `prefers-reduced-motion` removes all of it, and printing does too.
+
 The workspace (`features/underwriting/`) is laid out like a chat app. `Sidebar` lists earlier runs, grouped by correction
 lineage (one entry with v1, v2 … links). The middle column is the conversation: a new chat (`Welcome`: greeting, the big
 `Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 23 steps into eight collapsible

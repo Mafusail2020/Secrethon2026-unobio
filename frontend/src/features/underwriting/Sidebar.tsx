@@ -31,7 +31,7 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
         <Link
           to="/underwriting"
           onClick={onNavigate}
-          className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+          className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-royal text-white">
             <PlusIcon width={16} height={16} strokeWidth={2.4} />
@@ -52,16 +52,16 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
         {runs.error && <p className="px-2 text-xs text-red-700">Could not load the run history.</p>}
         {runs.data && groups.length === 0 && <p className="px-2 text-xs text-muted">Nothing yet. Your underwritings appear here.</p>}
         <ul className="space-y-0.5">
-          {groups.map((group) => {
+          {groups.map((group, index) => {
             const program = group.runs[0]!.program;
             const inGroup = group.runs.some((r) => r.id === currentId);
             return (
-              <li key={group.rootId}>
+              <li key={group.rootId} className="uw-rise" style={{ animationDelay: `${Math.min(index, 8) * 35}ms` }}>
                 <Link
                   to={`/underwriting/runs/${group.latest.id}`}
                   onClick={onNavigate}
                   aria-current={inGroup ? "page" : undefined}
-                  className="flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-slate-100 aria-[current=page]:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                  className={`flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors hover:bg-slate-100 aria-[current=page]:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${inGroup ? "uw-flash" : ""}`}
                 >
                   <StatusDot run={group.latest} />
                   <span className="min-w-0 flex-1">

@@ -56,7 +56,7 @@ export function TopBar({
               aria-controls="artifact-panel"
               aria-label={label}
               title={disabled ? `${label} is available once a run has started` : label}
-              className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm transition active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-40 ${
                 pressed ? "bg-slate-200 font-medium text-ink" : "text-muted hover:bg-slate-100 hover:text-ink"
               }`}
             >

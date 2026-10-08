@@ -1,6 +1,12 @@
 /* Printing the report: only while a report is on screen (ReportView sets body[data-print="report"]),
    so nothing here can affect any other page, including the home page. */
 @media print {
+  body[data-print="report"] *,
+  body[data-print="report"] *::before,
+  body[data-print="report"] *::after {
+    animation: none !important;
+    transition: none !important;
+  }
   body[data-print="report"] .ub-site,
   body[data-print="report"] [data-print-hide],
   body[data-print="report"] aside {

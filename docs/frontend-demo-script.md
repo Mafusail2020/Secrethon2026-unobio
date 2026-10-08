@@ -93,7 +93,9 @@ Add `?scenario=` to `/underwriting` before starting a run:
 - The correction dialog traps focus; Esc closes it and returns focus to **This is wrong**.
 - 1024 px: the view panel covers the conversation; ✕ brings it back. Below 768 px: the history is a drawer (the sidebar
   button in the top bar), no horizontal scrolling.
-- With "reduce motion" on, spinners and transitions in the workspace stop animating; the home page is unaffected.
+- Motion: the history slides in and out, views slide in from the right, **Add details** opens smoothly, and new messages,
+  history rows and the finished call rise in once. With "reduce motion" on, all of it (and the spinners) stops; the home
+  page is unaffected.
 
 ## 6b. Arrange the views
 
