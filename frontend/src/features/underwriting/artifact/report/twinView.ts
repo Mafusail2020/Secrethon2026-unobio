@@ -24,10 +24,16 @@ export interface StopGroupView {
   items: { reason: string; count: number }[];
 }
 
-export function groupStopReasons(reasons: Record<string, number>): StopGroupView[] {
+/** True when at least one reason had to be sorted by keyword because the source gave no category. */
+export function hasGuessedGroups(reasons: Record<string, number>, categories: Record<string, StopGroup> = {}): boolean {
+  return Object.keys(reasons).some((reason) => !(reason in categories));
+}
+
+/** The source's own category wins; a keyword guess is only for reasons it did not categorise. */
+export function groupStopReasons(reasons: Record<string, number>, categories: Record<string, StopGroup> = {}): StopGroupView[] {
   const groups = new Map<StopGroup, StopGroupView>();
   for (const [reason, count] of Object.entries(reasons)) {
-    const group = stopGroupOf(reason);
+    const group = categories[reason] ?? stopGroupOf(reason);
     const view = groups.get(group) ?? { group, total: 0, items: [] };
     view.total += count;
     view.items.push({ reason, count });

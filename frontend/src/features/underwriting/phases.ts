@@ -27,7 +27,7 @@ export const PHASE_DEFS: { id: PhaseId; label: string; description: string }[] =
   { id: "other", label: "Other steps", description: "Steps outside the standard pipeline" },
 ];
 
-// node ids are part of the contract, so this map is stable; unknown ids land in "other"
+// fallback for specs that do not declare a phase; unknown ids land in "other"
 const NODE_PHASE: Record<string, PhaseId> = {
   input_resolver: "resolve",
   question_planner: "plan",
@@ -47,7 +47,7 @@ const NODE_PHASE: Record<string, PhaseId> = {
 };
 
 export function phaseOf(node: NodeSpec): PhaseId {
-  return NODE_PHASE[node.id] ?? (node.parent ? "cases" : "other");
+  return node.phase ?? NODE_PHASE[node.id] ?? (node.parent ? "cases" : "other");
 }
 
 export interface PhaseProblem {

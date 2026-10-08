@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { getApi } from "../../../api/client";
-import { useModels } from "../../../api/hooks";
+import { useHealth, useModels } from "../../../api/hooks";
 import type { CreateRunRequest, ProgramInput, RunOptions } from "../../../api/types";
 import { Badge } from "../../../components/ui/Badge";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
@@ -148,6 +148,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const models = useModels();
+  const maxPanel = useHealth().data?.max_panel_size;
   const uid = useId();
   const [form, setForm] = useState<FormState>(() => initialState(initial));
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -275,6 +276,8 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
               {...p}
               type="number"
               min={2}
+              max={maxPanel}
+              title={maxPanel ? `Between 2 and ${maxPanel}` : undefined}
               className={`${input} w-24`}
               value={form.panel_size}
               onChange={(e) => set("panel_size", Number(e.target.value))}

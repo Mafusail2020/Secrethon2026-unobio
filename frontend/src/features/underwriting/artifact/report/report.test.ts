@@ -7,7 +7,7 @@ import { correctionTargetFor } from "./correctionTarget";
 import { buildDiffView } from "./diffView";
 import { toMarkdown } from "./markdown";
 import { isSyntheticReport } from "./synthetic";
-import { groupStopReasons, sortStages, stopGroupOf } from "./twinView";
+import { groupStopReasons, hasGuessedGroups, sortStages, stopGroupOf } from "./twinView";
 import { buildWaterfall } from "./waterfall";
 
 const report = reportJson as unknown as UnderwritingReport;
@@ -195,5 +195,44 @@ describe("markdown export", () => {
     expect(md).toContain("## Diligence questions");
     expect(md).toContain("## Run details");
     expect(md.endsWith("\n")).toBe(true);
+  });
+});
+
+describe("backend-provided fields win over the browser's guesses", () => {
+  const ledger = report.ledger!;
+
+  it("draws the waterfall from pos_after when every step has it", () => {
+    const w = buildWaterfall(ledger);
+    expect(w.exact).toBe(true);
+    expect(w.steps.at(-1)!.end).toBe(ledger.steps.at(-1)!.pos_after!.base);
+    expect(w.steps[0]!.lowEnd).toBe(ledger.steps[0]!.pos_after!.low);
+    expect(w.driftNotable).toBe(false);
+  });
+
+  it("falls back to chaining ratios when a step lacks pos_after", () => {
+    const stripped = { ...ledger, steps: ledger.steps.map((s, i) => (i === 0 ? { ...s, pos_after: null } : s)) };
+    const w = buildWaterfall(stripped);
+    expect(w.exact).toBe(false);
+    expect(w.steps[0]!.end).toBeCloseTo(ledger.steps[0]!.pos_after!.base, 3); // same maths, so the same picture
+  });
+
+  it("flags a ledger whose own steps do not reach its posterior", () => {
+    const off = { ...ledger, posterior: { low: 0.2, base: 0.25, high: 0.3, unit: "probability" } };
+    expect(buildWaterfall(off).driftNotable).toBe(true);
+  });
+
+  it("uses the source's stop-reason category and only guesses for the rest", () => {
+    const reasons = { "Lack of efficacy": 2, "Odd wording": 1 };
+    const grouped = groupStopReasons(reasons, { "Odd wording": "safety" });
+    expect(grouped.map((g) => [g.group, g.total])).toEqual([["efficacy", 2], ["safety", 1]]);
+    expect(hasGuessedGroups(reasons, { "Odd wording": "safety" })).toBe(true);
+    expect(hasGuessedGroups(reasons, { "Odd wording": "safety", "Lack of efficacy": "efficacy" })).toBe(false);
+    expect(hasGuessedGroups({}, {})).toBe(false);
+  });
+
+  it("routes a writer-authored claim straight to its writer", () => {
+    const target = correctionTargetFor({ ...claims[0]!, produced_by: "bull_claim_writer" }, spec)!;
+    expect(target.node.id).toBe("bull_claim_writer");
+    expect(target.note).toBeUndefined();
   });
 });

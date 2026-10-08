@@ -3,7 +3,7 @@ import { Badge } from "../../../../../components/ui/Badge";
 import { pctRange } from "../../../../../lib/format";
 import { BarList } from "./BarList";
 import { RangeBar } from "./RangeBar";
-import { groupStopReasons, sortStages, STOP_GROUP_LABEL } from "../twinView";
+import { groupStopReasons, hasGuessedGroups, sortStages, STOP_GROUP_LABEL } from "../twinView";
 
 const MATCH: Record<TwinStats["match_level"], string> = {
   exact_target_indication: "Same target and indication",
@@ -22,7 +22,8 @@ const STATUS: Record<TwinStats["twins"][number]["status"], string> = {
 
 export function TwinPanel({ twin, report }: { twin: TwinStats; report: UnderwritingReport }) {
   const stages = sortStages(twin.stage_distribution);
-  const stops = groupStopReasons(twin.stop_reasons);
+  const stops = groupStopReasons(twin.stop_reasons, twin.stop_reason_categories);
+  const guessed = hasGuessedGroups(twin.stop_reasons, twin.stop_reason_categories);
   return (
     <section className="rounded-lg border border-line bg-white p-3" aria-labelledby="twin-h">
       <div className="flex flex-wrap items-center gap-2">
@@ -61,7 +62,7 @@ export function TwinPanel({ twin, report }: { twin: TwinStats; report: Underwrit
                   <BarList items={g.items.map((i) => ({ label: i.reason, value: i.count }))} tone={g.group === "safety" ? "fill-red-500" : g.group === "efficacy" ? "fill-amber-500" : "fill-slate-400"} />
                 </div>
               ))}
-              <p className="text-[11px] text-muted">Grouped by keyword; the source records free-text reasons.</p>
+              {guessed && <p className="text-[11px] text-muted">Reasons without a category from the source are grouped by keyword.</p>}
             </div>
           ) : (
             <p className="text-xs text-muted">No stop reasons recorded.</p>

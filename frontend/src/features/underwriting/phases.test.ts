@@ -105,3 +105,17 @@ describe("usage and stub tracking", () => {
     expect(s.stubData).toBe(true);
   });
 });
+
+describe("phase from the spec", () => {
+  it("uses the phase a node declares over the built-in id map", () => {
+    const moved: GraphSpec = { ...spec, nodes: spec.nodes.map((n) => (n.id === "verdict" ? { ...n, phase: "report" as const } : n)) };
+    const phases = groupPhases(moved, {});
+    expect(phases.find((p) => p.id === "report")!.nodes.map((n) => n.id)).toEqual(["verdict", "report_assembler"]);
+    expect(phases.find((p) => p.id === "quant")!.nodes.map((n) => n.id)).not.toContain("verdict");
+  });
+
+  it("falls back to the id map when a spec declares no phase", () => {
+    const bare: GraphSpec = { ...spec, nodes: spec.nodes.map((n) => ({ ...n, phase: null })) };
+    expect(groupPhases(bare, {}).map((p) => p.id)).toEqual(groupPhases(spec, {}).map((p) => p.id));
+  });
+});
