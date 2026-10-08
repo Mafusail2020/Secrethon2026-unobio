@@ -40,3 +40,26 @@ export function relativeMs(from: string, to: string): string {
 export function shortTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour12: false });
 }
+
+export function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
+}
+
+/** null means the price is unknown; a cost is never guessed. */
+export function formatCost(usd: number | null): string {
+  return usd === null ? "price unknown" : `$${usd.toFixed(usd < 0.01 ? 4 : 2)}`;
+}
+
+export function priceLabel(inPerMtok?: number | null, outPerMtok?: number | null): string {
+  if (inPerMtok == null || outPerMtok == null) return "price unknown";
+  return `$${inPerMtok} in / $${outPerMtok} out per 1M tokens`;
+}
+
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const s = ms / 1000;
+  if (s < 60) return `${s.toFixed(1)}s`;
+  return `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
+}

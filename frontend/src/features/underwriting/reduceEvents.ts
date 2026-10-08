@@ -16,6 +16,16 @@ export interface NodeLive {
   error?: string;
 }
 
+export interface Usage {
+  calls: number;
+  cached: number;
+  tokensIn: number;
+  tokensOut: number;
+  /** null once any paid call had no known price: never guess a cost */
+  costUsd: number | null;
+  mock: boolean;
+}
+
 export interface RunStream {
   connection: "connecting" | "open" | "closed";
   status: "queued" | "running" | "completed" | "failed";
@@ -24,6 +34,9 @@ export interface RunStream {
   nodes: Record<string, NodeLive>;
   decision?: string;
   error?: string;
+  usage: Usage;
+  /** a stub node wrote FIXTURE: placeholder text, so this run carries synthetic data */
+  stubData: boolean;
 }
 
 export const initialStream: RunStream = {
@@ -32,6 +45,8 @@ export const initialStream: RunStream = {
   events: [],
   lastSeq: 0,
   nodes: {},
+  usage: { calls: 0, cached: 0, tokensIn: 0, tokensOut: 0, costUsd: 0, mock: false },
+  stubData: false,
 };
 
 const blank = (): NodeLive => ({ status: "pending", logs: [], llmCalls: 0 });
@@ -59,6 +74,7 @@ export function applyEvent(state: RunStream, event: RunEvent): RunStream {
       touch((n) => ({ ...n, status: "running", startedAt: event.ts }));
       break;
     case "node.log":
+      if (String(data.message ?? "").includes("FIXTURE:")) next.stubData = true;
       touch((n) => ({
         ...n,
         logs: [
@@ -72,9 +88,21 @@ export function applyEvent(state: RunStream, event: RunEvent): RunStream {
         ],
       }));
       break;
-    case "llm.call":
+    case "llm.call": {
       touch((n) => ({ ...n, llmCalls: n.llmCalls + 1 }));
+      const cached = data.cached === true;
+      const cost = typeof data.cost_usd === "number" ? data.cost_usd : null;
+      const u = state.usage;
+      next.usage = {
+        calls: u.calls + 1,
+        cached: u.cached + (cached ? 1 : 0),
+        tokensIn: u.tokensIn + (cached ? 0 : Number(data.tokens_in ?? 0)),
+        tokensOut: u.tokensOut + (cached ? 0 : Number(data.tokens_out ?? 0)),
+        costUsd: cached ? u.costUsd : cost === null || u.costUsd === null ? null : u.costUsd + cost,
+        mock: u.mock || String(data.model ?? "").startsWith("mock/"),
+      };
       break;
+    }
     case "node.completed":
       touch((n) => ({ ...n, status: "done", durationMs: Number(data.duration_ms ?? 0) }));
       break;

@@ -5,6 +5,7 @@ from app.core.events import EventBus
 from app.core.settings import Settings
 from app.llm.factory import LLMStack, build_llm_stack
 from app.sources.base import SourceRegistry
+from app.store.chat_repo import ChatRepo
 from app.store.corrections_repo import CorrectionsRepo
 from app.store.db import Database
 from app.store.events_repo import EventsRepo
@@ -25,6 +26,7 @@ class Services:
     events: EventsRepo
     nodes: NodeExecRepo
     corrections: CorrectionsRepo
+    chat: ChatRepo
     llm_repo: LLMRepo
     bus: EventBus
     llm: LLMStack
@@ -55,6 +57,7 @@ async def build_services(settings: Settings) -> Services:
         events=events,
         nodes=NodeExecRepo(db),
         corrections=CorrectionsRepo(db),
+        chat=ChatRepo(db),
         llm_repo=llm_repo,
         bus=bus,
         llm=await build_llm_stack(settings, llm_repo),

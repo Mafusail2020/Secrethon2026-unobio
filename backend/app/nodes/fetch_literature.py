@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="fetch_literature",
     label="Europe PMC",
     kind="data",
+    phase="fetch",
     description="Fetches literature, including preprints, relevant to the program.",
     reads=["program", "entities", "questions"],
     writes=["source_ids", "evidence_ids", "scratch"],

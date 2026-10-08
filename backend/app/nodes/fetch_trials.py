@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="fetch_trials",
     label="ClinicalTrials.gov",
     kind="data",
+    phase="fetch",
     description="Fetches trials for the same target, drug or indication with status and stop reasons.",
     reads=["program", "entities", "questions"],
     writes=["source_ids", "evidence_ids", "scratch"],

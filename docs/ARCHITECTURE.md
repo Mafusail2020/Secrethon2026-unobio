@@ -153,7 +153,18 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
 | GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
 | GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
-| POST | `/runs/{id}/messages` | 501 until Stage 3U |
+| GET | `/runs/{id}/messages` | chat history of the run, oldest first |
+| POST | `/runs/{id}/messages` | follow-up question (`role: user`, 1–2000 chars); returns the assistant `ChatMessage`. 409 until the run completed, 422 on a bad message, 429 after `MAX_CHAT_QUESTIONS`, 502 `chat_failed` if the model reply is unreadable |
+
+### Follow-up chat
+
+`backend/app/chat/`. `context.py` renders the finished report as plain text: verdict, reasons, up to 60 non-rejected
+claims (accepted first) with two evidence excerpts each, sections, twins, ledger and valuation, capped at 14k characters.
+`answer.py` asks the model for `{supported, answer, cited_claim_ids}`. The question and history go in the user message as
+data; the system prompt says to use only the report text. `gate_answer` drops cited ids that are not in the context, and an
+answer marked supported with no valid citation is replaced by a fixed refusal, so the chat never states what it cannot tie
+to a claim. In `mock` mode the answer is canned from the verdict's reason claims. Live calls are logged to `llm_calls` with
+node id `chat`, so they count in the trace and cost.
 
 ## 7. Effort and panel [1b]
 
@@ -173,7 +184,7 @@ Panel never applies to data, processing or quant nodes. In 1b panel is an interf
 
 SQLite at `backend/data/app.db` via SQLAlchemy 2 async, `create_all` at startup, no migrations. Tables: `runs` (with
 report JSON), `run_events`, `node_executions` (compact output for the UI plus the full state delta for replay),
-`corrections`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
+`corrections`, `chat_messages`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
 real stores; until then `store/fakes.py` keeps them in memory (so `/evidence/{id}` only knows evidence from the running
 process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
 
@@ -186,6 +197,15 @@ after scrolling). Every link and button is inert (no `href`); the exceptions are
 `/underwriting`, and the header logo, which goes home. The chat page sits between the copied header and footer. The copied
 files are artifacts of the live site, so avoid hand-editing `HomeSections.tsx`, `HeroAssets.tsx` and `FooterMarkup.tsx`;
 Tailwind is told to ignore `src/unobio` (`@source not`). The cookie banner is not copied.
+
+The workspace (`features/underwriting/`) has a chat side and an artifact side. The chat shows the run as pipeline phases
+(`phases.ts` groups the 23 steps into eight collapsible blocks), live model usage, a verdict card, run history grouped by
+correction lineage, and a follow-up input backed by the chat endpoints (history is loaded per run; a 429 locks it with a note). The artifact
+is the report as a document (sticky verdict, section navigator, a "What changed" banner for corrected runs, claim cards with
+evidence, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print), the graph (kind
+colours, follow mode, a tabbed step drawer, highlighting of what a correction would recompute), sources and logs. Pure
+logic lives in plain `.ts` modules with vitest tests (`phases`, `claimFilters`, `diffView`, `waterfall`, `twinView`,
+`markdown`, `correctionTarget`, `logView`, `sourcesView`, `elapsed`). The mock API takes `?scenario=` for messy data.
 
 Vite, React, TanStack Query, `@xyflow/react` with dagre. `src/api/client.ts` is a typed `fetch` and `EventSource` wrapper over
 the generated types. With `VITE_API_MODE=mock` it loads `src/api/mock/`, which replays the fixture events with delays and

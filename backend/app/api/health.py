@@ -13,4 +13,5 @@ async def health() -> HealthStatus:
         llm_mode=settings.llm_mode,
         llm_cache=settings.llm_cache,
         has_api_key=bool(settings.team_api_key.get_secret_value()),
+        max_panel_size=settings.max_panel_size,
     )

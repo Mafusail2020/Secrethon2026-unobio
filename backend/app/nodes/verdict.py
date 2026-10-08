@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="verdict",
     label="Verdict",
     kind="quant",
+    phase="quant",
     description="Applies thresholds and reason codes to decide invest, conditional or do not invest.",
     reads=["ledger", "valuation", "claims", "key_risks", "twin_stats"],
     writes=["verdict"],

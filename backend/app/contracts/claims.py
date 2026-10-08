@@ -35,7 +35,12 @@ class Claim(Contract):
     label: ClaimLabel
     evidence_ids: list[str] = Field(default_factory=list)
     confidence: Confidence
-    produced_by: str
+    produced_by: str = Field(
+        description=(
+            "Node that wrote the claim text (a claim writer or analyst), never a gate. "
+            "A gate only sets status."
+        )
+    )
     status: ClaimStatus = "accepted"
     rejection_reason: str | None = None
 

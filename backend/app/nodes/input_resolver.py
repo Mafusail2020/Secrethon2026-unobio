@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="input_resolver",
     label="Input resolver",
     kind="processing",
+    phase="resolve",
     description="Resolves free-text indication, mechanism and drug into disease, target and drug ids plus therapeutic areas.",
     reads=["program"],
     writes=["entities"],

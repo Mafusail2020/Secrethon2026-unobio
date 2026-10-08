@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="report_assembler",
     label="Report assembler",
     kind="output",
+    phase="report",
     description="Assembles the underwriting report with its claims, evidence and sources.",
     reads=[
         "program",
@@ -59,10 +60,12 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         )
     )
     evidence = {e.id: e for e in await ctx.store.evidence.get_many_evidence(wanted)}
+    # twin programs cite their trial records even when no claim does, so those links must resolve
+    twin_sources = {i for t in (twin.twins if twin else []) for i in t.source_ids}
     sources = {
         s.id: s
         for s in await ctx.store.evidence.get_sources(
-            sorted({e.source_id for e in evidence.values()})
+            sorted({e.source_id for e in evidence.values()} | twin_sources)
         )
     }
     # last line of defence: no accepted claim may point at evidence the store does not have

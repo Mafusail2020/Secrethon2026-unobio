@@ -9,6 +9,7 @@ MatchLevel = Literal[
 ]
 TwinStatus = Literal["approved", "stopped", "active", "unknown"]
 Basis = Literal["sourced", "assumption"]
+StopCategory = Literal["efficacy", "safety", "business", "other"]
 
 
 class TwinProgram(Contract):
@@ -27,6 +28,13 @@ class TwinStats(Contract):
     twins: list[TwinProgram] = Field(default_factory=list)
     stage_distribution: dict[str, int] = Field(default_factory=dict)
     stop_reasons: dict[str, int] = Field(default_factory=dict)
+    stop_reason_categories: dict[str, StopCategory] = Field(
+        default_factory=dict,
+        description=(
+            "Category of each key in stop_reasons, when the source provides one. "
+            "Unmapped reasons are uncategorised."
+        ),
+    )
     prior_pos: Range
     notes: list[str] = Field(default_factory=list)
 
@@ -39,6 +47,13 @@ class LedgerStep(Contract):
     citation: str | None = None
     claim_ids: list[str] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
+    pos_after: Range | None = Field(
+        default=None,
+        description=(
+            "Probability of success after this step (low, base, high); "
+            "the last step equals the posterior."
+        ),
+    )
 
     @model_validator(mode="after")
     def _sourced_needs_citation(self) -> "LedgerStep":

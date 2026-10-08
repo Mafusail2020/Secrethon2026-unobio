@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { getApi } from "./client";
 
+export const useHealth = () =>
+  useQuery({
+    queryKey: ["health"],
+    queryFn: async () => (await getApi()).health(),
+    retry: false,
+    // poll quickly while the backend is down so the banner clears as soon as it is back
+    refetchInterval: (query) => (query.state.status === "error" ? 3000 : 8000),
+  });
+
 export const useGraph = () =>
   useQuery({ queryKey: ["graph"], queryFn: async () => (await getApi()).graph(), staleTime: Infinity });
 
@@ -18,6 +27,15 @@ export const useRunDetail = (runId: string | undefined) =>
     retry: false,
   });
 
+export const useReportOf = (runId: string | null | undefined) =>
+  useQuery({
+    queryKey: ["report", runId],
+    queryFn: async () => (await getApi()).getReport(runId!),
+    enabled: !!runId,
+    retry: false,
+    staleTime: 60_000,
+  });
+
 export const useNode = (runId: string, nodeId: string | undefined, version: string) =>
   useQuery({
     queryKey: ["node", runId, nodeId, version],
@@ -31,5 +49,12 @@ export const useDiff = (parentId: string | null | undefined, runId: string, read
     queryKey: ["diff", parentId, runId],
     queryFn: async () => (await getApi()).getDiff(parentId!, runId),
     enabled: !!parentId && ready,
+    retry: false,
+  });
+
+export const useMessages = (runId: string) =>
+  useQuery({
+    queryKey: ["messages", runId],
+    queryFn: async () => (await getApi()).getMessages(runId),
     retry: false,
   });

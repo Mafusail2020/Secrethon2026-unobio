@@ -9,6 +9,7 @@ SPEC = NodeSpec(
     id="ingest_user_input",
     label="User input",
     kind="data",
+    phase="fetch",
     description="Turns user notes, links and preclinical data into user-provided evidence.",
     reads=["program", "entities"],
     writes=["source_ids", "evidence_ids", "scratch"],

@@ -8,7 +8,6 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.api.deps import get_services
 from app.contracts import (
-    ChatMessage,
     CorrectionRequest,
     CreateRunRequest,
     ErrorResponse,
@@ -170,14 +169,3 @@ async def get_trace(run_id: str, services: Svc) -> JSONResponse:
         json.loads(json.dumps(trace)),
         headers={"Content-Disposition": f'attachment; filename="trace_{run_id}.json"'},
     )
-
-
-@router.post(
-    "/runs/{run_id}/messages",
-    status_code=501,
-    response_model=ChatMessage,
-    responses={501: {"model": ErrorResponse}},
-)
-async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMessage:
-    await _require_run(services, run_id)
-    raise ApiError(501, "not_implemented", "chat follow-ups arrive in Stage 3U")

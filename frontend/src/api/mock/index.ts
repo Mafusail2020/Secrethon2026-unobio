@@ -4,6 +4,7 @@ import reportJson from "../../../../contracts/fixtures/report_bace1_alzheimers.j
 import { affectedSet, runnableNodes } from "../../features/underwriting/graphUtils";
 import { ApiError, type Api, type StreamState } from "../client";
 import type {
+  ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
   GraphSpec,
@@ -14,6 +15,7 @@ import type {
   UnderwritingReport,
 } from "../types";
 import { TERMINAL_EVENTS } from "../types";
+import { adjustDrafts, adjustReport, scenarioFromSearch, stepDelayFactor, type Draft, type Scenario } from "./scenarios";
 
 // Mirrors the backend stub run closely enough to demo with no server:
 // fixture events replayed with delays, corrections reuse nodes outside the affected set.
@@ -26,15 +28,15 @@ const fixtureEvents = eventsRaw
   .map((line) => JSON.parse(line) as RunEvent);
 const STEP_MS = 40;
 
-type Draft = Pick<RunEvent, "type" | "node_id" | "data">;
-
 interface MockRun {
   summary: RunSummary;
   events: RunEvent[];
   listeners: Set<(event: RunEvent) => void>;
   corrections: { id: string; run_id: string; node_id: string; text: string }[];
   reused: Set<string>;
+  scenario?: Scenario;
   report?: UnderwritingReport;
+  chat: ChatMessage[];
 }
 
 const runs = new Map<string, MockRun>();
@@ -59,10 +61,12 @@ function draftsFor(run: MockRun): Draft[] {
         ? { ...event.data, parent_run_id: run.summary.parent_run_id, reused: [...run.reused] }
         : event.type === "run.completed"
           ? { decision: flips(run) ? "do_not_invest" : "conditional" }
-          : event.data;
+          : event.type === "llm.call"
+            ? { ...event.data, model: "mock/gpt-6-luna", cost_usd: 0 }
+            : event.data;
     out.push({ type: event.type, node_id: id, data });
   }
-  return out;
+  return adjustDrafts(out, run.scenario);
 }
 
 function buildReport(run: MockRun): UnderwritingReport {
@@ -85,7 +89,23 @@ function buildReport(run: MockRun): UnderwritingReport {
       rationale: "FIXTURE: decision changed after a correction about a terminated program",
     };
   }
-  return report;
+  if (run.summary.options.effort === "panel") {
+    const size = run.summary.options.panel_size ?? 3;
+    report.meta = { ...report.meta, effort: "panel", panel_size: size };
+    for (const section of Object.values(report.sections)) {
+      section.panel = {
+        candidates: [1, 2].map((i) => ({
+          model: `mock/gpt-6-luna#${i}`,
+          summary: `FIXTURE: mock candidate ${i} for ${section.title}`,
+          decision_hint: i === 1 ? "conditional" : "do_not_invest",
+        })),
+        consensus: `FIXTURE: mock consensus for ${section.title}`,
+        disagreements: ["FIXTURE: candidates weigh the terminated trials differently"],
+        agreement: 0.72,
+      };
+    }
+  }
+  return adjustReport(report, run.scenario);
 }
 
 function push(run: MockRun, draft: Draft) {
@@ -97,6 +117,10 @@ function push(run: MockRun, draft: Draft) {
   };
   run.events.push(event);
   if (event.type === "run.started") run.summary.status = "running";
+  if (event.type === "run.failed") {
+    run.summary.status = "failed";
+    run.summary.error = String((event.data as Record<string, unknown>).error ?? "run failed");
+  }
   if (event.type === "run.completed") {
     run.report = buildReport(run);
     run.summary.status = "completed";
@@ -112,7 +136,7 @@ function start(run: MockRun) {
     const draft = drafts[index++];
     if (!draft) return;
     push(run, draft);
-    setTimeout(tick, STEP_MS);
+    setTimeout(tick, STEP_MS * stepDelayFactor(run.scenario));
   };
   setTimeout(tick, STEP_MS);
 }
@@ -132,7 +156,9 @@ function create(body: CreateRunRequest, parent?: MockRun, correction?: MockRun["
       error: null,
     } as RunSummary,
     events: [],
+    chat: [],
     listeners: new Set(),
+    scenario: parent?.scenario ?? scenarioFromSearch(window.location.search),
     corrections: [...(parent?.corrections ?? []), ...(correction ? [correction] : [])],
     reused: parent
       ? new Set(runnableNodes(spec).filter((n) => !affected.has(n.id)).map((n) => n.id))
@@ -186,6 +212,7 @@ function executionOf(run: MockRun, nodeId: string): NodeExecution | undefined {
 const wait = <T,>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), 30));
 
 export const mockApi: Api = {
+  health: () => wait({ status: "ok", llm_mode: "mock", llm_cache: true, has_api_key: false, max_panel_size: 4 }),
   graph: () => wait(spec),
   models: () =>
     wait([
@@ -262,6 +289,23 @@ export const mockApi: Api = {
     const source = evidence && baseReport.sources[evidence.source_id];
     if (!evidence || !source) throw new ApiError(404, "evidence_not_found", `no evidence ${evidenceId}`);
     return wait({ evidence, source });
+  },
+  getMessages: (runId) => wait([...need(runId).chat]),
+  postMessage: (runId, message) => {
+    const run = need(runId);
+    if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    const question = message.content.trim();
+    if (!question) throw new ApiError(422, "validation_error", "send a question");
+    // canned: point at the claims behind the verdict, which is what a real answer would cite
+    const cited = run.report.verdict.reason_codes.flatMap((r) => r.claim_ids).slice(0, 3);
+    const reply: ChatMessage = {
+      role: "assistant",
+      run_id: runId,
+      content: `Mock reply to "${question.slice(0, 80)}". The claims below are the ones the verdict rests on.`,
+      cited_claim_ids: cited,
+    };
+    run.chat.push({ role: "user", content: question, run_id: runId, cited_claim_ids: [] }, reply);
+    return wait(reply);
   },
   subscribe(runId, onEvent, onState) {
     const run = need(runId);

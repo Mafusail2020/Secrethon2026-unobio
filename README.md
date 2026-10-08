@@ -36,12 +36,14 @@ make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
 | `DEFAULT_MODEL` | Override the registry default (cheapest) |
 | `MAX_RUN_COST_USD`, `MAX_RUN_TOKENS` | Per-run budget guards |
 | `MAX_PANEL_SIZE` | Upper bound for panel mode |
+| `MAX_CHAT_QUESTIONS` | Follow-up questions allowed per run (default 20) |
 | `CACHE_TTL_DAYS` | Source cache TTL |
 | `SEC_USER_AGENT` | Descriptive User-Agent with contact email for SEC requests |
 | `DATA_DIR` | SQLite and vector files (git-ignored) |
 | `MAX_CONCURRENT_RUNS` | Runs executing at once (default 2) |
 | `STUB_DELAY_SCALE` | Scales the sleeps in stub nodes; `0` for instant runs (tests set it) |
 | `VITE_API_MODE` | `live` or `mock` (frontend serves fixtures with no backend) |
+| `API_PROXY_TARGET` | Where the Vite dev server proxies `/api` (default `http://localhost:8000`); lets a second dev setup run beside the first |
 
 ## Make targets
 
@@ -69,7 +71,9 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 4. Graph tab, click `verdict` (or any node), write a correction containing "terminated", and re-run. Only the affected
    nodes recompute, the rest show as reused, and the version bar shows the decision change.
 
-No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flow from fixtures.
+No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flow from fixtures. In mock mode, add
+`?scenario=sparse|large|failed|slow|broken` to `/underwriting` before starting a run to see messy data. The full
+walk-through, with what to check at each step, is in [docs/frontend-demo-script.md](docs/frontend-demo-script.md).
 
 ## Layout
 

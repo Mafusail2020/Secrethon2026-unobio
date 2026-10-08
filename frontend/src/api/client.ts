@@ -1,8 +1,10 @@
 import type {
+  ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
   EvidenceDetail,
   GraphSpec,
+  HealthStatus,
   ModelInfo,
   NodeExecution,
   ReportDiff,
@@ -16,6 +18,7 @@ import { TERMINAL_EVENTS } from "./types";
 export type StreamState = "connecting" | "open" | "closed";
 
 export interface Api {
+  health(): Promise<HealthStatus>;
   graph(): Promise<GraphSpec>;
   models(): Promise<ModelInfo[]>;
   listRuns(): Promise<RunSummary[]>;
@@ -26,6 +29,10 @@ export interface Api {
   createCorrection(runId: string, nodeId: string, body: CorrectionRequest): Promise<RunSummary>;
   getDiff(fromRun: string, toRun: string): Promise<ReportDiff>;
   getEvidence(evidenceId: string): Promise<EvidenceDetail>;
+  /** Earlier follow-up questions and answers of a run, oldest first. */
+  getMessages(runId: string): Promise<ChatMessage[]>;
+  /** Follow-up question about a completed run; the reply cites claims of its report. */
+  postMessage(runId: string, message: ChatMessage): Promise<ChatMessage>;
   /** Replays the full history, then streams live. Returns an unsubscribe function. */
   subscribe(
     runId: string,
@@ -71,6 +78,7 @@ const post = <T>(path: string, body: unknown) =>
   request<T>(path, { method: "POST", body: JSON.stringify(body) });
 
 export const liveApi: Api = {
+  health: () => request("/health"),
   graph: () => request("/graph"),
   models: () => request("/models"),
   listRuns: () => request("/runs?limit=100"),
@@ -81,6 +89,8 @@ export const liveApi: Api = {
   createCorrection: (id, nodeId, body) => post(`/runs/${id}/nodes/${nodeId}/corrections`, body),
   getDiff: (from, to) => request(`/runs/${from}/diff/${to}`),
   getEvidence: (id) => request(`/evidence/${id}`),
+  getMessages: (id) => request(`/runs/${id}/messages`),
+  postMessage: (id, message) => post(`/runs/${id}/messages`, message),
   subscribe(runId, onEvent, onState) {
     // EventSource reconnects by itself and sends Last-Event-ID; the server resumes after it
     const source = new EventSource(`/api/runs/${runId}/events`);

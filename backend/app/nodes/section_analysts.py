@@ -10,6 +10,7 @@ SPEC = NodeSpec(
     id="section_analysts",
     label="Section analysts",
     kind="analysis",
+    phase="analyse",
     description="Writes each report section plus the translation chain, risks, unknowns and diligence questions.",
     reads=["program", "entities", "questions", "claims", "twin_stats", "evidence_ids"],
     writes=[

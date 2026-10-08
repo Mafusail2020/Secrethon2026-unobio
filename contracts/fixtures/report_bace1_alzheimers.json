@@ -48,7 +48,7 @@
         "text": "FIXTURE: biological link supports the thesis",
         "direction": "positive",
         "claim_ids": [
-          "clm_1ac67500e761b44a"
+          "clm_b2f41d52a4efdea3"
         ]
       },
       {
@@ -56,7 +56,7 @@
         "text": "FIXTURE: prior programs were terminated",
         "direction": "negative",
         "claim_ids": [
-          "clm_f79587c4492ec202"
+          "clm_579247c2de1297af"
         ]
       },
       {
@@ -74,9 +74,9 @@
     "rationale": "FIXTURE: placeholder rationale for a conditional decision"
   },
   "pos": {
-    "low": 0.01,
-    "base": 0.04,
-    "high": 0.09,
+    "low": 0.0067,
+    "base": 0.0396,
+    "high": 0.1597,
     "unit": "probability"
   },
   "sections": {
@@ -107,13 +107,13 @@
         {
           "text": "FIXTURE: target link",
           "claim_ids": [
-            "clm_1ac67500e761b44a"
+            "clm_b2f41d52a4efdea3"
           ]
         },
         {
           "text": "FIXTURE: user note",
           "claim_ids": [
-            "clm_34b1ef96576f4e2e"
+            "clm_f30f6f2995415be3"
           ]
         }
       ],
@@ -151,7 +151,7 @@
         {
           "text": "FIXTURE: earlier trials terminated",
           "claim_ids": [
-            "clm_f79587c4492ec202"
+            "clm_579247c2de1297af"
           ]
         },
         {
@@ -233,7 +233,7 @@
         {
           "text": "FIXTURE: safety liabilities",
           "claim_ids": [
-            "clm_95778af45cd197f3"
+            "clm_0e5f44c93aaa4220"
           ]
         }
       ],
@@ -250,7 +250,7 @@
       "step": "molecular_effect",
       "status": "supported",
       "claim_ids": [
-        "clm_1ac67500e761b44a"
+        "clm_b2f41d52a4efdea3"
       ]
     },
     {
@@ -276,7 +276,7 @@
       "step": "patient_benefit",
       "status": "contradicted",
       "claim_ids": [
-        "clm_f79587c4492ec202"
+        "clm_579247c2de1297af"
       ]
     }
   ],
@@ -313,6 +313,9 @@
     "stop_reasons": {
       "FIXTURE: reason not extracted": 1
     },
+    "stop_reason_categories": {
+      "FIXTURE: reason not extracted": "other"
+    },
     "prior_pos": {
       "low": 0.02,
       "base": 0.05,
@@ -343,12 +346,18 @@
         "basis": "assumption",
         "citation": null,
         "claim_ids": [
-          "clm_f79587c4492ec202"
+          "clm_579247c2de1297af"
         ],
         "evidence_ids": [
           "ev_692b194034153ddd",
           "ev_703b525423824370"
-        ]
+        ],
+        "pos_after": {
+          "low": 0.0101,
+          "base": 0.0355,
+          "high": 0.0909,
+          "unit": "probability"
+        }
       },
       {
         "factor": "FIXTURE: biological link to the indication",
@@ -362,12 +371,18 @@
         "basis": "assumption",
         "citation": null,
         "claim_ids": [
-          "clm_1ac67500e761b44a"
+          "clm_b2f41d52a4efdea3"
         ],
         "evidence_ids": [
           "ev_a689ea04c9546031",
           "ev_d81f1b38b8694f2b"
-        ]
+        ],
+        "pos_after": {
+          "low": 0.0111,
+          "base": 0.049,
+          "high": 0.1667,
+          "unit": "probability"
+        }
       },
       {
         "factor": "FIXTURE: unproven translation chain",
@@ -383,13 +398,19 @@
         "claim_ids": [
           "clm_1a2d6b3903f6a5dd"
         ],
-        "evidence_ids": []
+        "evidence_ids": [],
+        "pos_after": {
+          "low": 0.0067,
+          "base": 0.0396,
+          "high": 0.1597,
+          "unit": "probability"
+        }
       }
     ],
     "posterior": {
-      "low": 0.01,
-      "base": 0.04,
-      "high": 0.09,
+      "low": 0.0067,
+      "base": 0.0396,
+      "high": 0.1597,
       "unit": "probability"
     }
   },
@@ -444,7 +465,7 @@
       "text": "FIXTURE: related-program safety liabilities",
       "severity": "medium",
       "claim_ids": [
-        "clm_95778af45cd197f3"
+        "clm_0e5f44c93aaa4220"
       ]
     }
   ],
@@ -524,8 +545,8 @@
       "status": "accepted",
       "rejection_reason": null
     },
-    "clm_1ac67500e761b44a": {
-      "id": "clm_1ac67500e761b44a",
+    "clm_b2f41d52a4efdea3": {
+      "id": "clm_b2f41d52a4efdea3",
       "text": "FIXTURE: the target is biologically linked to the indication",
       "section": "scientific_thesis",
       "stance": "pro",
@@ -535,12 +556,12 @@
         "ev_d81f1b38b8694f2b"
       ],
       "confidence": "medium",
-      "produced_by": "bull_claim_gate",
+      "produced_by": "bull_claim_writer",
       "status": "accepted",
       "rejection_reason": null
     },
-    "clm_34b1ef96576f4e2e": {
-      "id": "clm_34b1ef96576f4e2e",
+    "clm_f30f6f2995415be3": {
+      "id": "clm_f30f6f2995415be3",
       "text": "FIXTURE: the user-provided preclinical note reports a favourable result",
       "section": "scientific_thesis",
       "stance": "pro",
@@ -549,12 +570,12 @@
         "ev_7ba8bc84e6050988"
       ],
       "confidence": "low",
-      "produced_by": "bull_claim_gate",
+      "produced_by": "bull_claim_writer",
       "status": "accepted",
       "rejection_reason": null
     },
-    "clm_f79587c4492ec202": {
-      "id": "clm_f79587c4492ec202",
+    "clm_579247c2de1297af": {
+      "id": "clm_579247c2de1297af",
       "text": "FIXTURE: two Alzheimer's trials of a prior inhibitor of this target, NCT01739348 and NCT01953601, have status TERMINATED",
       "section": "clinical_plan",
       "stance": "con",
@@ -564,7 +585,7 @@
         "ev_703b525423824370"
       ],
       "confidence": "high",
-      "produced_by": "bear_claim_gate",
+      "produced_by": "bear_claim_writer",
       "status": "accepted",
       "rejection_reason": null
     },
@@ -630,8 +651,8 @@
       "status": "accepted",
       "rejection_reason": null
     },
-    "clm_95778af45cd197f3": {
-      "id": "clm_95778af45cd197f3",
+    "clm_0e5f44c93aaa4220": {
+      "id": "clm_0e5f44c93aaa4220",
       "text": "FIXTURE: safety liabilities in related programs raise risk",
       "section": "risks",
       "stance": "con",
@@ -640,12 +661,12 @@
         "ev_a689ea04c9546031"
       ],
       "confidence": "low",
-      "produced_by": "bear_claim_gate",
+      "produced_by": "bear_claim_writer",
       "status": "downgraded",
       "rejection_reason": "FIXTURE: evidence supports only a weak reading"
     },
-    "clm_d0769d2b88ba644a": {
-      "id": "clm_d0769d2b88ba644a",
+    "clm_d967c41572bf3b36": {
+      "id": "clm_d967c41572bf3b36",
       "text": "FIXTURE: animal results guarantee human efficacy",
       "section": "scientific_thesis",
       "stance": "pro",
@@ -654,7 +675,7 @@
         "ev_missing"
       ],
       "confidence": "low",
-      "produced_by": "bull_claim_gate",
+      "produced_by": "bull_claim_writer",
       "status": "rejected",
       "rejection_reason": "FIXTURE: cited evidence id does not exist in this run"
     }

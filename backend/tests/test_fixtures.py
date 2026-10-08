@@ -112,3 +112,27 @@ def test_events_fixture_is_a_valid_run():
 def test_graph_spec_fixture_matches_registry():
     fixture = GraphSpec.model_validate(_load("graph_spec.json"))
     assert fixture == build_graph_spec(), "run `make graph-spec`"
+
+
+def test_ledger_steps_chain_to_the_posterior(report: UnderwritingReport):
+    ledger = report.ledger
+    assert ledger is not None and ledger.steps
+    assert all(step.pos_after is not None for step in ledger.steps)
+    assert ledger.steps[-1].pos_after == ledger.posterior == report.pos
+    bases = [ledger.prior.base, *(s.pos_after.base for s in ledger.steps if s.pos_after)]
+    for step, before, after in zip(ledger.steps, bases, bases[1:], strict=False):
+        assert (after < before) == (step.direction == "down"), step.factor
+
+
+def test_stop_reason_categories_only_describe_known_reasons(report: UnderwritingReport):
+    twin = report.twin_stats
+    assert twin is not None
+    assert set(twin.stop_reason_categories) <= set(twin.stop_reasons)
+
+
+def test_claims_are_authored_by_writers_never_gates(report: UnderwritingReport):
+    producers = {c.produced_by for c in report.claims.values()}
+    assert producers and not any(p.endswith("_claim_gate") for p in producers)
+    registry = get_registry()
+    assert producers <= set(registry)
+    assert all(registry[p].spec.correctable for p in producers)

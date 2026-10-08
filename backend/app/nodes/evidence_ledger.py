@@ -6,26 +6,38 @@ from app.nodes._fixture import excluded_ids, fixture_report, nap
 from app.nodes.base import NodeContext
 
 
-def _posterior(prior: Range, steps: list[LedgerStep]) -> Range:
-    def apply(p: float, ratios: list[float]) -> float:
-        p = min(max(p, 0.0), 1 - 1e-9)
-        odds = p / (1 - p)
-        for ratio in ratios:
-            odds *= ratio
-        return round(odds / (1 + odds), 4)
+def _chain(prior: Range, steps: list[LedgerStep]) -> list[LedgerStep]:
+    """Fill pos_after on each step by chaining likelihood ratios from the prior (odds form)."""
 
-    return Range(
-        low=apply(prior.low, [s.likelihood_ratio.low for s in steps]),
-        base=apply(prior.base, [s.likelihood_ratio.base for s in steps]),
-        high=apply(prior.high, [s.likelihood_ratio.high for s in steps]),
-        unit="probability",
-    )
+    def apply(p: float, ratio: float) -> float:
+        p = min(max(p, 0.0), 1 - 1e-9)
+        odds = p / (1 - p) * ratio
+        return odds / (1 + odds)
+
+    current = (prior.low, prior.base, prior.high)
+    chained: list[LedgerStep] = []
+    for step in steps:
+        lr = step.likelihood_ratio
+        current = (
+            apply(current[0], lr.low),
+            apply(current[1], lr.base),
+            apply(current[2], lr.high),
+        )
+        pos = Range(
+            low=round(current[0], 4),
+            base=round(current[1], 4),
+            high=round(current[2], 4),
+            unit="probability",
+        )
+        chained.append(step.model_copy(update={"pos_after": pos}))
+    return chained
 
 
 SPEC = NodeSpec(
     id="evidence_ledger",
     label="Evidence ledger",
     kind="quant",
+    phase="quant",
     description="Combines the twin prior with likelihood ratios from evidence into a posterior range.",
     reads=["twin_stats", "claims", "sections", "evidence_ids"],
     writes=["ledger"],
@@ -52,7 +64,9 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         for s in base.steps
         if not s.claim_ids or any(c in usable for c in s.claim_ids)
     ]
-    ledger = EvidenceLedger(prior=prior, steps=steps, posterior=_posterior(prior, steps))
+    steps = _chain(prior, steps)
+    posterior = steps[-1].pos_after if steps and steps[-1].pos_after else prior
+    ledger = EvidenceLedger(prior=prior, steps=steps, posterior=posterior)
     ctx.log(
         f"{len(steps)} ledger steps: PoS {prior.base:.3f} -> {ledger.posterior.base:.3f} (FIXTURE ratios)"
     )

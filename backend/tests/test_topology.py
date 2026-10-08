@@ -104,3 +104,11 @@ def test_graph_spec_has_colors_for_every_kind():
     assert set(KIND_COLORS) == set(get_args(NodeKind))
     assert set(spec.kind_colors) == set(get_args(NodeKind))
     assert all(n.description for n in spec.nodes)
+
+
+def test_every_node_declares_a_phase_and_inner_nodes_share_their_container_phase():
+    registry = get_registry()
+    assert all(e.spec.phase for e in registry.values())
+    for node_id, entry in registry.items():
+        if entry.spec.parent:
+            assert entry.spec.phase == registry[entry.spec.parent].spec.phase, node_id

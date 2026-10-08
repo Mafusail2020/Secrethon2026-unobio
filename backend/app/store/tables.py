@@ -83,6 +83,18 @@ class LLMCallRow(Base):
     ts: Mapped[datetime] = mapped_column(UTCDateTime)
 
 
+class ChatMessageRow(Base):
+    __tablename__ = "chat_messages"
+    __table_args__ = (Index("ix_chat_messages_run", "run_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(String)
+    role: Mapped[str] = mapped_column(String)
+    content: Mapped[str] = mapped_column(Text)
+    cited_claim_ids: Mapped[list[str]] = mapped_column(JSON)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
 class LLMCacheRow(Base):
     __tablename__ = "llm_cache"
 

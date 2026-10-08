@@ -151,9 +151,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Messages */
+        get: operations["list_messages_api_runs__run_id__messages_get"];
         put?: never;
-        /** Post Message */
+        /**
+         * Post Message
+         * @description Follow-up on a finished run; the reply cites its claims or says it cannot answer.
+         */
         post: operations["post_message_api_runs__run_id__messages_post"];
         delete?: never;
         options?: never;
@@ -276,7 +280,10 @@ export interface components {
              * @enum {string}
              */
             label: "extracted" | "derived" | "inferred" | "modeled" | "hypothesis" | "unknown";
-            /** Produced By */
+            /**
+             * Produced By
+             * @description Node that wrote the claim text (a claim writer or analyst), never a gate. A gate only sets status.
+             */
             produced_by: string;
             /** Rejection Reason */
             rejection_reason: string | null;
@@ -448,6 +455,8 @@ export interface components {
              * @enum {string}
              */
             llm_mode: "mock" | "live";
+            /** Max Panel Size */
+            max_panel_size: number;
             /**
              * Status
              * @default ok
@@ -503,6 +512,8 @@ export interface components {
             /** Factor */
             factor: string;
             likelihood_ratio: components["schemas"]["Range"];
+            /** @description Probability of success after this step (low, base, high); the last step equals the posterior. */
+            pos_after: components["schemas"]["Range"] | null;
         };
         /** LogLine */
         LogLine: {
@@ -603,6 +614,11 @@ export interface components {
             label: string;
             /** Parent */
             parent: string | null;
+            /**
+             * Phase
+             * @description Pipeline phase the UI groups this step under.
+             */
+            phase: ("resolve" | "plan" | "fetch" | "index" | "cases" | "analyse" | "quant" | "report") | null;
             /** Reads */
             reads: string[];
             /** Writes */
@@ -982,6 +998,13 @@ export interface components {
             /** Stage Distribution */
             stage_distribution: {
                 [key: string]: number;
+            };
+            /**
+             * Stop Reason Categories
+             * @description Category of each key in stop_reasons, when the source provides one. Unmapped reasons are uncategorised.
+             */
+            stop_reason_categories: {
+                [key: string]: "efficacy" | "safety" | "business" | "other";
             };
             /** Stop Reasons */
             stop_reasons: {
@@ -1367,6 +1390,37 @@ export interface operations {
             };
         };
     };
+    list_messages_api_runs__run_id__messages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"][];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     post_message_api_runs__run_id__messages_post: {
         parameters: {
             query?: never;
@@ -1382,6 +1436,24 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
@@ -1391,8 +1463,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Successful Response */
-            501: {
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
