@@ -7,7 +7,7 @@ export function DiligencePanel({ unknowns, questions }: { unknowns: string[]; qu
   const { jumpToClaim } = useReportContext();
   const sorted = [...questions].sort((a, b) => a.priority - b.priority);
   return (
-    <section className="rounded-lg border border-line bg-white p-3" aria-labelledby="dd-h">
+    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="dd-h">
       <h3 id="dd-h" className="text-sm font-semibold">
         What we still need to know
       </h3>

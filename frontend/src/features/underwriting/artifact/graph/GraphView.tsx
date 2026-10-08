@@ -160,7 +160,7 @@ export function GraphView({
         <GraphLegend spec={spec} />
       </Panel>
       <Panel position="top-right">
-        <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-white/95 px-2 py-1 text-xs shadow-sm">
+        <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-line bg-surface/95 px-2 py-1 text-xs shadow-sm">
           <input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} />
           Follow running step
         </label>

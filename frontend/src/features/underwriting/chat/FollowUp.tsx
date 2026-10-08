@@ -53,7 +53,7 @@ export function FollowUp({
   };
 
   return (
-    <section aria-label="Follow-up questions" className="border-t border-line bg-white p-3">
+    <section aria-label="Follow-up questions" className="border-t border-line bg-surface p-3">
       {(messages.length > 0 || ask.isPending) && (
         <ul aria-live="polite" className="mb-2 max-h-48 space-y-2 overflow-auto">
           {messages.map((m, i) => (
@@ -68,7 +68,7 @@ export function FollowUp({
                         <button
                           type="button"
                           onClick={() => onOpenClaim(id)}
-                          className="max-w-[16rem] truncate rounded-full border border-line bg-white px-2 py-0.5 text-xs text-brand hover:border-brand"
+                          className="max-w-[16rem] truncate rounded-full border border-line bg-surface px-2 py-0.5 text-xs text-brand hover:border-brand"
                           title={claim?.text}
                         >
                           {claim ? claim.text : id}
@@ -104,7 +104,7 @@ export function FollowUp({
           onChange={(e) => setDraft(e.target.value)}
           disabled={!!locked || ask.isPending}
           placeholder={locked ? (locked === "limit" ? "Question limit reached" : "Follow-up questions are not available yet") : "Ask a follow-up about this report"}
-          className="min-w-0 flex-1 rounded-full border border-line bg-white px-3 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:bg-canvas"
+          className="min-w-0 flex-1 rounded-full border border-line bg-surface px-3 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:bg-canvas"
         />
         <button
           type="submit"

@@ -19,7 +19,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode; resetKey?: s
         <p className="font-medium">This panel hit an unexpected error.</p>
         <p className="mt-1 text-xs">{this.state.error.message}</p>
         <p className="mt-1 text-xs">The rest of the page still works. Your run and its data are not affected.</p>
-        <button type="button" onClick={() => this.setState({ error: null })} className="mt-2 rounded-full border border-red-300 bg-white px-3 py-1 text-xs font-medium">
+        <button type="button" onClick={() => this.setState({ error: null })} className="mt-2 rounded-full border border-red-300 bg-surface px-3 py-1 text-xs font-medium">
           Try again
         </button>
       </div>

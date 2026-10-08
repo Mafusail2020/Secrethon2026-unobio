@@ -169,7 +169,7 @@ export function ArtifactPanel({
             ) : graphError ? (
               <div className="space-y-2 p-4">
                 <ErrorBox error={graphError} title="Could not load the pipeline graph" />
-                <button type="button" onClick={onRetryGraph} className="rounded-full border border-line bg-white px-3 py-1 text-sm">
+                <button type="button" onClick={onRetryGraph} className="rounded-full border border-line bg-surface px-3 py-1 text-sm">
                   Try again
                 </button>
               </div>

@@ -1,11 +1,24 @@
 /* unobio.com's palette and fonts (graphite, slate, signal blue, paper, ink) */
 @theme {
-  --color-canvas: #f1ede4;
-  --color-ink: rgb(29, 29, 31);
-  --color-muted: rgb(110, 110, 115);
-  --color-line: #d8d2c5;
+  --color-canvas: #d9e4ff;
+  --color-surface: #f4f7ff;
+  --color-ink: #0a1230;
+  --color-muted: #4a5683;
+  --color-line: #b3c3ee;
   --color-navy: #04081a;
-  --color-brand: rgb(0, 113, 227);
+  --color-brand: #0a5cd0;
+  --color-royal: #1d3fff;
+  --color-periwinkle: #6f86ff;
+  --color-slate-50: #eff4ff;
+  --color-slate-100: #e2eaff;
+  --color-slate-200: #cdd9f7;
+  --color-slate-300: #aebfe9;
+  --color-slate-400: #7686bd;
+  --color-slate-500: #4a5a94;
+  --color-slate-600: #3d4d85;
+  --color-slate-700: #2f3d6f;
+  --color-slate-800: #1e2a55;
+  --color-slate-900: #0f1838;
   --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }

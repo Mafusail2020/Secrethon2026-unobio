@@ -33,7 +33,7 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
       <div className="mb-3 flex flex-wrap items-center gap-3 text-xs" role="search" aria-label="Filter sources">
         <label className="flex items-center gap-1">
           Type
-          <select className="rounded border border-line bg-white px-1.5 py-0.5" value={type} onChange={(e) => setType(e.target.value)}>
+          <select className="rounded border border-line bg-surface px-1.5 py-0.5" value={type} onChange={(e) => setType(e.target.value)}>
             <option value="">all</option>
             {types.map((t) => (
               <option key={t} value={t}>
@@ -44,7 +44,7 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
         </label>
         <label className="flex items-center gap-1">
           <span className="sr-only">Search sources</span>
-          <input type="search" placeholder="Search title, publisher, id" value={query} onChange={(e) => setQuery(e.target.value)} className="w-56 rounded border border-line bg-white px-1.5 py-0.5" />
+          <input type="search" placeholder="Search title, publisher, id" value={query} onChange={(e) => setQuery(e.target.value)} className="w-56 rounded border border-line bg-surface px-1.5 py-0.5" />
         </label>
         <span className="text-muted" role="status">
           {shown.length} of {rows.length} sources

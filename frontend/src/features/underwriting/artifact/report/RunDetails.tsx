@@ -12,7 +12,7 @@ export function RunDetails({ meta, runId }: { meta: RunMeta; runId: string }) {
     ["Cache hits", String(meta.cache_hits)],
   ];
   return (
-    <section className="rounded-lg border border-line bg-white p-3" aria-labelledby="run-h">
+    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="run-h">
       <h3 id="run-h" className="text-sm font-semibold">
         Run details
       </h3>

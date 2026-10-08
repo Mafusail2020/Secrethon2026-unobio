@@ -120,7 +120,7 @@ export function ReportView({
                 onClick={() => scrollToId(item.id)}
                 aria-current={active === item.id ? "location" : undefined}
                 className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${
-                  active === item.id ? "bg-navy text-white" : "text-muted hover:bg-white hover:text-ink"
+                  active === item.id ? "bg-navy text-white" : "text-muted hover:bg-surface hover:text-ink"
                 }`}
               >
                 {item.label}
@@ -133,7 +133,7 @@ export function ReportView({
           {report.meta.parent_run_id && <WhatChanged report={report} onJumpSection={(id) => scrollToId(`section-${id}`)} />}
 
           <section id="overview" className="scroll-mt-32 space-y-4" aria-label="Overview">
-            <div className="rounded-lg border border-line bg-white p-4">
+            <div className="rounded-lg border border-line bg-surface p-4">
               <h2 className="text-lg font-semibold">
                 {report.program.mechanism} in {report.program.indication}
               </h2>
@@ -192,7 +192,7 @@ export function ReportView({
             )}
           </div>
 
-          <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="scroll-mt-32 rounded-lg border border-line bg-white p-3">
+          <details key={focusInAll ? focus.nonce : "all"} id="all-claims" open={focusInAll || undefined} className="scroll-mt-32 rounded-lg border border-line bg-surface p-3">
             <summary className="cursor-pointer text-sm font-semibold">All claims ({claims.length})</summary>
             <div className="mt-2 space-y-2">
               <ClaimFilterBar claims={claims} filters={filters} shown={shownClaims.length} onChange={setFilters} />
@@ -220,7 +220,7 @@ export function ReportView({
 
 function Missing({ title, why }: { title: string; why: string }) {
   return (
-    <section className="rounded-lg border border-dashed border-line bg-white/60 p-3">
+    <section className="rounded-lg border border-dashed border-line bg-surface/60 p-3">
       <h3 className="text-sm font-semibold">{title}</h3>
       <p className="text-xs text-muted">{why}</p>
     </section>

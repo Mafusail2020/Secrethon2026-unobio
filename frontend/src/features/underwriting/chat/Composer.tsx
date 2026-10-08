@@ -111,7 +111,7 @@ function toRequest(form: FormState): CreateRunRequest {
 }
 
 const input =
-  "w-full rounded-md border border-line bg-white px-2.5 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand aria-[invalid=true]:border-red-400";
+  "w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm placeholder:text-muted/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand aria-[invalid=true]:border-red-400";
 const label = "mb-1 block text-xs font-medium text-muted";
 
 function Field({
@@ -182,7 +182,7 @@ export function Composer({ initial }: { initial?: { indication: string; mechanis
   };
 
   return (
-    <form onSubmit={submit} onKeyDown={onKeyDown} className="space-y-3 rounded-xl border border-line bg-white p-3 shadow-sm">
+    <form onSubmit={submit} onKeyDown={onKeyDown} className="space-y-3 rounded-xl border border-line bg-surface p-3 shadow-sm">
       <Field id={`${uid}-indication`} name="indication" title="Indication" errors={errors}>
         {(p) => (
           <input

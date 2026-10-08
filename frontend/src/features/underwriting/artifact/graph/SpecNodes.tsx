@@ -66,7 +66,7 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
       </button>
       <div
         role="tooltip"
-        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-line bg-white p-2 text-xs shadow-lg group-hover:visible"
+        className="pointer-events-none invisible absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-line bg-surface p-2 text-xs shadow-lg group-hover:visible"
       >
         <span className="block font-semibold">{data.spec.label}</span>
         <span className="block text-muted">{data.spec.description}</span>
@@ -79,7 +79,7 @@ export function ContainerNodeView({ data }: NodeProps<GroupFlowNode>) {
   return (
     <div
       style={{ width: data.w, height: data.h, borderColor: data.color }}
-      className={`rounded-lg border-2 border-dashed bg-white/40 transition-opacity ${data.selected ? "outline outline-2 outline-brand" : ""} ${
+      className={`rounded-lg border-2 border-dashed bg-surface/40 transition-opacity ${data.selected ? "outline outline-2 outline-brand" : ""} ${
         data.affected ? "ring-2 ring-violet-500" : ""
       } ${data.dim ? "opacity-30" : ""}`}
     >

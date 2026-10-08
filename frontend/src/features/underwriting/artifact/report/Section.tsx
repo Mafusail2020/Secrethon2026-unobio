@@ -15,7 +15,7 @@ export function Section({ result }: { result: SectionResult }) {
   const { report, focus } = useReportContext();
   const insufficient = result.status === "insufficient_evidence";
   return (
-    <section id={`section-${result.section}`} aria-labelledby={`h-${result.section}`} className="scroll-mt-32 rounded-lg border border-line bg-white p-3">
+    <section id={`section-${result.section}`} aria-labelledby={`h-${result.section}`} className="scroll-mt-32 rounded-lg border border-line bg-surface p-3">
       <div className="flex items-center justify-between gap-2">
         <h3 id={`h-${result.section}`} className="text-sm font-semibold">
           {result.title}

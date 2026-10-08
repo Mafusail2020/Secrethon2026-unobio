@@ -28,7 +28,7 @@ export function Segmented<T extends string>({
           <label
             key={option.value}
             className={`cursor-pointer rounded-full px-2 py-1 text-center text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
-              option.value === value ? "bg-white font-medium shadow-sm" : "text-muted hover:text-ink"
+              option.value === value ? "bg-surface font-medium shadow-sm" : "text-muted hover:text-ink"
             }`}
           >
             <input

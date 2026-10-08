@@ -11,7 +11,7 @@ export function ExampleCards({ onPick }: { onPick: (example: Example) => void })
             <button
               type="button"
               onClick={() => onPick(example)}
-              className="w-full rounded-lg border border-line bg-white px-3 py-2 text-left transition-colors hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-left transition-colors hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
             >
               <span className="block text-sm font-medium">{example.title}</span>
               <span className="block text-xs text-muted">{example.hint}</span>

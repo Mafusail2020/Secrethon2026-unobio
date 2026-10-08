@@ -13,7 +13,7 @@ export function VersionBar({ run, completed }: { run: RunSummary; completed: boo
   const family = familyOf(runs.data ?? [run], run.id);
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-3 py-2 text-sm">
+    <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-3 py-2 text-sm">
       <label className="flex items-center gap-2">
         Version
         <select

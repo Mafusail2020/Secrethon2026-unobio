@@ -69,7 +69,7 @@ export function PhaseBlock({ phase, live }: { phase: PhaseView; live: Record<str
   const pending = phase.status === "pending";
 
   return (
-    <li className={`rounded-lg border bg-white ${phase.status === "failed" ? "border-red-300" : "border-line"} ${pending ? "opacity-70" : ""}`}>
+    <li className={`rounded-lg border bg-surface ${phase.status === "failed" ? "border-red-300" : "border-line"} ${pending ? "opacity-70" : ""}`}>
       <button
         type="button"
         onClick={() => setOverride(!open)}

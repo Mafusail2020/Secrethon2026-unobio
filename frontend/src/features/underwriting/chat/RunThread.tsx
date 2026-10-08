@@ -55,7 +55,7 @@ function VerdictCard({
 }) {
   const reasons = report?.verdict.reason_codes.slice(0, 3) ?? [];
   return (
-    <div className="rounded-lg border border-line bg-white p-3">
+    <div className="rounded-lg border border-line bg-surface p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge className={`px-3 py-1 text-sm ${DECISION_STYLE[decision]}`}>{DECISION_LABEL[decision]}</Badge>
         {report && (
@@ -167,7 +167,7 @@ export function RunThread({
               type="button"
               onClick={() => rerun.mutate()}
               disabled={rerun.isPending}
-              className="rounded-full border border-line bg-white px-3 py-1 text-sm font-medium text-brand hover:border-brand disabled:opacity-60"
+              className="rounded-full border border-line bg-surface px-3 py-1 text-sm font-medium text-brand hover:border-brand disabled:opacity-60"
             >
               Run again with the same input
             </button>
