@@ -109,7 +109,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
           sidebarOpen ? "translate-x-0 shadow-xl md:w-72" : "-translate-x-full shadow-none md:w-0 md:translate-x-0"
         }`}
       >
-        <div className="h-full w-72 max-w-[85vw] border-r border-line">
+        <div className="h-full w-72 max-w-[85vw]">
           <Sidebar currentId={runId} onNavigate={() => !isWide() && setSidebarOpen(false)} />
         </div>
       </aside>
