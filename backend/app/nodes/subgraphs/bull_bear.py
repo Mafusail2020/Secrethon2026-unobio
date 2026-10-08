@@ -8,9 +8,11 @@ from app.graph.provenance import gate_claims
 from app.graph.state import GraphState
 from app.graph.topology import STANCES, case_container, case_node
 from app.nodes._analysis import (
+    DIGEST_CHARS,
     Draft,
     DraftClaims,
     ask,
+    ask_fitted,
     describe_program,
     digest,
     dump_drafts,
@@ -256,20 +258,21 @@ def make_nodes(stance: CaseStance) -> dict[str, NodeRun]:
             return {"scratch": {ctx.node_id: dump_drafts([], {}, evidence_ids=[])}}
         limit = 3 + ctx.effort.n_queries
         questions = "\n".join(f"- [{q.section}] {q.question}" for q in state.get("questions", []))
-        user = (
-            f"{describe_program(state)}\n\nSide: {stance}. Write at most {limit} claims giving the "
-            f"{_GOAL[stance]}.\nUse the section ids of the questions they answer:\n{questions}\n\n"
-            f"{_twin_context(state)}\n\nEvidence:\n{await digest(ctx, provided)}"
-        )
-        if extra := instructions(ctx):
-            user += f"\n\n{extra}"
-        drafted = await ask(
-            ctx,
-            f"{writer}.draft",
-            system_prompt("claim_writer"),
-            user,
-            DraftClaims,
-            max_tokens=2500,
+        candidates = provided
+
+        async def build(scale: float) -> tuple[str, list[str]]:
+            evidence, shown = await digest(ctx, candidates, budget=int(DIGEST_CHARS * scale))
+            user = (
+                f"{describe_program(state)}\n\nSide: {stance}. Write at most {limit} claims "
+                f"giving the {_GOAL[stance]}.\nUse the section ids of the questions they "
+                f"answer:\n{questions}\n\n{_twin_context(state)}\n\nEvidence:\n{evidence}"
+            )
+            if extra := instructions(ctx):
+                user += f"\n\n{extra}"
+            return user, shown
+
+        drafted, _, provided = await ask_fitted(
+            ctx, f"{writer}.draft", system_prompt("claim_writer"), build, DraftClaims, 2500
         )
         claims, quotes = to_claims(
             (drafted.claims if drafted else [])[:limit], writer, _STANCE[stance]

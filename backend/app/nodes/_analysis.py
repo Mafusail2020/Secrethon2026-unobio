@@ -5,7 +5,8 @@ Code turns its drafts into Claims, then the gate keeps a claim only if its ids a
 really in the cited text."""
 
 import re
-from collections.abc import Collection, Iterable, Sequence
+import unicodedata
+from collections.abc import Awaitable, Callable, Collection, Iterable, Sequence
 from functools import cache
 from pathlib import Path
 from typing import Literal
@@ -23,6 +24,9 @@ from app.nodes.base import NodeContext
 
 PROMPTS = Path(__file__).parent / "prompts"
 EXCERPT_CHARS = 700
+# the gateway refuses inputs above a "conservative input limit"; calls of ~5.5k tokens went through
+# and ones of ~7k did not, so the evidence part of a message is capped by characters
+DIGEST_CHARS = 9000
 MIN_QUOTE_CHARS = 12
 QUOTE_MISSING = "quote not found verbatim in the cited evidence"
 
@@ -102,8 +106,13 @@ def describe_program(state: GraphState) -> str:
     return "\n".join(lines)
 
 
-async def digest(ctx: NodeContext, evidence_ids: Sequence[str], chars: int = EXCERPT_CHARS) -> str:
-    """The evidence list a model may cite, one item per block, in the given order."""
+async def digest(
+    ctx: NodeContext,
+    evidence_ids: Sequence[str],
+    chars: int = EXCERPT_CHARS,
+    budget: int = DIGEST_CHARS,
+) -> tuple[str, list[str]]:
+    """The evidence list a model may cite, best first, until the budget is spent; and the ids shown."""
     items = await ctx.store.evidence.get_many_evidence(list(evidence_ids))
     titles = {
         s.id: s.title
@@ -111,20 +120,33 @@ async def digest(ctx: NodeContext, evidence_ids: Sequence[str], chars: int = EXC
             list(dict.fromkeys(e.source_id for e in items))
         )
     }
-    blocks = []
+    blocks: list[str] = []
+    shown: list[str] = []
+    used = 0
     for e in items:
         text = " ".join(e.excerpt.split())
         if len(text) > chars:
             text = text[:chars] + " …"
         where = f", {e.locator}" if e.locator else ""
-        blocks.append(f"[{e.id}] {titles.get(e.source_id, 'unknown source')}{where}\n{text}")
-    return "\n\n".join(blocks) if blocks else "(no evidence available)"
+        block = f"[{e.id}] {titles.get(e.source_id, 'unknown source')}{where}\n{text}"
+        if shown and used + len(block) > budget:
+            break
+        blocks.append(block)
+        shown.append(e.id)
+        used += len(block) + 2
+    return ("\n\n".join(blocks) if blocks else "(no evidence available)"), shown
 
 
 async def ask_full[M: BaseModel](
-    ctx: NodeContext, purpose: str, system: str, user: str, schema: type[M], max_tokens: int
+    ctx: NodeContext,
+    purpose: str,
+    system: str,
+    user: str,
+    schema: type[M],
+    max_tokens: int,
+    shrinkable: bool = False,
 ) -> tuple[M | None, LLMResult | None]:
-    """One structured model call. A reply that fails validation is logged, not fatal."""
+    """One structured model call. A failed call or unusable reply is logged, not fatal."""
     task = LLMTask(
         purpose=purpose,
         system=system,
@@ -139,6 +161,11 @@ async def ask_full[M: BaseModel](
     except LLMParseError as exc:
         ctx.log(f"model reply unusable ({exc}); continuing without it", "warn")
         return None, None
+    except Exception as exc:  # a refused or failed call costs this answer, not the whole node
+        if shrinkable and TOO_LONG.search(str(exc)):
+            raise _TooLong from exc
+        ctx.log(f"model call failed ({str(exc)[:300]}); continuing without it", "warn")
+        return None, None
     parsed = result.parsed
     return (parsed if isinstance(parsed, schema) else None), result
 
@@ -147,6 +174,38 @@ async def ask[M: BaseModel](
     ctx: NodeContext, purpose: str, system: str, user: str, schema: type[M], max_tokens: int
 ) -> M | None:
     return (await ask_full(ctx, purpose, system, user, schema, max_tokens))[0]
+
+
+class _TooLong(Exception):
+    pass
+
+
+# the gateway's input limit is not documented, so a refused input is retried smaller
+SHRINK = (1.0, 0.6, 0.35)
+TOO_LONG = re.compile(r"input limit|context length|maximum context|too many tokens", re.I)
+Build = Callable[[float], Awaitable[tuple[str, list[str]]]]
+
+
+async def ask_fitted[M: BaseModel](
+    ctx: NodeContext, purpose: str, system: str, build: Build, schema: type[M], max_tokens: int
+) -> tuple[M | None, LLMResult | None, list[str]]:
+    """ask_full with a user message built at a scale; returns the evidence ids the model saw."""
+    for i, scale in enumerate(SHRINK):
+        user, shown = await build(scale)
+        last = i == len(SHRINK) - 1
+        try:
+            parsed, result = await ask_full(
+                ctx, purpose, system, user, schema, max_tokens, shrinkable=not last
+            )
+        except _TooLong:
+            ctx.log(
+                f"{purpose}: input too long for the gateway ({len(system) + len(user)} chars); "
+                f"retrying at {SHRINK[i + 1]:.0%}",
+                "warn",
+            )
+            continue
+        return parsed, result, shown
+    return None, None, []
 
 
 def to_claims(
@@ -175,14 +234,21 @@ def to_claims(
 
 
 def _norm(text: str) -> str:
-    text = text.lower().replace("…", " ").replace("...", " ")
+    # models write typographic dashes and quotes where the source has plain ones, and vice versa
+    text = unicodedata.normalize("NFKC", text).lower()
+    text = re.sub(r"[‐‑‒–—―−]", "-", text)
     text = re.sub(r"[\"'“”‘’`]", "", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
 def quote_found(quote: str, excerpts: Iterable[str]) -> bool:
-    q = _norm(quote)
-    return len(q) >= MIN_QUOTE_CHARS and any(q in _norm(x) for x in excerpts)
+    """Every part of the quote (models join fragments with an ellipsis) is in one cited excerpt."""
+    parts = [_norm(p) for p in re.split(r"…|\.\.\.", quote)]
+    parts = [p.strip(" .,;:") for p in parts if len(p.strip(" .,;:")) >= 4]
+    if sum(len(p) for p in parts) < MIN_QUOTE_CHARS:
+        return False
+    texts = [_norm(x) for x in excerpts]
+    return any(all(p in t for p in parts) for t in texts)
 
 
 async def gate(

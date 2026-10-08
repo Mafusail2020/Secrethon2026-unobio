@@ -23,10 +23,11 @@ from app.graph.provenance import gate_claims
 from app.graph.state import GraphState
 from app.graph.topology import LANES, lane_container, lane_node
 from app.nodes._analysis import (
+    DIGEST_CHARS,
     QUOTE_MISSING,
     Draft,
     DraftClaim,
-    ask,
+    ask_fitted,
     describe_program,
     digest,
     dump_drafts,
@@ -273,20 +274,21 @@ def make_nodes(lane: AssessedCause) -> dict[str, NodeRun]:
         if not provided:
             ctx.log("nothing gathered to extract from", "warn")
             return {"scratch": {ctx.node_id: dump_drafts([], {}, evidence_ids=[], chain=[])}}
-        user = (
-            f"{describe_program(state)}\n\nAt most {4 + ctx.effort.n_queries} claims.\n\n"
-            f"Evidence:\n{await digest(ctx, provided)}"
-        )
-        if extra := instructions(ctx):
-            user += f"\n\n{extra}"
+        candidates = provided
+
+        async def build(scale: float) -> tuple[str, list[str]]:
+            evidence, shown = await digest(ctx, candidates, budget=int(DIGEST_CHARS * scale))
+            user = (
+                f"{describe_program(state)}\n\nAt most {4 + ctx.effort.n_queries} claims.\n\n"
+                f"Evidence:\n{evidence}"
+            )
+            if extra := instructions(ctx):
+                user += f"\n\n{extra}"
+            return user, shown
+
         schema = EfficacyDraft if lane == "efficacy" else SafetyDraft
-        drafted = await ask(
-            ctx,
-            f"{extract}.extract",
-            system_prompt(f"{lane}_extract"),
-            user,
-            schema,
-            max_tokens=3000,
+        drafted, _, provided = await ask_fitted(
+            ctx, f"{extract}.extract", system_prompt(f"{lane}_extract"), build, schema, 3000
         )
         drafts = (drafted.claims if drafted else [])[: 4 + ctx.effort.n_queries]
         claims, quotes = to_claims(drafts, extract)

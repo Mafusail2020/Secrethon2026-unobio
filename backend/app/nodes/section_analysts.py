@@ -21,7 +21,7 @@ from app.graph.state import GraphState
 from app.nodes._analysis import (
     Draft,
     DraftClaim,
-    ask_full,
+    ask_fitted,
     describe_program,
     digest,
     fixture_run,
@@ -77,8 +77,14 @@ TITLES: dict[str, str] = {
     "risks": "Risks",
 }
 MAX_NEW_CLAIMS = 4
-MAX_SHOWN_CLAIMS = 30
+MAX_SHOWN_CLAIMS = 18
 MAX_DILIGENCE = 10
+# the gateway refuses long inputs (see _analysis.DIGEST_CHARS); the risks call also carries a
+# bigger reply schema, every section's summary and the most claims
+USER_CHARS = 12000
+MIN_DIGEST_CHARS = 1500
+CLAIM_CHARS = 220
+SUMMARY_CHARS = 300
 NEW = "new:"
 
 
@@ -119,8 +125,13 @@ def _claims_block(claims: list[Claim]) -> str:
     if not claims:
         return "(none)"
     return "\n".join(
-        f"[{c.id}] ({c.stance}, {c.label}, {c.confidence} confidence) {c.text}" for c in claims
+        f"[{c.id}] ({c.stance}, {c.label}, {c.confidence} confidence) {_cut(c.text, CLAIM_CHARS)}"
+        for c in claims
     )
+
+
+def _cut(text: str, n: int) -> str:
+    return text if len(text) <= n else text[:n].rsplit(" ", 1)[0] + " …"
 
 
 def _context(state: GraphState, section: str) -> str:
@@ -228,25 +239,35 @@ async def _write(
     hits = [[e.id for e in await ctx.retriever.retrieve(q, ids, None, k)] for q in queries]
     provided = rank_hits(hits, max(8, 2 * k))
 
-    user = (
-        f"{describe_program(state)}\n\n{prompt(f'sections/{section}')}\n\n"
-        "Planned questions:\n"
-        + ("\n".join(f"- {q.question}" for q in questions) or "- (none)")
-        + f"\n\nChecked claims:\n{_claims_block(shown)}\n\n{_context(state, section)}\n\n"
-        + (f"Other sections:\n{others}\n\n" if others else "")
-        + f"Evidence:\n{await digest(ctx, provided, 500)}\n\nAt most {MAX_NEW_CLAIMS} new claims."
-    )
-    if extra := instructions(ctx):
-        user += f"\n\n{extra}"
+    candidates, listed = provided, shown
+
+    async def build(scale: float) -> tuple[str, list[str]]:
+        nonlocal shown
+        shown = listed[: max(4, int(len(listed) * scale))]
+        head = (
+            f"{describe_program(state)}\n\n{prompt(f'sections/{section}')}\n\n"
+            "Planned questions:\n"
+            + ("\n".join(f"- {q.question}" for q in questions) or "- (none)")
+            + f"\n\nChecked claims:\n{_claims_block(shown)}\n\n{_context(state, section)}\n\n"
+            + (f"Other sections:\n{others}\n\n" if others else "")
+        )
+        # the risks section carries every claim and summary, so its evidence gets what is left
+        budget = max(MIN_DIGEST_CHARS, USER_CHARS - len(head))
+        evidence, seen = await digest(ctx, candidates, 500, int(budget * scale))
+        user = f"{head}Evidence:\n{evidence}\n\nAt most {MAX_NEW_CLAIMS} new claims."
+        if extra := instructions(ctx):
+            user += f"\n\n{extra}"
+        return user, seen
+
     system = system_prompt("section") + (f"\n\n{prompt('risks_extra')}" if risks else "")
     ctx.progress(f"writing {section}")
-    drafted, result = await ask_full(
+    drafted, result, provided = await ask_fitted(
         ctx,
         f"section_analysts.{section}",
         system,
-        user,
+        build,
         RisksDraft if risks else SectionDraft,
-        max_tokens=3000 if risks else 2000,
+        3000 if risks else 2000,
     )
     drafts = (drafted.new_claims if drafted else [])[:MAX_NEW_CLAIMS]
     new_claims, quotes = to_claims(
@@ -307,7 +328,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         sections[result.section] = result
         own.update(gated)
 
-    others = "\n".join(f"- {s.title}: {s.summary}" for s in sections.values())
+    others = "\n".join(f"- {s.title}: {_cut(s.summary, SUMMARY_CHARS)}" for s in sections.values())
     risks_result, gated, risks_draft, new_ids = await _write(
         state, ctx, "risks", {**claims, **own}, others
     )
