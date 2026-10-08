@@ -3031,7 +3031,49 @@
       }
     },
     "/api/runs/{run_id}/messages": {
+      "get": {
+        "operationId": "list_messages_api_runs__run_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                  },
+                  "title": "Response List Messages Api Runs  Run Id  Messages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "List Messages"
+      },
       "post": {
+        "description": "Follow-up on a finished run; the reply cites its claims or says it cannot answer.",
         "operationId": "post_message_api_runs__run_id__messages_post",
         "parameters": [
           {
@@ -3055,6 +3097,26 @@
           "required": true
         },
         "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3065,7 +3127,7 @@
             },
             "description": "Unprocessable Entity"
           },
-          "501": {
+          "429": {
             "content": {
               "application/json": {
                 "schema": {
@@ -3073,7 +3135,17 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Gateway"
           }
         },
         "summary": "Post Message"

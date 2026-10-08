@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     sec_user_agent: str = ""
     data_dir: Path = Path("backend/data")
     max_concurrent_runs: int = 2
+    max_chat_questions: int = 20
     # scales the sleeps in stub nodes; tests set 0
     stub_delay_scale: float = 1.0
 

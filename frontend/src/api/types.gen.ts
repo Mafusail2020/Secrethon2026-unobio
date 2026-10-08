@@ -151,9 +151,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Messages */
+        get: operations["list_messages_api_runs__run_id__messages_get"];
         put?: never;
-        /** Post Message */
+        /**
+         * Post Message
+         * @description Follow-up on a finished run; the reply cites its claims or says it cannot answer.
+         */
         post: operations["post_message_api_runs__run_id__messages_post"];
         delete?: never;
         options?: never;
@@ -1386,6 +1390,37 @@ export interface operations {
             };
         };
     };
+    list_messages_api_runs__run_id__messages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"][];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     post_message_api_runs__run_id__messages_post: {
         parameters: {
             query?: never;
@@ -1401,6 +1436,24 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessage"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Unprocessable Entity */
             422: {
                 headers: {
@@ -1410,8 +1463,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Successful Response */
-            501: {
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };

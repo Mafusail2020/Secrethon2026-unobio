@@ -167,10 +167,6 @@ def test_trace_is_a_complete_download(client: TestClient):
     assert len(trace["nodes"]) == 23 and trace["llm_calls"]
 
 
-def test_models_and_chat_stub(client: TestClient):
+def test_models_are_listed_with_one_default(client: TestClient):
     models = [ModelInfo.model_validate(m) for m in client.get("/api/models").json()]
     assert [m.default for m in models] == [True] and models[0].available
-    run_id = start(client)
-    wait(client, run_id)
-    response = client.post(f"/api/runs/{run_id}/messages", json={"role": "user", "content": "hi"})
-    assert response.status_code == 501 and response.json()["error"]["code"] == "not_implemented"
