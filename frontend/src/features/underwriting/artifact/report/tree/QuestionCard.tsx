@@ -8,6 +8,7 @@ import { STANDING_LABEL, type QuestionNode } from "../reportTree";
 import { AssessmentView } from "./AssessmentView";
 import { BalanceBar } from "./BalanceBar";
 import { ClaimRow } from "./ClaimRow";
+import { Chevron } from "./Chevron";
 import { Collapse } from "./Collapse";
 import { Preview, SideBox } from "./SideBox";
 import { STANDING_EDGE, STANDING_STYLE } from "./treeStyles";
@@ -92,9 +93,7 @@ export function QuestionCard({
             <p className="mt-1.5 text-[0.95rem] text-muted">{node.headline}</p>
           </div>
           {node.impact && node.impact.steps.length > 0 && <Impact pts={node.impact.pts} />}
-          <span className="mt-1 shrink-0 text-sm text-muted" aria-hidden="true">
-            {open ? "▾" : "▸"}
-          </span>
+          <Chevron open={open} />
         </div>
         <div className="mt-3">
           <BalanceBar pro={node.balance.pro} con={node.balance.con} scale={scale} label={`${node.pros.length} for, ${node.cons.length} against. Weighted by confidence: ${node.balance.pro} for, ${node.balance.con} against`} />

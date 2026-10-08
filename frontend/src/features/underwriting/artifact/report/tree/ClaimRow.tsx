@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Claim } from "../../../../../api/types";
 import { ClaimCard } from "../ClaimCard";
 import { STANCE_BAR } from "../claimStyles";
+import { Chevron } from "./Chevron";
 
 const DOTS: Record<Claim["confidence"], string> = { high: "●●●", medium: "●●○", low: "●○○" };
 
@@ -25,9 +26,7 @@ export function ClaimRow({ claim, focused = false }: { claim: Claim; focused?: b
         <span className="mt-0.5 shrink-0 text-[0.6rem] tracking-tighter text-muted" title={`${claim.confidence} confidence`} aria-label={`${claim.confidence} confidence`}>
           {DOTS[claim.confidence]}
         </span>
-        <span className="mt-0.5 shrink-0 text-xs text-muted" aria-hidden="true">
-          {open ? "▾" : "▸"}
-        </span>
+        <Chevron open={open} size="md" />
       </button>
       {open && (
         <ul className="border-t border-line">

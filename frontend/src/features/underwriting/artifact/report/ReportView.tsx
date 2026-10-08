@@ -15,6 +15,7 @@ import { ValuationPanel } from "./quant/ValuationPanel";
 import { ReportContext, type CorrectionSeed, type FocusClaim } from "./reportContext";
 import { buildReportTree, questionOfClaim, type QuestionId } from "./reportTree";
 import { RunDetails } from "./RunDetails";
+import { Chevron } from "./tree/Chevron";
 import { Collapse } from "./tree/Collapse";
 import { ReportTreeView } from "./tree/ReportTree";
 import { Section } from "./Section";
@@ -206,9 +207,7 @@ export function ReportView({
                 </span>
                 <span className="block text-sm text-muted">Every section, chart and claim ({claims.length}), and how the run went</span>
               </span>
-              <span className="text-sm text-muted" aria-hidden="true">
-                {fullOpen ? "▾" : "▸"}
-              </span>
+              <Chevron open={fullOpen} />
             </button>
             <Collapse open={fullOpen} id="full-report-body">
               <div className="space-y-4 border-t border-line p-4">
