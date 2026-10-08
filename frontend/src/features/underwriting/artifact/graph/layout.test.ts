@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 import graphSpecJson from "../../../../../../contracts/fixtures/graph_spec.json";
 import type { GraphSpec } from "../../../../api/types";
 import { phaseGroups } from "./groups";
+import { withPanel } from "./panel";
 import { CHIP_H, layoutGraph, roundedPath, type Placed, type Pos } from "./layout";
 
-const spec = graphSpecJson as GraphSpec;
+const pipeline = graphSpecJson as GraphSpec;
+const spec = pipeline;
 const groups = phaseGroups(spec);
 
 // every way of folding and unfolding the groups
-const states: Set<string>[] = Array.from({ length: 2 ** groups.length }, (_, mask) => new Set(groups.filter((_, i) => mask & (1 << i)).map((g) => g.id)));
+const foldings = (gs: ReturnType<typeof phaseGroups>): Set<string>[] =>
+  Array.from({ length: 2 ** gs.length }, (_, mask) => new Set(gs.filter((_, i) => mask & (1 << i)).map((g) => g.id)));
 
 type Rect = { x: number; y: number; w: number; h: number };
 const shrink = (r: Rect, by = 1): Rect => ({ x: r.x + by, y: r.y + by, w: r.w - 2 * by, h: r.h - 2 * by });
@@ -19,7 +22,13 @@ const crosses = (a: Pos, b: Pos, r: Rect) =>
     ? a.x > r.x && a.x < r.x + r.w && Math.max(a.y, b.y) > r.y && Math.min(a.y, b.y) < r.y + r.h
     : a.y > r.y && a.y < r.y + r.h && Math.max(a.x, b.x) > r.x && Math.min(a.x, b.x) < r.x + r.w;
 
-describe.each(states.map((s) => [[...s].sort().join(",") || "all open", s] as const))("layout with %s folded", (_, folded) => {
+const variants = [
+  ["the pipeline", pipeline],
+  ["a panel of three", withPanel(pipeline, 3)],
+] as const;
+
+describe.each(variants.flatMap(([name, sp]) => foldings(phaseGroups(sp)).map((s) => [name, [...s].sort().join(",") || "all open", sp, s] as const)))("layout of %s with %s folded", (_name, _folded, spec, folded) => {
+  const groups = phaseGroups(spec);
   const out = layoutGraph(spec, groups, folded);
   const node = (id: string) => out.nodes.find((n) => n.id === id)!;
   const membersOf = (boxId: string): string[] =>
@@ -69,6 +78,23 @@ describe.each(states.map((s) => [[...s].sort().join(",") || "all open", s] as co
           for (const c of chips) expect(crosses(a, b, c), `${w.id} runs through the title of ${c.id}`).toBe(false);
         }
       }
+    }
+  });
+});
+
+describe("a panel in the layout", () => {
+  const panel = withPanel(pipeline, 3);
+  const out = layoutGraph(panel, phaseGroups(panel), new Set());
+  const at = (id: string) => out.nodes.find((n) => n.id === id)!;
+
+  it("puts a step's analysts side by side, in order, above their aggregator", () => {
+    for (const step of ["section_analysts", "bull_claim_writer", "question_planner"]) {
+      const [a, b, c] = [1, 2, 3].map((i) => at(`${step}~${i}`));
+      expect(a!.y).toBe(b!.y);
+      expect(b!.y).toBe(c!.y);
+      expect(a!.x).toBeLessThan(b!.x);
+      expect(b!.x).toBeLessThan(c!.x);
+      expect(a!.y + a!.h).toBeLessThan(at(step).y);
     }
   });
 });

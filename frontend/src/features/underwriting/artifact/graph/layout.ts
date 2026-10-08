@@ -2,11 +2,15 @@ import { Graph, layout } from "@dagrejs/dagre";
 import type { GraphSpec } from "../../../../api/types";
 import { containerIds } from "../../graphUtils";
 import { type PhaseGroup, visibleGraph } from "./groups";
+import { baseId, isPanelist } from "./panel";
 
 export const NODE_W = 196;
 export const NODE_H = 50;
 export const GROUP_W = 244;
 export const GROUP_H = 68;
+/** an analyst of a panel is a small step: its answer is the aggregator's to show */
+export const PANELIST_W = 112;
+export const PANELIST_H = 34;
 /** between a frame's border and what it holds */
 const PAD = 12;
 /** extra room above the content for the frame's title chip, which sits on the top border */
@@ -94,7 +98,7 @@ export function layoutGraph(
   const { nodes: drawn, edges } = visibleGraph(spec, groups, collapsed);
   const drawnIds = new Set(drawn.map((n) => n.id));
   const isGroupBox = (id: string) => !!drawn.find((n) => n.id === id)?.group;
-  const size = (id: string) => (isGroupBox(id) ? { w: GROUP_W, h: GROUP_H } : { w: NODE_W, h: NODE_H });
+  const size = (id: string) => (isGroupBox(id) ? { w: GROUP_W, h: GROUP_H } : isPanelist(id) ? { w: PANELIST_W, h: PANELIST_H } : { w: NODE_W, h: NODE_H });
 
   // frames: unfolded groups, and the containers inside them
   const frames: FrameDef[] = [];
@@ -128,12 +132,24 @@ export function layoutGraph(
     }
   }
 
-  const g = new Graph();
+  // compound, so that dagre keeps every frame's steps together instead of weaving one frame's through another's
+  const g = new Graph({ compound: true });
   g.setGraph({ rankdir: "TB", nodesep: NODESEP, ranksep: RANKSEP, edgesep: 28, marginx: 24, marginy: 24 });
   g.setDefaultEdgeLabel(() => ({}));
   for (const n of drawn) {
     const s = size(n.id);
     g.setNode(n.id, { width: s.w, height: s.h + (above.get(n.id) ?? 0) + (below.get(n.id) ?? 0) });
+  }
+  const containerFrame = new Map(frames.filter((f) => f.kind === "container").flatMap((f) => f.members.map((m) => [m, f.id] as const)));
+  const outlineFrame = new Map(frames.filter((f) => f.kind === "outline").flatMap((f) => f.members.map((m) => [m, f.id] as const)));
+  for (const f of frames) g.setNode(f.id, {});
+  for (const f of frames.filter((x) => x.kind === "container")) {
+    const outer = f.members.map((m) => outlineFrame.get(m)).find(Boolean);
+    if (outer) g.setParent(f.id, outer);
+  }
+  for (const n of drawn) {
+    const parent = containerFrame.get(n.id) ?? outlineFrame.get(n.id);
+    if (parent) g.setParent(n.id, parent);
   }
   // a fork's branches start together instead of the lone one drifting down next to the longest
   for (const e of edges) g.setEdge(e.source, e.target, { weight: (succs.get(e.source)?.length ?? 0) > 1 ? 4 : 1 });
@@ -146,6 +162,13 @@ export function layoutGraph(
     const total = s.h + top + (below.get(n.id) ?? 0);
     return { id: n.id, x: p.x - s.w / 2, y: p.y - total / 2 + top, w: s.w, h: s.h };
   });
+  // the analysts of a panel read left to right in their own order, whichever way dagre ordered the row
+  const panels = new Map<string, Placed[]>();
+  for (const n of nodes) if (isPanelist(n.id)) panels.set(baseId(n.id), [...(panels.get(baseId(n.id)) ?? []), n]);
+  for (const row of panels.values()) {
+    const xs = row.map((n) => n.x).sort((a, b) => a - b);
+    [...row].sort((a, b) => Number(a.id.split("~")[1]) - Number(b.id.split("~")[1])).forEach((n, i) => (n.x = xs[i]!));
+  }
   const byId = new Map(nodes.map((n) => [n.id, n]));
 
   // frames, innermost first: a container hugs its steps, a group hugs its containers and its loose steps

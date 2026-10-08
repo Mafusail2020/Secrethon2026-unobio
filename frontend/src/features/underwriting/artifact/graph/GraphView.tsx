@@ -8,7 +8,8 @@ import type { RunStream } from "../../reduceEvents";
 import { GraphLegend } from "./GraphLegend";
 import { isGroupId, phaseGroups, visibleGraph, type PhaseGroup } from "./groups";
 import { kindColor } from "./kindStyle";
-import { GROUP_H, GROUP_W, NODE_H, NODE_W, layoutGraph, roundedPath, type Pos } from "./layout";
+import { GROUP_H, GROUP_W, NODE_H, NODE_W, PANELIST_H, PANELIST_W, layoutGraph, roundedPath, type Pos } from "./layout";
+import { baseId, isPanelist } from "./panel";
 import {
   ContainerNodeView,
   OutlineNodeView,
@@ -98,8 +99,12 @@ export function GraphView({
   onSelect,
   sourceCounts,
   highlight,
+  base,
 }: {
+  /** what is drawn: the pipeline, with a run's panel analysts added */
   spec: GraphSpec;
+  /** the pipeline itself, to name the step an aggregator or an analyst stands for */
+  base?: GraphSpec;
   stream: RunStream;
   selected: string | undefined;
   onSelect: (id: string | undefined) => void;
@@ -199,11 +204,17 @@ export function GraphView({
   const sourceKey = JSON.stringify(sourceCounts);
   const highlightKey = highlight ? [...highlight].sort().join(",") : "";
 
+  // the steps a correction would recompute, with the analysts of any panel in front of them
+  const lit = useMemo(() => {
+    if (!highlightKey) return undefined;
+    const ids = new Set(highlightKey.split(","));
+    return new Set(spec.nodes.filter((n) => ids.has(baseId(n.id))).map((n) => n.id));
+  }, [highlightKey, spec]);
+
   const flowNodes = useMemo(() => {
     const views = JSON.parse(viewKey) as Record<string, NodeView>;
     const sources = JSON.parse(sourceKey) as Record<string, number>;
-    const lit = highlightKey ? new Set(highlightKey.split(",")) : undefined;
-    const statusOf = (id: string): NodeStatus => views[id]?.[0] ?? "pending";
+    const statusOf = (id: string): NodeStatus => views[baseId(id)]?.[0] ?? "pending";
     const labelOf = (id: string) => spec.nodes.find((n) => n.id === id)?.label ?? id;
     const out: Node[] = [];
     const used = new Set<string>();
@@ -272,14 +283,16 @@ export function GraphView({
 
     const specNode = (id: string, at: Pos, flags: { entering?: boolean; exiting?: boolean }): SpecFlowNode => {
       const node = spec.nodes.find((n) => n.id === id)!;
-      const view = views[id];
+      const panelist = isPanelist(id);
+      const view = panelist ? undefined : views[id];
       const affected = !!lit && lit.has(id);
+      const baseNode = base?.nodes.find((n) => n.id === baseId(id));
       return {
         id,
         type: "spec",
         position: { x: at.x, y: at.y },
-        width: NODE_W,
-        height: NODE_H,
+        width: panelist ? PANELIST_W : NODE_W,
+        height: panelist ? PANELIST_H : NODE_H,
         zIndex: hovered === id ? 1000 : 0,
         draggable: false,
         data: {
@@ -292,6 +305,8 @@ export function GraphView({
           selected: selected === id,
           dim: !!lit && !affected,
           affected,
+          compact: panelist,
+          subtitle: baseNode && baseNode.label !== node.label ? baseNode.label : undefined,
           ...flags,
         },
       };
@@ -338,15 +353,14 @@ export function GraphView({
     // one fixed order whatever is drawn: a node that React has to move in the list loses its transition
     const rank = new Map([...groups.map((g) => `outline:${g.id}`), ...spec.nodes.map((n) => n.id), ...groups.map((g) => g.id)].map((id, i) => [id, i]));
     return out.sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0));
-  }, [drawing, spec, groups, spawn, ghosts, leaving, viewKey, sourceKey, highlightKey, selected, hovered]);
+  }, [drawing, spec, base, groups, spawn, ghosts, leaving, viewKey, sourceKey, lit, selected, hovered]);
 
   const edges = useMemo<WireFlowEdge[]>(() => {
     const views = JSON.parse(viewKey) as Record<string, NodeView>;
-    const lit = highlightKey ? new Set(highlightKey.split(",")) : undefined;
     const litReps = lit ? new Set([...lit].map(visible.repOf)) : undefined;
     const statusOf = (id: string): NodeStatus => {
       const group = isGroupId(id) ? groups.find((g) => g.id === id) : undefined;
-      return group ? groupStatus(group.members.map((m) => views[m]?.[0] ?? "pending")) : (views[id]?.[0] ?? "pending");
+      return group ? groupStatus(group.members.map((m) => views[baseId(m)]?.[0] ?? "pending")) : (views[baseId(id)]?.[0] ?? "pending");
     };
     return drawing.wires.map((w) => {
       const state = wireState(statusOf(w.source), statusOf(w.target));
@@ -366,7 +380,7 @@ export function GraphView({
         },
       };
     });
-  }, [drawing, visible, groups, viewKey, highlightKey, settling]);
+  }, [drawing, visible, groups, viewKey, lit, settling]);
 
   const runningId = spec.nodes.find((n) => stream.nodes[n.id]?.status === "running" && !containers.has(n.id))?.id;
   const runningRep = runningId ? visible.repOf(runningId) : undefined;
@@ -382,7 +396,8 @@ export function GraphView({
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       onNodeClick={(event, node) => {
-        if (node.type === "spec" || node.type === "container") return onSelect(node.id);
+        // an analyst of a panel opens the step it answers for
+        if (node.type === "spec" || node.type === "container") return onSelect(baseId(node.id));
         const group = groups.find((g) => g.id === node.id || `outline:${g.id}` === node.id);
         if (!group) return;
         if (node.type === "phase") regroup(new Set([...collapsed].filter((id) => id !== group.id)));

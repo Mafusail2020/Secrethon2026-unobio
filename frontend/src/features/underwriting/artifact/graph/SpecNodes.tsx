@@ -4,7 +4,7 @@ import { formatDuration } from "../../../../lib/format";
 import { STATUS_CLASS, STATUS_ICON, STATUS_TEXT } from "../../status";
 import { kindLabel } from "./kindStyle";
 import type { PhaseGroup } from "./groups";
-import { CHIP_H, GROUP_H, GROUP_W, NODE_H, NODE_W } from "./layout";
+import { CHIP_H, GROUP_H, GROUP_W, NODE_H, NODE_W, PANELIST_H, PANELIST_W } from "./layout";
 
 export type SpecData = {
   spec: NodeSpec;
@@ -22,6 +22,10 @@ export type SpecData = {
   entering?: boolean;
   /** a group is folding: this step is on its way into the group box */
   exiting?: boolean;
+  /** an analyst of a panel: small, with no detail line */
+  compact?: boolean;
+  /** what to say first on the detail line instead of the kind, e.g. the step an aggregator stands for */
+  subtitle?: string;
 } & Record<string, unknown>;
 
 export type GroupData = {
@@ -46,7 +50,7 @@ export type GroupFlowNode = Node<GroupData, "container">;
 
 export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
   const meta = [
-    kindLabel(data.spec.kind),
+    data.subtitle ?? kindLabel(data.spec.kind),
     data.durationMs ? formatDuration(data.durationMs) : undefined,
     data.sources ? `${data.sources} src` : undefined,
     data.llmCalls ? `${data.llmCalls} llm` : undefined,
@@ -58,8 +62,8 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
       <button
         type="button"
         aria-pressed={data.selected}
-        aria-label={`${data.spec.label}, ${data.status}. Open details`}
-        style={{ width: NODE_W, height: NODE_H, borderLeftColor: data.color }}
+        aria-label={`${data.subtitle ? `${data.subtitle} ` : ""}${data.spec.label}, ${data.status}. Open details`}
+        style={{ width: data.compact ? PANELIST_W : NODE_W, height: data.compact ? PANELIST_H : NODE_H, borderLeftColor: data.color }}
         className={`flex flex-col justify-center gap-0.5 rounded-md border border-l-4 px-2.5 text-left text-xs shadow-sm transition-[opacity,scale] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${STATUS_CLASS[data.status]} ${
           data.selected ? "outline outline-2 outline-offset-2 outline-brand" : ""
         } ${data.affected ? "ring-2 ring-brand ring-offset-1" : ""} ${data.dim ? "opacity-30" : ""} ${
@@ -73,7 +77,7 @@ export function SpecNodeView({ data }: NodeProps<SpecFlowNode>) {
           </span>
           <span className="truncate text-[13px] font-medium leading-tight" title={data.spec.label}>{data.spec.label}</span>
         </span>
-        <span className="block truncate text-[10.5px] leading-tight text-muted">{meta}</span>
+        {!data.compact && <span className="block truncate text-[10.5px] leading-tight text-muted">{meta}</span>}
         <Handle type="source" position={Position.Bottom} className="!opacity-0" />
       </button>
       <div

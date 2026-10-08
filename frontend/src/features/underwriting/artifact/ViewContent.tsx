@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useHealth } from "../../../api/hooks";
 import type { GraphSpec, NodeSpec, RunSummary, UnderwritingReport } from "../../../api/types";
 import { ErrorBoundary } from "../../../components/ErrorBoundary";
 import { ErrorBox } from "../../../components/ui/ErrorBox";
@@ -6,6 +7,7 @@ import { Spinner } from "../../../components/ui/Spinner";
 import { affectedSet, runnableNodes } from "../graphUtils";
 import type { RunStream } from "../reduceEvents";
 import { GraphView } from "./graph/GraphView";
+import { withoutPanel, withPanel } from "./graph/panel";
 import { NodeDrawer, type DrawerTab } from "./graph/NodeDrawer";
 import { VersionBar } from "./graph/VersionBar";
 import { LogsTimeline } from "./logs/LogsTimeline";
@@ -60,6 +62,12 @@ function GraphTab({
   const highlight = node && drawerTab === "correct" ? affectedSet(graph, node.id) : undefined;
   const total = runnableNodes(graph).length;
 
+  // a panel-mode run answers every model step with several analysts and an aggregator: draw them
+  const maxPanel = useHealth().data?.max_panel_size ?? 4;
+  const panelSize = run?.options.effort === "panel" ? Math.min(Math.max(run.options.panel_size ?? 3, 2), maxPanel) : 0;
+  const logs = useMemo(() => Object.fromEntries(Object.entries(stream.nodes).map(([id, n]) => [id, n.logs])), [stream.nodes]);
+  const drawn = useMemo(() => (panelSize ? withPanel(graph, panelSize, withoutPanel(logs)) : graph), [graph, panelSize, logs]);
+
   return (
     <div className="flex h-full flex-col">
       {run && <VersionBar run={run} completed={canCorrect} />}
@@ -70,7 +78,7 @@ function GraphTab({
         </p>
       )}
       <div className="relative min-h-0 flex-1 max-md:min-h-[32rem]">
-        <GraphView spec={graph} stream={stream} selected={selected} onSelect={setSelected} sourceCounts={sourceCounts} highlight={highlight} />
+        <GraphView spec={drawn} base={graph} stream={stream} selected={selected} onSelect={setSelected} sourceCounts={sourceCounts} highlight={highlight} />
         {node && (
           <NodeDrawer
             key={node.id}
