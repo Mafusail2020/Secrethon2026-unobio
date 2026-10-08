@@ -156,16 +156,14 @@ export function ReportView({
       <div ref={wrapper} className="@container pb-6">
         <header ref={header} className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-2">
-            {/* the call is the first thing on the page; once it has scrolled away, the header keeps it in sight */}
-            {!rootInView && (
-              <>
-                <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
-                <span className="text-xs text-muted">{verdict.confidence} confidence</span>
-                <span className="text-sm">
-                  Probability of success <strong>{pctRange(report.pos)}</strong>
-                </span>
-              </>
-            )}
+            {/* the call is the first thing on the page; once it has scrolled away, the header keeps it in sight. It is
+                always laid out, only faded, so the header never changes height and the page never jumps */}
+            <div className={`flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 transition-opacity duration-200 ${rootInView ? "pointer-events-none opacity-0" : "opacity-100"}`} aria-hidden={rootInView}>
+              <Badge className={`px-3 py-0.5 text-sm ${DECISION_STYLE[verdict.decision]}`}>{DECISION_LABEL[verdict.decision]}</Badge>
+              <span className="text-sm">
+                Probability <strong>{pctRange(report.pos)}</strong>
+              </span>
+            </div>
             <div className="ml-auto">
               <ExportBar report={report} />
             </div>
@@ -204,6 +202,10 @@ export function ReportView({
             open={openQuestions}
             onToggle={toggleQuestion}
             onSetAll={(all) => setOpenQuestions(all ? new Set(tree.questions.map((q) => q.id)) : new Set())}
+            onJump={(id) => {
+              setOpenQuestions((open) => new Set(open).add(id));
+              scrollToId(`q-${id}`);
+            }}
             focus={focus}
           />
 
@@ -273,6 +275,8 @@ export function ReportView({
               </div>
             </Collapse>
           </section>
+          {/* room to scroll the last card up to the header, so a chip always lands where it points */}
+          <div aria-hidden="true" className="h-[45vh]" data-print-hide />
         </div>
       </div>
       {seed && graph && (

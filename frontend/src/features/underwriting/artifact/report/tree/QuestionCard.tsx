@@ -9,34 +9,29 @@ import { AssessmentView } from "./AssessmentView";
 import { BalanceBar } from "./BalanceBar";
 import { ClaimRow } from "./ClaimRow";
 import { Collapse } from "./Collapse";
-import { STANDING_STYLE } from "./treeStyles";
+import { Preview, SideBox } from "./SideBox";
+import { STANDING_EDGE, STANDING_STYLE } from "./treeStyles";
 
+const PEEK = 2;
 const SHOWN = 4;
 
-function Side({ title, tone, claims, focus }: { title: string; tone: string; claims: QuestionNode["pros"]; focus: FocusClaim | undefined }) {
+function Claims({ claims, focus }: { claims: QuestionNode["pros"]; focus: FocusClaim | undefined }) {
   const [all, setAll] = useState(false);
   const shown = all || (focus && claims.slice(SHOWN).some((c) => c.id === focus.id)) ? claims : claims.slice(0, SHOWN);
+  if (claims.length === 0) return <p className="text-sm italic text-muted">Nothing found on this side.</p>;
   return (
-    <div>
-      <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
-        <span className={`h-2 w-2 rounded-full ${tone}`} aria-hidden="true" />
-        {title} ({claims.length})
-      </h4>
-      {claims.length === 0 ? (
-        <p className="mt-1.5 text-sm text-muted">Nothing found on this side.</p>
-      ) : (
-        <ul className="mt-1.5 space-y-1.5">
-          {shown.map((c) => (
-            <ClaimRow key={focus?.id === c.id ? `${c.id}-${focus.nonce}` : c.id} claim={c} focused={focus?.id === c.id} />
-          ))}
-        </ul>
-      )}
-      {claims.length > SHOWN && !all && shown.length < claims.length && (
-        <button type="button" onClick={() => setAll(true)} className="mt-1.5 text-xs text-brand hover:underline">
-          Show {claims.length - SHOWN} more
+    <>
+      <ul className="space-y-1.5">
+        {shown.map((c) => (
+          <ClaimRow key={focus?.id === c.id ? `${c.id}-${focus.nonce}` : c.id} claim={c} focused={focus?.id === c.id} />
+        ))}
+      </ul>
+      {shown.length < claims.length && (
+        <button type="button" onClick={() => setAll(true)} className="mt-1.5 text-xs font-medium text-brand hover:underline">
+          Show {claims.length - shown.length} more
         </button>
       )}
-    </div>
+    </>
   );
 }
 
@@ -55,7 +50,10 @@ function Impact({ pts }: { pts: number }) {
   );
 }
 
-/** One of the four questions: its standing and the scales at a glance, and underneath, the case for and against. */
+/**
+ * One of the four questions. Closed, it shows its standing and, side by side, the heaviest claims for and against;
+ * open, every claim, with the evidence behind each, and the checks, risks and gaps under them.
+ */
 export function QuestionCard({
   node,
   scale,
@@ -71,20 +69,22 @@ export function QuestionCard({
 }) {
   const { report } = useReportContext();
   const bodyId = `q-body-${node.id}`;
-  const counts = `${node.pros.length} for · ${node.cons.length} against`;
+  const peek = (claims: QuestionNode["pros"]) => ({ texts: claims.slice(0, PEEK).map((c) => c.text), more: Math.max(0, claims.length - PEEK) });
+  const forPeek = peek(node.pros);
+  const againstPeek = peek(node.cons);
   return (
-    <section id={`q-${node.id}`} aria-labelledby={`q-title-${node.id}`} className="report-anchor rounded-xl border border-line bg-surface shadow-sm">
+    <section id={`q-${node.id}`} aria-labelledby={`q-title-${node.id}`} className={`report-anchor rounded-xl border border-l-[6px] border-line bg-surface shadow-sm ${STANDING_EDGE[node.standing]}`}>
       <button
         type="button"
         aria-expanded={open}
         aria-controls={bodyId}
         onClick={onToggle}
-        className="block w-full rounded-xl p-4 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+        className="block w-full rounded-t-xl p-4 pb-3 text-left hover:bg-canvas/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
       >
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 id={`q-title-${node.id}`} className="text-[0.95rem] font-semibold">
+              <h3 id={`q-title-${node.id}`} className="text-base font-semibold">
                 {node.title}
               </h3>
               <Badge className={STANDING_STYLE[node.standing]}>{STANDING_LABEL[node.standing]}</Badge>
@@ -96,14 +96,35 @@ export function QuestionCard({
             {open ? "▾" : "▸"}
           </span>
         </div>
-        <div className="mt-3 flex items-center gap-3">
-          <BalanceBar pro={node.balance.pro} con={node.balance.con} scale={scale} label={`${counts}. Weighted by confidence: ${node.balance.pro} for, ${node.balance.con} against`} />
-          <span className="shrink-0 text-xs text-muted">{counts}</span>
+        <div className="mt-3">
+          <BalanceBar pro={node.balance.pro} con={node.balance.con} scale={scale} label={`${node.pros.length} for, ${node.cons.length} against. Weighted by confidence: ${node.balance.pro} for, ${node.balance.con} against`} />
         </div>
       </button>
 
+      {!open && (
+        <button type="button" onClick={onToggle} aria-label={`Open the case: ${node.title}`} className="block w-full px-4 pb-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
+          <div className="grid gap-3 @2xl:grid-cols-2">
+            <SideBox side="for" title="For" count={node.pros.length}>
+              <Preview side="for" {...forPeek} />
+            </SideBox>
+            <SideBox side="against" title="Against" count={node.cons.length}>
+              <Preview side="against" {...againstPeek} />
+            </SideBox>
+          </div>
+        </button>
+      )}
+
       <Collapse open={open} id={bodyId}>
-        <div className="space-y-4 border-t border-line p-4">
+        <div className="space-y-4 px-4 pb-4">
+          <div className="grid gap-3 @2xl:grid-cols-2">
+            <SideBox side="for" title="For" count={node.pros.length}>
+              <Claims claims={node.pros} focus={focus} />
+            </SideBox>
+            <SideBox side="against" title="Against" count={node.cons.length}>
+              <Claims claims={node.cons} focus={focus} />
+            </SideBox>
+          </div>
+
           <p className="text-xs text-muted">
             {node.ask} Standing: {node.basis}.
           </p>
@@ -121,11 +142,6 @@ export function QuestionCard({
           {node.assessment && <AssessmentView assessment={node.assessment} hideHeadline={node.headline === node.assessment.headline} />}
           {node.id === "works" && report.translation_chain.length > 0 && <TranslationStepper chain={report.translation_chain} />}
           {node.id === "funding" && report.valuation && <ValuationPanel valuation={report.valuation} />}
-
-          <div className="grid gap-4 @2xl:grid-cols-2">
-            <Side title="For" tone="bg-emerald-500" claims={node.pros} focus={focus} />
-            <Side title="Against" tone="bg-red-500" claims={node.cons} focus={focus} />
-          </div>
 
           {node.neutral.length > 0 && (
             <details className="rounded-lg border border-line px-3 py-2" open={node.neutral.some((c) => c.id === focus?.id) || undefined}>

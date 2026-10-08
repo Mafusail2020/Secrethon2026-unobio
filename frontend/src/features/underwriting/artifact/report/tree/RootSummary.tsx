@@ -2,8 +2,10 @@ import type { UnderwritingReport } from "../../../../../api/types";
 import { Badge } from "../../../../../components/ui/Badge";
 import { DECISION_LABEL, DECISION_STYLE, months, pct, usd } from "../../../../../lib/format";
 import { useReportContext } from "../reportContext";
-import type { ReportTree } from "../reportTree";
+import { STANDING_LABEL, type QuestionId, type ReportTree } from "../reportTree";
 import { BalanceBar } from "./BalanceBar";
+import { SideBox, type Side } from "./SideBox";
+import { STANDING_EDGE, STANDING_STYLE } from "./treeStyles";
 
 function Ruler({ range }: { range: UnderwritingReport["pos"] }) {
   const top = Math.min(1, Math.max(range.high * 1.25, 0.2));
@@ -24,36 +26,64 @@ function Ruler({ range }: { range: UnderwritingReport["pos"] }) {
   );
 }
 
-function Reasons({ title, tone, items }: { title: string; tone: string; items: ReportTree["reasons"]["positive"] }) {
+function Reasons({ side, title, items }: { side: Side; title: string; items: ReportTree["reasons"]["positive"] }) {
   const { jumpToClaim } = useReportContext();
   return (
-    <div>
-      <h3 className={`text-xs font-semibold uppercase tracking-wide ${tone}`}>{title}</h3>
+    <SideBox side={side} title={title} count={items.length}>
       {items.length === 0 ? (
-        <p className="mt-1 text-sm text-muted">None the verdict leaned on.</p>
+        <p className="text-sm italic text-muted">None the verdict leaned on.</p>
       ) : (
-        <ul className="mt-1.5 space-y-1.5">
+        <ul className="space-y-2">
           {items.map((rc) => (
-            <li key={rc.code} className="text-sm">
-              {rc.text}
-              {rc.claim_ids.slice(0, 1).map((id) => (
-                <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1.5 rounded-full border border-line px-1.5 text-xs text-brand hover:border-brand">
-                  why
-                </button>
-              ))}
+            <li key={rc.code} className="flex gap-2 text-sm">
+              <span className={`font-bold ${side === "for" ? "text-emerald-700" : "text-red-700"}`} aria-hidden="true">
+                {side === "for" ? "+" : "−"}
+              </span>
+              <span>
+                {rc.text}
+                {rc.claim_ids.slice(0, 1).map((id) => (
+                  <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1.5 rounded-full border border-line bg-white/80 px-1.5 text-xs text-brand hover:border-brand">
+                    why
+                  </button>
+                ))}
+              </span>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </SideBox>
+  );
+}
+
+/** The four questions on one line: where each stands and how its claims split, with a way into each. */
+function Strip({ tree, scale, onJump }: { tree: ReportTree; scale: number; onJump: (id: QuestionId) => void }) {
+  return (
+    <ul className="grid grid-cols-2 gap-2 @3xl:grid-cols-4" aria-label="The four questions at a glance">
+      {tree.questions.map((q) => (
+        <li key={q.id}>
+          <button
+            type="button"
+            onClick={() => onJump(q.id)}
+            className={`block h-full w-full rounded-lg border border-l-4 border-line bg-canvas/60 px-3 py-2 text-left hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${STANDING_EDGE[q.standing]}`}
+          >
+            <span className="block text-xs font-semibold">{q.short}</span>
+            <span className={`mt-0.5 inline-block rounded-full border px-1.5 text-[0.65rem] font-medium ${STANDING_STYLE[q.standing]}`}>{STANDING_LABEL[q.standing]}</span>
+            <span className="mt-1.5 block">
+              <BalanceBar pro={q.balance.pro} con={q.balance.con} scale={scale} label={`${q.pros.length} for, ${q.cons.length} against`} />
+            </span>
+            <span className="mt-1 block text-[0.7rem] text-muted">
+              {q.pros.length} for · {q.cons.length} against
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 /** The call, at a glance: the decision, the chance, what is at stake, and the few reasons that carried it. */
-export function RootSummary({ report, tree, scale }: { report: UnderwritingReport; tree: ReportTree; scale: number }) {
+export function RootSummary({ report, tree, scale, onJump }: { report: UnderwritingReport; tree: ReportTree; scale: number; onJump: (id: QuestionId) => void }) {
   const { verdict, valuation } = report;
-  const pro = tree.questions.reduce((sum, q) => sum + q.balance.pro, 0);
-  const con = tree.questions.reduce((sum, q) => sum + q.balance.con, 0);
   const drag = tree.biggestDrag;
   return (
     <section id="summary" aria-label="The call" className="report-anchor rounded-2xl border border-line bg-surface p-5 shadow-sm">
@@ -84,9 +114,13 @@ export function RootSummary({ report, tree, scale }: { report: UnderwritingRepor
       </h2>
       <p className="mt-1 text-[0.95rem] leading-relaxed">{verdict.rationale}</p>
 
-      <div className="mt-4 grid gap-4 @xl:grid-cols-2">
-        <Reasons title="What carries it" tone="text-emerald-700" items={tree.reasons.positive} />
-        <Reasons title="What holds it back" tone="text-red-700" items={tree.reasons.negative} />
+      <div className="mt-4 grid gap-3 @xl:grid-cols-2">
+        <Reasons side="for" title="What carries it" items={tree.reasons.positive} />
+        <Reasons side="against" title="What holds it back" items={tree.reasons.negative} />
+      </div>
+
+      <div className="mt-4">
+        <Strip tree={tree} scale={scale / 3} onJump={onJump} />
       </div>
 
       {drag && drag.impact && (
@@ -105,14 +139,6 @@ export function RootSummary({ report, tree, scale }: { report: UnderwritingRepor
           </ul>
         </div>
       )}
-
-      <div className="mt-5">
-        <div className="mb-1 flex justify-between text-[0.65rem] uppercase tracking-wide text-muted">
-          <span>For the program</span>
-          <span>Against it</span>
-        </div>
-        <BalanceBar pro={pro} con={con} scale={Math.max(pro, con, scale)} label={`All claims, weighted by confidence: ${pro} for, ${con} against`} />
-      </div>
     </section>
   );
 }

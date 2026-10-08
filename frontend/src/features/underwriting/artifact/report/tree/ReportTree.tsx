@@ -11,6 +11,7 @@ export function ReportTreeView({
   open,
   onToggle,
   onSetAll,
+  onJump,
   focus,
 }: {
   report: UnderwritingReport;
@@ -18,13 +19,15 @@ export function ReportTreeView({
   open: ReadonlySet<QuestionId>;
   onToggle: (id: QuestionId) => void;
   onSetAll: (open: boolean) => void;
+  /** open a question and bring it to the top */
+  onJump: (id: QuestionId) => void;
   focus: FocusClaim | undefined;
 }) {
   const scale = Math.max(1, ...tree.questions.flatMap((q) => [q.balance.pro, q.balance.con]));
   const allOpen = tree.questions.every((q) => open.has(q.id));
   return (
     <div className="space-y-4">
-      <RootSummary report={report} tree={tree} scale={scale * 3} />
+      <RootSummary report={report} tree={tree} scale={scale * 3} onJump={onJump} />
       <div className="flex items-center justify-between" data-print-hide>
         <h2 className="text-sm font-semibold">The case, question by question</h2>
         <button

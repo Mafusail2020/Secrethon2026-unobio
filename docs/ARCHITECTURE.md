@@ -317,8 +317,10 @@ until the reader pans or zooms. The report view
 is the report as a tree you open as far as you want (`report/reportTree.ts`, `report/tree/`): the call at the root (decision,
 probability, value at stake, what carries it and what holds it back), under it the four questions an investor asks (will it
 work in people, get through trials and regulators, be used, is funding it worth it), each with a standing, how much it moved
-the probability, a for/against scale, and, opened, its efficacy or safety check, its claims for and against, risks and what
-could not be established; a claim opens to its evidence and sources. The tree is derived from the report as it is (claim
+the probability, a for/against scale, and, side by side from the first look, its heaviest claims for (green, plus) and against
+(red, minus), the same colours everywhere; opened, every claim, then its efficacy or safety check, risks and what could not be
+established; a claim opens to its evidence and sources. A strip of the four questions sits in the root as a map, and each card
+has a left edge in its standing's colour. The tree is derived from the report as it is (claim
 stance and section, the ledger's steps by cause, the checks), adds nothing, and prints whole. Under it, a closed "Full
 report" keeps every section, chart and claim. A link to a claim opens the branch it sits in. Also in the view: a "What
 changed" banner for corrected runs, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print;
