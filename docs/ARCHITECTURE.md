@@ -212,7 +212,7 @@ drawer on phones, `inert` while closed); the view area grows its width from the 
 with it, and the dock inside keeps one fixed pixel width so the views are laid out once and only revealed (below 1280 px it
 slides in as an overlay; dragging the splitter turns the easing off so it follows the pointer); "Add details" opens through
 `uw-collapse` (grid rows with an even ease, content fading in a beat later) and the welcome screen is anchored from the
-top so the heading does not move as it grows; new
+top so the heading does not move as it grows; the effort picker is four equal columns with one highlight that slides to the chosen level; new
 thread content, history rows and the finished call rise or flash once (`uw-rise`, `uw-fade`, `uw-flash`, `uw-ring`,
 `uw-stagger` for the briefing). Nothing loops. `prefers-reduced-motion` removes all of it, and printing does too.
 

@@ -43,6 +43,7 @@ describe("composer", () => {
     expect(markup).toMatch(/aria-expanded="false"[^>]*aria-controls="[^"]+-details"/);
     expect(markup).toMatch(/id="[^"]+-details" inert=""/); // folded away, so its fields cannot take focus
     expect(markup).toContain("Balanced default.");
+    expect(markup).toContain("translateX(100%)"); // the highlight sits on the second level, Medium
     expect(markup).not.toContain("Panel size"); // only for panel effort
   });
 });

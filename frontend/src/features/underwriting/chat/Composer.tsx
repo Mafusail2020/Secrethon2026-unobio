@@ -151,16 +151,23 @@ function Field({
 
 function EffortPicker({ value, onChange }: { value: Effort; onChange: (value: Effort) => void }) {
   const name = useId();
+  const index = Math.max(0, EFFORTS.findIndex((o) => o.value === value));
   return (
     <fieldset>
       <legend className="sr-only">Effort</legend>
-      <div className="flex rounded-full bg-slate-100 p-0.5">
+      <div className="relative grid grid-cols-4 rounded-full bg-slate-100 p-0.5">
+        {/* one highlight behind the labels; it slides to the chosen level (the columns are equal, so its step is its own width) */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0.5 left-0.5 w-[calc((100%-0.25rem)/4)] rounded-full bg-surface shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+          style={{ transform: `translateX(${index * 100}%)` }}
+        />
         {EFFORTS.map((option) => (
           <label
             key={option.value}
             title={option.hint}
-            className={`cursor-pointer rounded-full px-3 py-1 text-sm transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
-              option.value === value ? "bg-surface font-medium shadow-sm" : "text-muted hover:text-ink"
+            className={`relative z-10 cursor-pointer rounded-full px-3 py-1 text-center text-sm transition-colors duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand ${
+              option.value === value ? "font-medium text-ink" : "text-muted hover:text-ink"
             }`}
           >
             <input
