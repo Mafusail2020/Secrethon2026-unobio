@@ -15,6 +15,7 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uPush;
+uniform float uLattice;
 uniform vec3 uPal[6];
 out vec4 o;
 
@@ -58,6 +59,16 @@ void main() {
   // light mist upper left, deeper colour lower right
   float v = f * 1.35 - 0.12 + (1.0 - frag.x) * 0.3 + frag.y * 0.35 - 0.3;
   v = smoothstep(0.08, 0.92, v);
+
+  // a lattice of tall rhombi, bent by the same noise and showing only in patches, that lightens what it crosses
+  vec2 lw = uv + 0.07 * (vec2(fbm(uv * 2.0 + t * 2.0), fbm(uv * 2.0 + 7.0 - t * 2.0)) - 0.5);
+  vec2 lp = vec2(lw.x / 0.12, lw.y / 0.2);
+  float l1 = abs(fract(lp.x + lp.y) - 0.5) * 2.0;
+  float l2 = abs(fract(lp.x - lp.y) - 0.5) * 2.0;
+  float lat = pow(max(smoothstep(0.34, 0.0, l1), smoothstep(0.34, 0.0, l2)), 1.6);
+  float pocket = smoothstep(0.22, 0.62, fbm(uv * 1.2 + vec2(3.0, t)));
+  v = clamp(v + lat * pocket * uLattice * 0.5, 0.0, 1.0);
+
   o = vec4(ramp(v), 1.0);
 }`;
 

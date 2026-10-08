@@ -9,10 +9,10 @@ export const FLAME: string[] = ["#070b24", "#1f3a8a", "#3b63d1", "#ff6a1f", "#ff
 export const BRAND: string[] = ["#04081a", "#34489f", "#2f55b5", "#7b95e0", "#c9d4f4", "#f6f7fb"];
 
 /**
- * Blue drifting into grey, all of it light: dark text keeps over 12:1 on it and muted text about 4.9:1 on the bluest
+ * Blue drifting into grey, all of it light: dark text keeps over 12:1 on it and muted text 4.6:1 on the bluest
  * stop (check before darkening any stop).
  */
-export const MIST: string[] = ["#c6d3f1", "#cbd6ee", "#d0d8e9", "#d6dae4", "#dfe2ea", "#e9ecf3"];
+export const MIST: string[] = ["#bccdf0", "#c4d1ec", "#cad4e8", "#d2d8e6", "#dcdfe8", "#e9ecf3"];
 
 /** Glyphs from the lightest area to the darkest. */
 export const DEFAULT_RAMP = " .BS/M";

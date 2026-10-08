@@ -322,8 +322,9 @@ report itself.
 `components/glyph-field` draws a flowing field of colour as text, in two WebGL2 passes: a domain-warped noise field at half
 resolution, then one glyph per cell chosen by the cell's darkness with a Bayer dither, over the soft field. The pointer
 pushes the field; reduced motion gives one still frame; without WebGL2 it draws nothing. It is written from scratch (not
-Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. The `mist` preset (pale blue into
-grey, strokes only lighter than the ground, slow, shy of the pointer) sits behind the history sidebar; its darkest stop is
+Unicorn Studio's scene) and is previewed at `/lab/glyph-field`, which nothing links to. A lattice of tall rhombi, bent by the same noise,
+lightens the field in patches. The `mist` preset (pale blue into grey, strokes only lighter than the ground, slow, shy of the
+pointer) sits behind the history sidebar; its darkest stop is
 the worst case for text over it and a test holds that at 4.5:1 for muted text. Behind another panel, such as the graph,
 spread `PRESETS.mist` the same way and keep what sits on it opaque or lighter than the stops.
 
