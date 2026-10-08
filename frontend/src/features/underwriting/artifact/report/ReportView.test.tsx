@@ -45,6 +45,11 @@ describe("report on the BACE1 fixture", () => {
     expect(markup).not.toContain('data-open="true"');
   });
 
+  it("makes each reason on the call a link to its claim, with no separate button", () => {
+    expect(markup).not.toMatch(/>why</);
+    expect(markup).toMatch(/<button[^>]*title="Show the claim behind this"[^>]*>FIXTURE: prior programs were terminated<\/button>/);
+  });
+
   it("shows the efficacy and safety checks with their numbers inside their questions", () => {
     expect(markup).toContain("Efficacy check");
     expect(markup).toContain("Safety check");

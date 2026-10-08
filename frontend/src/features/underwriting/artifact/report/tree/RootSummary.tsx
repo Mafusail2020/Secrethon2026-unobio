@@ -34,16 +34,26 @@ function Reasons({ side, title, items }: { side: Side; title: string; items: Rep
         <p className="text-sm italic text-muted">None the verdict leaned on.</p>
       ) : (
         <ul className="space-y-2">
-          {items.map((rc) => (
-            <li key={rc.code} className="text-sm">
-              {rc.text}
-              {rc.claim_ids.slice(0, 1).map((id) => (
-                <button key={id} type="button" onClick={() => jumpToClaim(id)} className="ml-1.5 rounded-full border border-line bg-white/80 px-1.5 text-xs text-brand hover:border-brand">
-                  why
-                </button>
-              ))}
-            </li>
-          ))}
+          {items.map((rc) => {
+            const claim = rc.claim_ids[0];
+            return (
+              <li key={rc.code} className="text-sm">
+                {claim ? (
+                  // the reason is its own link: clicking it opens the claim behind it, with its evidence
+                  <button
+                    type="button"
+                    onClick={() => jumpToClaim(claim)}
+                    title="Show the claim behind this"
+                    className="-mx-1.5 block w-[calc(100%+0.75rem)] cursor-pointer rounded-md px-1.5 py-1 text-left decoration-dotted underline-offset-4 hover:bg-white/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                  >
+                    {rc.text}
+                  </button>
+                ) : (
+                  rc.text
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </SideBox>
