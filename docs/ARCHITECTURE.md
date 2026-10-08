@@ -397,6 +397,10 @@ reads `assessments` and weighs them. Gathering and scoring are code and cost not
   the failure mix is a citable number (ASBMB Today, primary study unverified) until twin stats have enough stopped trials.
 - **Model reads, code computes.** In the lanes the model only extracts claims; ratings and risk ratios come from formulas
   over the gathered numbers, so the numbers are reproducible, cheap and not a model's opinion.
+- **Old stored runs are upgraded on read, not migrated.** A contract change must not make earlier chats unreadable. Reports and
+  stored node deltas are passed through `core/legacy_report.py` when loaded, which today turns the old ledger step (a
+  likelihood ratio on odds) into the cause-specific one; the database is never rewritten. A change that cannot be upgraded
+  that way needs a note in its contract PR.
 - **Replay, not checkpoint forking.** A correction creates a child run that re-executes only the affected set and
   reuses stored deltas elsewhere. Forking LangGraph checkpoints would need to handle parallel branches and
   subgraphs; replay is deterministic, inspectable in the DB, and gives `node.reused` events for free.

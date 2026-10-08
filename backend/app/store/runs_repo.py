@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from sqlalchemy import select, update
 
 from app.contracts import ProgramInput, RunOptions, RunSummary, UnderwritingReport
+from app.core.legacy_report import upgrade_report
 from app.store.db import Database
 from app.store.tables import RunRow
 
@@ -84,7 +85,7 @@ class RunsRepo:
             row = await s.get(RunRow, run_id)
             if row is None or row.report is None:
                 return None
-            return UnderwritingReport.model_validate(row.report)
+            return UnderwritingReport.model_validate(upgrade_report(row.report))
 
     async def lineage(self, run_id: str) -> list[LineageEntry]:
         """Root first, ending with run_id."""

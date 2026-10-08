@@ -23,6 +23,7 @@ from app.contracts import (
     Valuation,
     Verdict,
 )
+from app.core.legacy_report import upgrade_delta
 
 
 def merge_dicts(left: dict | None, right: dict | None) -> dict:
@@ -73,4 +74,4 @@ def dump_delta(delta: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def load_delta(raw: Mapping[str, Any]) -> dict[str, Any]:
-    return {k: _ADAPTERS[k].validate_python(v) for k, v in raw.items()}
+    return {k: _ADAPTERS[k].validate_python(v) for k, v in upgrade_delta(dict(raw)).items()}
