@@ -17,7 +17,7 @@ export function EvidenceCard({ evidenceId, claim }: { evidenceId: string; claim:
   }
   const target = graph ? correctionTargetFor(claim, graph) : undefined;
   return (
-    <li className="rounded-md border border-line bg-canvas/50 p-2 text-sm">
+    <li className="rounded-sm border border-line bg-canvas/50 p-2 text-sm">
       <blockquote className="border-l-2 border-brand pl-2 italic">{evidence.excerpt}</blockquote>
       {evidence.locator && <div className="mt-1 text-xs text-muted">at {evidence.locator}</div>}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">

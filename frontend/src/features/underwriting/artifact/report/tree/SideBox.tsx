@@ -14,7 +14,7 @@ const TONE: Record<Side, { box: string; title: string }> = {
 export function SideBox({ side, title, children }: { side: Side; title: string; children: ReactNode }) {
   const tone = TONE[side];
   return (
-    <div className={`min-w-0 rounded-xl border-2 p-3 ${tone.box}`}>
+    <div className={`min-w-0 rounded-sm border-2 p-3 ${tone.box}`}>
       <h4 className={`text-base font-bold ${tone.title}`}>{title}</h4>
       <div className="mt-2">{children}</div>
     </div>

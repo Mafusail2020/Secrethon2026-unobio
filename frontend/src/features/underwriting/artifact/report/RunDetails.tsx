@@ -12,12 +12,12 @@ export function RunDetails({ meta, runId }: { meta: RunMeta; runId: string }) {
     ["Cache hits", String(meta.cache_hits)],
   ];
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="run-h">
+    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="run-h">
       <h3 id="run-h" className="text-sm font-semibold">
         Run details
       </h3>
       {meta.failed_nodes.length > 0 && (
-        <p role="alert" className="mt-2 rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+        <p role="alert" className="mt-2 rounded-sm bg-amber-50 p-2 text-xs text-amber-900">
           Degraded run: {meta.failed_nodes.join(", ")} did not complete, so parts of this report rest on less evidence than usual.
         </p>
       )}

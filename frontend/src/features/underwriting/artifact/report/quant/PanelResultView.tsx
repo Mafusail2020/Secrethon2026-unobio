@@ -4,7 +4,7 @@ import type { PanelResult } from "../../../../../api/types";
 export function PanelResultView({ panel }: { panel: PanelResult }) {
   const agreement = Math.round(panel.agreement * 100);
   return (
-    <div className="mt-2 rounded-md border border-line bg-canvas/50 p-2">
+    <div className="mt-2 rounded-sm border border-line bg-canvas/50 p-2">
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium">Model panel ({panel.candidates.length} candidates)</span>
         <span className="flex items-center gap-2">

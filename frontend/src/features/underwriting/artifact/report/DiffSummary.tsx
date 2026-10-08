@@ -45,7 +45,7 @@ export function DiffSummaryFull({
 }) {
   const tone = view.decisionChanged ? "border-brand/50 bg-brand/10" : "border-line bg-surface";
   return (
-    <section role="region" aria-labelledby="changed-h" className={`rounded-lg border-2 p-3 ${tone}`}>
+    <section role="region" aria-labelledby="changed-h" className={`rounded-sm border-2 p-3 ${tone}`}>
       <h3 id="changed-h" className="text-sm font-semibold">
         What changed after your correction
       </h3>

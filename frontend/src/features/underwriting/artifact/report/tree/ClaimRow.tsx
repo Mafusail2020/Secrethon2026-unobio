@@ -13,7 +13,7 @@ export function ClaimRow({ claim, focused = false }: { claim: Claim; focused?: b
   return (
     <li
       id={`tree-claim-${claim.id}`}
-      className={`scroll-mt-32 overflow-hidden rounded-lg border bg-surface ${focused ? "uw-flash border-brand ring-2 ring-brand/30" : "border-line"}`}
+      className={`scroll-mt-32 overflow-hidden rounded-sm border bg-surface ${focused ? "uw-flash border-brand ring-2 ring-brand/30" : "border-line"}`}
     >
       <button
         type="button"

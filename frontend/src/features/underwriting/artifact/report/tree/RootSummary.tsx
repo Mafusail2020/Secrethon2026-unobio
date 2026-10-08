@@ -33,7 +33,7 @@ function Reasons({ side, title, items }: { side: Side; title: string; items: Rep
       {items.length === 0 ? (
         <p className="text-sm italic text-muted">None the verdict leaned on.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-0.5">
           {items.map((rc) => {
             const claim = rc.claim_ids[0];
             return (
@@ -44,7 +44,7 @@ function Reasons({ side, title, items }: { side: Side; title: string; items: Rep
                     type="button"
                     onClick={() => jumpToClaim(claim)}
                     title="Show the claim behind this"
-                    className="-mx-1.5 block w-[calc(100%+0.75rem)] cursor-pointer rounded-md px-1.5 py-1 text-left decoration-dotted underline-offset-4 hover:bg-white/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                    className="-mx-1.5 block w-[calc(100%+0.75rem)] cursor-pointer rounded-sm px-1.5 py-1 text-left decoration-dotted underline-offset-4 hover:bg-white/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
                   >
                     {rc.text}
                   </button>
@@ -69,7 +69,7 @@ function Strip({ tree, scale, onJump }: { tree: ReportTree; scale: number; onJum
           <button
             type="button"
             onClick={() => onJump(q.id)}
-            className={`block h-full w-full rounded-lg border border-l-4 border-line bg-canvas/60 px-3 py-2 text-left hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${STANDING_EDGE[q.standing]}`}
+            className={`block h-full w-full rounded-sm border border-l-4 border-line bg-canvas/60 px-3 py-2 text-left hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${STANDING_EDGE[q.standing]}`}
           >
             <span className="block text-sm font-semibold">{q.short}</span>
             <span className={`mt-0.5 inline-block rounded-full border px-1.5 text-[0.65rem] font-medium ${STANDING_STYLE[q.standing]}`}>{STANDING_LABEL[q.standing]}</span>
@@ -88,7 +88,7 @@ export function RootSummary({ report, tree, scale, onJump }: { report: Underwrit
   const { verdict, valuation } = report;
   const drag = tree.biggestDrag;
   return (
-    <section id="summary" aria-label="The call" className="report-anchor rounded-2xl border border-line bg-surface p-5 shadow-sm">
+    <section id="summary" aria-label="The call" className="report-anchor rounded-sm border border-line bg-surface p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
         <div id="summary-call">
           <div className="flex flex-wrap items-center gap-2">
@@ -126,7 +126,7 @@ export function RootSummary({ report, tree, scale, onJump }: { report: Underwrit
       </div>
 
       {drag && drag.impact && (
-        <p className="mt-4 rounded-lg bg-canvas px-3 py-2 text-sm">
+        <p className="mt-4 rounded-sm bg-canvas px-3 py-2 text-sm">
           The biggest drag on the chance is <strong>{drag.title.toLowerCase()}</strong> ({drag.impact.pts.toFixed(1)} points).
         </p>
       )}

@@ -5,7 +5,7 @@ import { RangeBar } from "./RangeBar";
 
 export function ValuationPanel({ valuation }: { valuation: Valuation }) {
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="val-h">
+    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="val-h">
       <h3 id="val-h" className="text-base font-semibold">
         Funding to the next milestone
       </h3>

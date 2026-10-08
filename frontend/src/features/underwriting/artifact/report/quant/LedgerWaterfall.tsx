@@ -54,7 +54,7 @@ export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
   );
 
   return (
-    <section className="rounded-lg border border-line bg-surface p-3" aria-labelledby="ledger-h">
+    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="ledger-h">
       <h3 id="ledger-h" className="text-sm font-semibold">
         Evidence ledger
       </h3>
@@ -150,7 +150,7 @@ export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
         <span>Whisker: the running low and high range after each step</span>
       </p>
       {w.driftNotable && (
-        <p role="note" className="mt-2 rounded-md bg-amber-50 p-2 text-xs text-amber-900">
+        <p role="note" className="mt-2 rounded-sm bg-amber-50 p-2 text-xs text-amber-900">
           {`The last step ends at ${pct(w.chainedEnd)} but the posterior is ${pct(w.posterior.base)}; the ledger's own numbers disagree, so trust the posterior.`}
         </p>
       )}
