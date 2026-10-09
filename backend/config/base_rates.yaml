@@ -56,3 +56,11 @@ twins:
   active_window_years: {value: 3, assumption: true}  # a trial started this recently = still running
   max_twins_shown: {value: 15, assumption: true}
   interval: {low: 0.05, high: 0.95, assumption: true}  # percentiles of the Beta posterior
+  # how much a match level's twins count against the area base rate in the prior; same target in
+  # other diseases (or a related class) shows the target is druggable, not that it works here
+  level_weight:
+    exact_target_indication: 1.0
+    target_area: 1.0
+    target_any: 0.25
+    target_class: 0.25
+    assumption: true

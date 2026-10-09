@@ -28,6 +28,18 @@ DATASETS = (
     "drug_molecule",
     "target",
 )
+# Open Targets areas that group unrelated diseases (Alzheimer's and obesity are both a
+# "phenotype"); sharing one of them does not make two programs comparable
+GENERIC_AREAS = frozenset(
+    {
+        "EFO_0000651",  # phenotype
+        "EFO_0001444",  # measurement
+        "GO_0008150",  # biological_process
+        "OTAR_0000018",  # genetic, familial or congenital disease
+        "EFO_0002571",  # medical procedure
+        "OTAR_0000009",  # injury, poisoning or other complication
+    }
+)
 
 STAGE_RANK = {
     "UNKNOWN": 0,
@@ -259,14 +271,14 @@ def collapse_salts(programs: list[Program]) -> list[Program]:
     return list(merged.values())
 
 
-def beta_range(successes: int, failures: int, base_rate: float) -> Range:
+def beta_range(successes: float, failures: float, base_rate: float) -> Range:
     """5th / 50th / 95th percentiles of Beta(s + k*b, f + k*(1-b)); seeded, so runs repeat."""
     k = float(twin_param("pseudo_count")["value"])
     # an approved-stage program has a base rate of 1, which would zero a Beta parameter
     base_rate = min(max(base_rate, 0.01), 0.99)
     interval = twin_param("interval")
     a, b = successes + k * base_rate, failures + k * (1 - base_rate)
-    rng = random.Random(f"{successes}:{failures}:{base_rate:.6f}")
+    rng = random.Random(f"{successes:g}:{failures:g}:{base_rate:.6f}")
     draws = sorted(rng.betavariate(a, b) for _ in range(20_000))
 
     def q(p: float) -> float:
@@ -348,7 +360,7 @@ def compute(
     notes: list[str] = []
     disease = data.disease(disease_id)
     family = {disease_id, *(disease[1] if disease else [])}
-    areas = set(disease[2]) if disease else set()
+    areas = (set(disease[2]) if disease else set()) - GENERIC_AREAS
     floor = STAGE_FLOOR.get(stage or "", 0)
     min_decided = int(twin_param("min_decided")["value"])
 
@@ -425,11 +437,18 @@ def compute(
         notes.append("thin history: fewer than 3 decided twins")
     unknown_notes = list(dict.fromkeys(f"{p.drug}: {p.note}" for p in programs if p.note))
     notes += unknown_notes[:3]
+    # approvals of the same target in other diseases say it can be drugged, not that it works here
+    weight = float(twin_param("level_weight")[level])
+    if weight < 1:
+        notes.append(
+            f"{level} twins count at {weight:.0%} weight against the area base rate: "
+            "other indications say little about this one"
+        )
     return TwinResult(
         match_level=level,
         programs=programs,
         decided=decided,
-        prior=beta_range(approved, len(stopped), loa),
+        prior=beta_range(approved * weight, len(stopped) * weight, loa),
         failure_mix=failure_mix(stopped, ledger_conf),
         notes=notes,
         base=base,
