@@ -558,6 +558,81 @@
         "title": "CreateRunRequest",
         "type": "object"
       },
+      "DeckBullet": {
+        "additionalProperties": false,
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "stance": {
+            "default": "neutral",
+            "enum": [
+              "for",
+              "against",
+              "neutral"
+            ],
+            "title": "Stance",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_ids",
+          "evidence_ids",
+          "stance",
+          "text"
+        ],
+        "title": "DeckBullet",
+        "type": "object"
+      },
+      "DeckScript": {
+        "additionalProperties": false,
+        "description": "The words of the investment-committee deck. Empty `slides` means no script: the deck is then\nwritten from the report's own wording.",
+        "properties": {
+          "slides": {
+            "items": {
+              "$ref": "#/components/schemas/SlideScript"
+            },
+            "maxItems": 11,
+            "title": "Slides",
+            "type": "array"
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "maxLength": 180,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitle"
+          }
+        },
+        "required": [
+          "slides",
+          "subtitle"
+        ],
+        "title": "DeckScript",
+        "type": "object"
+      },
       "DiligenceQuestion": {
         "additionalProperties": false,
         "properties": {
@@ -2620,6 +2695,62 @@
         "title": "SectionResult",
         "type": "object"
       },
+      "SlideScript": {
+        "additionalProperties": false,
+        "properties": {
+          "bullets": {
+            "items": {
+              "$ref": "#/components/schemas/DeckBullet"
+            },
+            "maxItems": 6,
+            "title": "Bullets",
+            "type": "array"
+          },
+          "headline": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Headline",
+            "type": "string"
+          },
+          "slide": {
+            "enum": [
+              "call",
+              "works",
+              "approval",
+              "uptake",
+              "funding",
+              "probability",
+              "twins",
+              "money",
+              "evidence",
+              "risks",
+              "recommendation"
+            ],
+            "title": "Slide",
+            "type": "string"
+          },
+          "takeaway": {
+            "anyOf": [
+              {
+                "maxLength": 220,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Takeaway"
+          }
+        },
+        "required": [
+          "bullets",
+          "headline",
+          "slide",
+          "takeaway"
+        ],
+        "title": "SlideScript",
+        "type": "object"
+      },
       "SourceRef": {
         "additionalProperties": false,
         "properties": {
@@ -3508,6 +3639,66 @@
           }
         },
         "summary": "Get Run"
+      }
+    },
+    "/api/runs/{run_id}/deck": {
+      "post": {
+        "description": "The words of the committee deck for a finished run. Written once and kept; `rewrite`\nwrites it again. Empty `slides` means the deck should use the report's own wording (mock\nmode, or the model could not write it, or nothing it wrote held up).",
+        "operationId": "write_deck_api_runs__run_id__deck_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rewrite",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Rewrite",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeckScript"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Write Deck"
       }
     },
     "/api/runs/{run_id}/diff/{other_id}": {

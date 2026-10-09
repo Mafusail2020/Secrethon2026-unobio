@@ -38,6 +38,7 @@ from app.contracts.common import (
     Severity,
     utcnow,
 )
+from app.contracts.deck import DECK_SLIDE_IDS, DeckBullet, DeckScript, SlideScript
 from app.contracts.evidence import EntityRef, Evidence, ResolvedEntities, SourceRef
 from app.contracts.graph_spec import GraphEdge, GraphSpec, NodeKind, NodeSpec
 from app.contracts.llm import ChatMessage, ModelInfo
@@ -72,6 +73,9 @@ from app.contracts.runs import (
 
 # every model that crosses the API boundary; export_openapi injects all of them into the schema
 API_MODELS: tuple[type[BaseModel], ...] = (
+    DeckBullet,
+    SlideScript,
+    DeckScript,
     DocumentInfo,
     ProgramInput,
     RunOptions,
@@ -127,6 +131,10 @@ API_MODELS: tuple[type[BaseModel], ...] = (
 )
 
 __all__ = [
+    "DECK_SLIDE_IDS",
+    "DeckBullet",
+    "DeckScript",
+    "SlideScript",
     "API_MODELS",
     "FAILURE_CAUSES",
     "SECTION_IDS",

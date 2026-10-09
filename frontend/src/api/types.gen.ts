@@ -164,6 +164,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{run_id}/deck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Write Deck
+         * @description The words of the committee deck for a finished run. Written once and kept; `rewrite`
+         *     writes it again. Empty `slides` means the deck should use the report's own wording (mock
+         *     mode, or the model could not write it, or nothing it wrote held up).
+         */
+        post: operations["write_deck_api_runs__run_id__deck_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/runs/{run_id}/diff/{other_id}": {
         parameters: {
             query?: never;
@@ -513,6 +535,32 @@ export interface components {
         CreateRunRequest: {
             options?: components["schemas"]["RunOptions"];
             program: components["schemas"]["ProgramInput"];
+        };
+        /** DeckBullet */
+        DeckBullet: {
+            /** Claim Ids */
+            claim_ids: string[];
+            /** Evidence Ids */
+            evidence_ids: string[];
+            /**
+             * Stance
+             * @default neutral
+             * @enum {string}
+             */
+            stance: "for" | "against" | "neutral";
+            /** Text */
+            text: string;
+        };
+        /**
+         * DeckScript
+         * @description The words of the investment-committee deck. Empty `slides` means no script: the deck is then
+         *     written from the report's own wording.
+         */
+        DeckScript: {
+            /** Slides */
+            slides: components["schemas"]["SlideScript"][];
+            /** Subtitle */
+            subtitle: string | null;
         };
         /** DiligenceQuestion */
         DiligenceQuestion: {
@@ -1199,6 +1247,20 @@ export interface components {
             /** Unknowns */
             unknowns: string[];
         };
+        /** SlideScript */
+        SlideScript: {
+            /** Bullets */
+            bullets: components["schemas"]["DeckBullet"][];
+            /** Headline */
+            headline: string;
+            /**
+             * Slide
+             * @enum {string}
+             */
+            slide: "call" | "works" | "approval" | "uptake" | "funding" | "probability" | "twins" | "money" | "evidence" | "risks" | "recommendation";
+            /** Takeaway */
+            takeaway: string | null;
+        };
         /** SourceRef */
         SourceRef: {
             /** Id */
@@ -1669,6 +1731,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    write_deck_api_runs__run_id__deck_post: {
+        parameters: {
+            query?: {
+                rewrite?: boolean;
+            };
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeckScript"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Unprocessable Entity */
