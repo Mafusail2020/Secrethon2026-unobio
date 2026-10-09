@@ -9,7 +9,7 @@ const PT_PER_PX = 0.75;
 const SPELLED: Record<string, string> = {
   "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "κ": "kappa", "μ": "mu",
   "≥": ">=", "≤": "<=", "≈": "~", "→": "->", "−": "-", "–": "-", "—": "-", "…": "...",
-  "“": '"', "”": '"', "‘": "'", "’": "'",
+  "“": '"', "”": '"', "‘": "'", "’": "'", "▲": "(for)", "▼": "(against)",
 };
 
 /** What a hidden-layer word is written as: Latin-1 only, so that searching the file finds it. */

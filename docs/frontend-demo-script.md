@@ -107,7 +107,7 @@ the conversation; below 768 px the history is a drawer.
 2. **Full report (PDF)**: downloads an A4 file the backend builds (`GET /api/runs/{id}/report.pdf`): the call and figures, the four
    questions with claims for and against, the numbers behind it (chart, tables), every claim by section with its quotes and
    rejection reasons, risks, numbered sources with links, and the run details. Selectable text, about 80 KB. In the mock there is
-   no backend, so this item prints the report page instead.
+   no backend, so this item saves a plain-text PDF made in the browser from the same text as **Copy as Markdown**.
 3. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
 4. **Download the trace** (live only).
 

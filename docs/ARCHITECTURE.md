@@ -244,7 +244,9 @@ landscape page with `jsPDF` (both loaded only when the button is pressed), about
 slide's own text as invisible lines (`textRuns`: words measured with `Range` rects, divided back to slide pixels, joined per line), so
 the file can be searched and copied from; the built-in PDF font is Latin-1 only, so Greek letters and math signs are spelled out
 (β → beta, ≥ → >=) in that hidden layer and anything else is dropped from it, never from the picture. No `backgroundColor` is
-passed to `html-to-image`, since that would paint over the navy title slide. The print styles stay for the mock, which has no backend.
+passed to `html-to-image`, since that would paint over the navy title slide. The mock has no backend, so there its "Full report (PDF)" item saves a plain PDF made in the browser by `reportPdf.ts` from the
+Markdown export (A4, text only, headings kept with the text after them, a paragraph longer than a page carries on over the next);
+only if that fails does it fall back to the print dialog, and the print styles stay for that.
 
 ### Uploaded documents
 

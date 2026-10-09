@@ -131,6 +131,7 @@ describe("the text of a slide", () => {
   it("is written in the letters the file's font has: Greek and math signs are spelled out", () => {
     expect(plain("Aβ42 ≥ 60 % (−2 SD) — “ok”…")).toBe('Abeta42 >= 60 % (-2 SD) - "ok"...');
     expect(plain("Zürich ± 5 · 3")).toBe("Zürich ± 5 · 3");
+    expect(plain("▲ strong ▼ weak")).toBe("(for) strong (against) weak");
     expect(plain("日本")).toBe("");
   });
 });
