@@ -3,6 +3,7 @@ import type { UnderwritingReport } from "../../../api/types";
 import { ArrowUpIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
 import { ClaimChips } from "./ClaimChips";
+import { MarkdownText } from "./MarkdownText";
 import { PassageChips } from "./PassageChips";
 import type { FollowUp } from "./useFollowUp";
 
@@ -34,7 +35,7 @@ export function FollowUpMessages({
               <p className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-slate-100 px-4 py-2.5 text-[0.95rem]">{m.content}</p>
             ) : (
               <div className="text-[0.95rem] leading-relaxed">
-                <p className="whitespace-pre-wrap">{m.content}</p>
+                <MarkdownText text={m.content} ids={[]} variant="answer" report={report} onOpenClaim={onOpenClaim} />
                 <ClaimChips ids={m.cited_claim_ids} report={report} onOpen={onOpenClaim} />
                 <PassageChips ids={m.cited_evidence_ids} />
               </div>

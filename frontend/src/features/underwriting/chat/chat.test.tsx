@@ -119,7 +119,7 @@ describe("run thread", () => {
     expect(markup).toMatch(/<h2[^>]*>Verdict<\/h2>/);
     expect(markup).toMatch(/<h3[^>]*>Detail<\/h3>/);
     expect(markup).toContain("<strong");
-    expect(markup).toMatch(/<li>first risk/);
+    expect(markup).toMatch(/<li[^>]*>first risk/);
     // c2 is cited first, so it is number 1; the marks themselves never show
     expect(markup).toMatch(/aria-label="Open claim 1"[^>]*>1<\/button>/);
     expect(markup).toMatch(/aria-label="Open claim 2"[^>]*>2<\/button>/);
