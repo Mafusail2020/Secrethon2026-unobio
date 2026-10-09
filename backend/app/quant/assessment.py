@@ -99,11 +99,13 @@ def _adjust(
     )
 
 
-def rating(adjustments: list[RiskAdjustment], conf: dict[str, Any], has_inputs: bool) -> str:
+def rating(
+    adjustments: list[RiskAdjustment], conf: dict[str, Any], has_inputs: bool, extra: float = 1.0
+) -> str:
     if not has_inputs:
         return "unknown"
     cut = conf["assessment"]["rating_cutoffs"]
-    net = math.prod(a.risk_ratio.base for a in adjustments)
+    net = math.prod(a.risk_ratio.base for a in adjustments) * extra
     if net <= cut["strong"]:
         return "strong"
     if net <= cut["moderate"]:
@@ -111,6 +113,17 @@ def rating(adjustments: list[RiskAdjustment], conf: dict[str, Any], has_inputs: 
     if net <= cut["weak"]:
         return "weak"
     return "concerning"
+
+
+def _class_record(twins: TwinStats | None) -> float:
+    """Rating-only nudge from how same-target programs in this disease ended (assumption)."""
+    decided = [t for t in (twins.twins if twins else []) if t.status in ("approved", "stopped")]
+    if not decided:
+        return 1.0
+    approved = sum(t.status == "approved" for t in decided)
+    if approved * 2 >= len(decided):
+        return 0.85
+    return 1.15 if approved == 0 else 1.0
 
 
 def _twin_stops(twins: TwinStats | None, category: str) -> int:
@@ -185,13 +198,19 @@ def score_efficacy(
             )
         )
         told.append(f"{len(supported)} of 5 translation steps supported")
+    # same target, same disease: the prior already holds how the class fared in people, and the
+    # chain's claims are mostly about those same programs, so scoring the chain would count it twice
+    twins = x.twins
+    exact = bool(twins and twins.match_level == "exact_target_indication" and twins.n_programs)
+    in_prior: list[RiskAdjustment] = []
+    chain_adj = in_prior if exact else adjustments
     if not x.chain:
         gaps.append("translation chain not assessed")
     else:
         human = [s for s in HUMAN_STEPS if s in supported]
         if contradicted:
             ids = [c for s in contradicted for c in steps[s].claim_ids]
-            adjustments.append(
+            chain_adj.append(
                 _adjust(
                     conf,
                     "efficacy.contradicted_translation",
@@ -201,7 +220,7 @@ def score_efficacy(
                 )
             )
         if "patient_benefit" in supported:
-            adjustments.append(
+            chain_adj.append(
                 _adjust(
                     conf,
                     "efficacy.human_proof_of_concept",
@@ -211,7 +230,7 @@ def score_efficacy(
                 )
             )
         elif not human and not contradicted:
-            adjustments.append(
+            chain_adj.append(
                 _adjust(
                     conf,
                     "efficacy.unproven_translation",
@@ -222,7 +241,7 @@ def score_efficacy(
             gaps.append("no human evidence of target engagement, biological response or benefit")
         exposure = steps.get("human_exposure")
         if exposure and exposure.status == "supported":
-            adjustments.append(
+            chain_adj.append(
                 _adjust(
                     conf,
                     "pk_exposure.human_exposure_shown",
@@ -232,7 +251,7 @@ def score_efficacy(
                 )
             )
         elif exposure is None or exposure.status in ("missing", "contradicted"):
-            adjustments.append(
+            chain_adj.append(
                 _adjust(
                     conf,
                     "pk_exposure.no_human_exposure",
@@ -242,7 +261,6 @@ def score_efficacy(
                 )
             )
 
-    twins = x.twins
     stopped_eff = _twin_stops(twins, "efficacy")
     # a base-rate prior has no programs behind it: nothing to say about precedent
     if twins is not None and twins.n_programs:
@@ -271,7 +289,18 @@ def score_efficacy(
     if x.same_target_approved:
         told.append(f"{len(x.same_target_approved)} approved drug(s) on the target")
 
-    rated = rating(adjustments, conf, bool(metrics or x.claim_ids))
+    if in_prior:
+        gaps.append(
+            "translation chain not scored: same-target programs in this disease are already in "
+            "the prior"
+        )
+    # the rating still reads the chain and how the class fared here; the ledger does not
+    rated = rating(
+        adjustments + in_prior,
+        conf,
+        bool(metrics or x.claim_ids),
+        _class_record(twins) if exact else 1.0,
+    )
     headline = f"Efficacy {rated}: " + ("; ".join(told) if told else "little usable evidence")
     return adjustments, AssessmentResult(
         cause="efficacy",
