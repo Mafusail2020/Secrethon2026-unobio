@@ -84,3 +84,63 @@ def test_a_stored_document_can_be_read_back_by_a_node(tmp_path):
     assert store.get("doc_0000000000000000") is None
     with pytest.raises(DocumentError):
         store.save("a.exe", b"MZ")
+
+
+def _finished_run(client: TestClient, body: dict) -> str:
+    from tests.test_api_runs import start, wait
+
+    return wait(client, start(client, body)).summary.id
+
+
+def test_a_document_can_be_looked_up_and_opened(client):
+    info = upload(client, "Study (v2).txt", "Aβ −62 %".encode()).json()
+    assert client.get(f"/api/documents/{info['id']}").json() == info
+    opened = client.get(f"/api/documents/{info['id']}/file")
+    assert opened.content == "Aβ −62 %".encode()
+    assert opened.headers["content-type"].startswith("text/plain")
+    assert opened.headers["x-content-type-options"] == "nosniff"
+    assert "sandbox" in opened.headers["content-security-policy"]
+    pdf = upload(client, "a.pdf", PDF).json()
+    assert (
+        client.get(f"/api/documents/{pdf['id']}/file").headers["content-type"] == "application/pdf"
+    )
+    assert client.get("/api/documents/doc_0123456789abcdef").status_code == 404
+    assert client.get("/api/documents/doc_0123456789abcdef/file").status_code == 404
+
+
+def test_a_correction_can_change_which_documents_a_run_reads(client):
+    a = upload(client, "a.txt", b"first").json()["id"]
+    b = upload(client, "b.txt", b"second").json()["id"]
+    parent = _finished_run(client, {"program": {**BODY["program"], "document_ids": [a, b]}})
+    url = f"/api/runs/{parent}/nodes/ingest_user_input/corrections"
+    child = client.post(url, json={"text": "Only a.txt", "document_ids": [a]})
+    assert child.status_code == 202, child.text
+    summary = child.json()
+    assert summary["program"]["document_ids"] == [a] and summary["parent_run_id"] == parent
+    # the parent keeps what it read
+    assert client.get(f"/api/runs/{parent}").json()["summary"]["program"]["document_ids"] == [a, b]
+    # an empty set is a real choice, not "no change"
+    none = client.post(url, json={"text": "No documents", "document_ids": []})
+    assert none.status_code == 202 and none.json()["program"]["document_ids"] == []
+
+
+def test_documents_are_refused_on_a_correction_that_could_not_read_them(client):
+    a = upload(client, "a.txt", b"first").json()["id"]
+    parent = _finished_run(client, {"program": {**BODY["program"], "document_ids": [a]}})
+    wrong_node = client.post(
+        f"/api/runs/{parent}/nodes/bear_case/corrections", json={"text": "x", "document_ids": [a]}
+    )
+    assert (
+        wrong_node.status_code == 422
+        and wrong_node.json()["error"]["code"] == "documents_need_ingest"
+    )
+    unknown = client.post(
+        f"/api/runs/{parent}/nodes/ingest_user_input/corrections",
+        json={"text": "x", "document_ids": ["doc_0123456789abcdef"]},
+    )
+    assert unknown.status_code == 422 and unknown.json()["error"]["code"] == "unknown_document"
+    # without the field a correction keeps the run's documents, as before
+    kept = client.post(
+        f"/api/runs/{parent}/nodes/ingest_user_input/corrections", json={"text": "recheck"}
+    )
+    assert kept.json()["program"]["document_ids"] == [a]

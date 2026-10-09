@@ -1,7 +1,8 @@
 from typing import Annotated
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 from fastapi import APIRouter, Depends, Header, Request
+from fastapi.responses import Response
 
 from app.api.deps import get_services
 from app.contracts import DocumentInfo
@@ -40,3 +41,31 @@ async def post_document(
         return services.documents.save(unquote(x_file_name), b"".join(chunks))
     except DocumentError as exc:
         raise ApiError(_STATUS.get(exc.code, 422), exc.code, str(exc)) from exc
+
+
+def _stored(services: Services, document_id: str):
+    stored = services.documents.get(document_id)
+    if stored is None:
+        raise ApiError(404, "document_not_found", f"no document {document_id}")
+    return stored
+
+
+@router.get("/documents/{document_id}", response_model=DocumentInfo)
+async def get_document(document_id: str, services: Svc) -> DocumentInfo:
+    return _stored(services, document_id).info
+
+
+@router.get("/documents/{document_id}/file", responses={200: {"content": {"application/pdf": {}}}})
+async def get_document_file(document_id: str, services: Svc) -> Response:
+    """The file as uploaded, so a reader can check a quote against it."""
+    stored = _stored(services, document_id)
+    pdf = stored.info.kind == "pdf"
+    return Response(
+        stored.read(),
+        media_type="application/pdf" if pdf else "text/plain; charset=utf-8",
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "sandbox",
+            "Content-Disposition": f"inline; filename*=UTF-8''{quote(stored.info.name)}",
+        },
+    )

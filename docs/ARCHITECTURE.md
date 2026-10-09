@@ -206,7 +206,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs?limit=`, `/runs/{id}` | `RunSummary[]`; `RunDetail` (node list without logs and LLM calls) |
 | GET | `/runs/{id}/events` | SSE of `RunEvent`; `id:` is the seq |
 | GET | `/runs/{id}/report`, `/runs/{id}/nodes/{node}` | `UnderwritingReport`; full `NodeExecution` |
-| POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable |
+| POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable. `document_ids` (only on `ingest_user_input`, 422 `documents_need_ingest` otherwise) replaces the set of documents the new version reads; an empty list means none, absent keeps the parent's |
 | GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
 | GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
 | GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
@@ -214,6 +214,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs/{id}/messages` | chat history of the run, oldest first |
 | POST | `/runs/{id}/messages` | follow-up question (`role: user`, 1–2000 chars); returns the assistant `ChatMessage`. 409 until the run completed, 422 on a bad message, 429 after `MAX_CHAT_QUESTIONS`, 502 `chat_failed` if the model reply is unreadable |
 | POST | `/documents` | `DocumentInfo` (201). The raw file is the body, its name percent-encoded in `X-File-Name`. PDF, TXT or MD up to 10 MB; 413 `document_too_large`, 415 `unsupported_document`, 422 `invalid_document`. Kept under `DATA_DIR/documents` by content hash (`doc_` + 16 hex), so the same bytes are one document. A run names up to five in `program.document_ids`; `POST /runs` answers 422 `unknown_document` for an id that was never uploaded. Reading them is the ingest node's job (`DocumentStore.get(id).read()`) |
+| GET | `/documents/{id}`, `/documents/{id}/file` | `DocumentInfo`; the file as uploaded (inline, `nosniff`, `sandbox`), so a reader can check a quote against it |
 
 ### Follow-up chat
 

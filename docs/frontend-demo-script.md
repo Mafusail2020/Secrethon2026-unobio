@@ -77,6 +77,17 @@ the conversation; below 768 px the history is a drawer.
    ring in blue when the draft would recompute any step inside.) While the form is open the steps that would
    recompute are outlined and the rest dim.
 
+## 3b. Your documents
+
+1. In the new-chat card press **Add details**, then drop a PDF, TXT or MD file on the **Documents** area (up to five, 10 MB
+   each). A file the server refuses shows why under the list; **×** removes one. Start the run.
+2. Open **Sources** in the top bar. **Your documents** sits above the sources table: one row per file with a tick box, its
+   size, and what the run took from it (evidence items and the claims citing them; "Nothing from it reached the evidence" until
+   the ingest step reads files). **Open** shows the file itself.
+3. Untick a file, or drop another one on the strip below the list: a bar says how many are selected. **Re-run with these**
+   makes a new version that starts again from the user-input step (the steps before it are reused) and opens it on the Graph
+   view. In the new version the left-out file is still listed, unticked and marked "Not in this version", so it can be put back.
+
 ## 4. Generate report
 
 **Generate report** (report header, right of the chips) opens a menu:

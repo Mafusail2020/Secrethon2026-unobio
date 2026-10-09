@@ -14,6 +14,7 @@ import { LogsTimeline } from "./logs/LogsTimeline";
 import { ReportView } from "./report/ReportView";
 import type { FocusClaim } from "./report/reportContext";
 import { isSyntheticReport } from "./report/synthetic";
+import { DocumentsPanel } from "./sources/DocumentsPanel";
 import { SourcesTable } from "./sources/SourcesTable";
 
 export type TabId = "report" | "graph" | "sources" | "logs";
@@ -204,7 +205,15 @@ export function ViewContent({
                 </div>
               </div>
             ))}
-          {tab === "sources" && (report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting)}
+          {tab === "sources" &&
+            (run ? (
+              <>
+                <DocumentsPanel run={run} report={report} canRerun={canCorrect} />
+                {report ? <SourcesTable report={report} onOpenClaim={onOpenClaim} /> : waiting}
+              </>
+            ) : (
+              waiting
+            ))}
           {tab === "logs" && (run ? <LogsTimeline events={stream.events} runId={run.id} /> : waiting)}
         </ErrorBoundary>
       </div>

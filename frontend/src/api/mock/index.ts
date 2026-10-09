@@ -43,6 +43,7 @@ interface MockRun {
 }
 
 const runs = new Map<string, MockRun>();
+const documents = new Map<string, DocumentInfo>();
 let counter = 0;
 
 const flips = (run: MockRun) => run.corrections.some((c) => /terminated/i.test(c.text));
@@ -83,6 +84,31 @@ function buildReport(run: MockRun): UnderwritingReport {
     parent_run_id: run.summary.parent_run_id ?? null,
     correction_id: run.summary.parent_run_id ? (last?.id ?? null) : null,
   };
+  for (const id of run.summary.program.document_ids ?? []) {
+    const info = documents.get(id);
+    if (!info) continue;
+    const sourceId = `src_${id.slice(4)}`;
+    report.sources[sourceId] = {
+      id: sourceId,
+      type: "user_provided",
+      title: `User document: ${info.name}`,
+      url: null,
+      publisher: "You",
+      published_at: null,
+      retrieved_at: run.summary.created_at,
+      identifiers: { document: id },
+    };
+    const evidenceId = `ev_${id.slice(4)}`;
+    report.evidence[evidenceId] = {
+      id: evidenceId,
+      source_id: sourceId,
+      excerpt: `FIXTURE: text read from ${info.name}`,
+      locator: "p. 1",
+      entity_ids: [],
+      kind: "text",
+      data: null,
+    };
+  }
   if (flips(run)) {
     report.verdict = {
       ...report.verdict,
@@ -242,6 +268,12 @@ export const mockApi: Api = {
     if (file.size > 10_000_000) throw new ApiError(413, "document_too_large", `${file.name} is over 10 MB`);
     const seed = [...`${file.name}:${file.size}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
     const info: DocumentInfo = { id: `doc_${seed.toString(16).padStart(16, "0")}`, name: file.name, kind, size_bytes: file.size };
+    documents.set(info.id, info);
+    return wait(info);
+  },
+  getDocument: (id) => {
+    const info = documents.get(id);
+    if (!info) throw new ApiError(404, "document_not_found", `no document ${id}`);
     return wait(info);
   },
   getRun: (id) => {
@@ -271,7 +303,11 @@ export const mockApi: Api = {
     if (!entry) throw new ApiError(404, "node_not_found", `no node ${nodeId}`);
     if (!entry.correctable) throw new ApiError(422, "node_not_correctable", `${nodeId} cannot be corrected`);
     const correction = { id: `cor_mock_${counter + 1}`, run_id: id, node_id: nodeId, text: body.text };
-    const child = create({ program: parent.summary.program, options: parent.summary.options }, parent, correction);
+    if (body.document_ids && nodeId !== "ingest_user_input") {
+      throw new ApiError(422, "documents_need_ingest", "documents change at ingest_user_input");
+    }
+    const program = body.document_ids ? { ...parent.summary.program, document_ids: body.document_ids } : parent.summary.program;
+    const child = create({ program, options: parent.summary.options }, parent, correction);
     return wait({ ...child.summary });
   },
   getDiff: (from, to) => {
