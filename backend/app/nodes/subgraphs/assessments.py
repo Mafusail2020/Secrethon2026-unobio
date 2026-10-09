@@ -184,11 +184,12 @@ def _scratch(state: GraphState, node_id: str) -> dict[str, Any]:
 
 
 def _lane_ids(lane: AssessedCause, state: GraphState) -> list[str]:
-    """Evidence ids the fetch nodes flagged as this lane's inputs."""
+    """Evidence ids the fetch nodes flagged as this lane's inputs; the program's own data first."""
+    own = list(_scratch(state, "ingest_user_input").get("program_evidence_ids", []))
     if lane == "efficacy":
-        return list(_scratch(state, "fetch_opentargets").get("association_evidence_ids", []))
+        return own + list(_scratch(state, "fetch_opentargets").get("association_evidence_ids", []))
     facts = _scratch(state, "fetch_safety")
-    ids = list(facts.get("liability_evidence_ids", []))
+    ids = own + list(facts.get("liability_evidence_ids", []))
     ids += [i for v in facts.get("boxed_warning_evidence_ids", {}).values() for i in v]
     ids += [i for v in facts.get("faers", {}).values() for i in v]
     ids += [i for v in facts.get("labels", {}).values() for i in v]
@@ -262,7 +263,8 @@ def make_nodes(lane: AssessedCause) -> dict[str, NodeRun]:
         ]
         valid = usable_evidence(state)
         flagged = [i for i in _lane_ids(lane, state) if i in valid]
-        found = rank_hits([flagged, *hits], max(12, 3 * k))
+        cap = max(12, 3 * k)
+        found = list(dict.fromkeys([*flagged, *rank_hits(hits, cap)]))[:cap]
         twin = state.get("twin_stats")
         ctx.log(
             f"gathered {len(found)} evidence items ({len(flagged)} flagged by the fetch stage) "

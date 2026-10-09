@@ -2,8 +2,15 @@ from typing import Any
 
 from app.contracts import Evidence, NodeSpec, SourceRef
 from app.graph.state import GraphState
-from app.nodes._data import client, correction_links, entity_ids, force_refresh, register
-from app.nodes._fixture import nap, register_fixture_sources
+from app.nodes._data import (
+    client,
+    correction_links,
+    entity_ids,
+    force_refresh,
+    register,
+    summary,
+)
+from app.nodes._fixture import excluded_ids, nap, register_fixture_sources
 from app.nodes.base import NodeContext
 from app.sources.base import SourceError
 from app.sources.records import user_records
@@ -44,10 +51,9 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         for c in corrections
         if c.add_notes
     ]
+    own_texts = [(loc, title, text) for loc, title, text in texts if text and text.strip()]
     records: list[tuple[SourceRef, list[Evidence]]] = [
-        user_records(text.strip(), locator, ids, title=title)
-        for locator, title, text in texts
-        if text and text.strip()
+        user_records(text.strip(), locator, ids, title=title) for locator, title, text in own_texts
     ]
 
     links = list(dict.fromkeys([str(u) for u in program.links] + correction_links(ctx)))
@@ -80,7 +86,12 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         return {}
     n_sources, n_evidence = await register(ctx, state, records)
     ctx.log(f"registered {n_sources} user-provided source(s), {n_evidence} evidence item(s)")
-    return {"scratch": {ctx.node_id: {"links_unread": unread}}} if unread else {}
+    # the program's own data rarely shares words with the analysts' search queries, so the lanes
+    # and cases are handed it directly instead of hoping retrieval finds it
+    excluded = excluded_ids(state)
+    own = [e.id for _, items in records[: len(own_texts)] for e in items if e.id not in excluded]
+    facts = summary(program_evidence_ids=own, links_unread=unread)
+    return {"scratch": {ctx.node_id: facts}} if facts else {}
 
 
 async def _fixture_run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
