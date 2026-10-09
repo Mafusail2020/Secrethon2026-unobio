@@ -536,9 +536,11 @@ async def test_efficacy_lane_end_to_end_writes_chain_adjustments_and_assessment(
     assert len(chain["patient_benefit"].claim_ids) == 1  # the out-of-range index is dropped
     assert chain["human_exposure"].status == "missing"
     adjustments = state["risk_adjustments"]
-    assert "efficacy:evidence-contradicts-the-translation-chain-patient-benefit" in adjustments
-    # exact-match twins are already in the prior: no terminated-twins adjustment
-    assert not any("terminated" in k for k in adjustments)
+    # exact-match twins are already in the prior: neither the chain nor the stops move the ledger
+    assert adjustments == {}
+    assessment = state["assessments"]["efficacy"]
+    assert assessment.rating == "concerning"  # the rating still reads the contradicted chain
+    assert any("already in the prior" in g for g in assessment.gaps)
     assessment = state["assessments"]["efficacy"]
     assert set(assessment.claim_ids) == set(state["claims"])
 
@@ -850,3 +852,36 @@ def test_other_indication_twins_weigh_less_than_same_disease_ones():
     full, weighted = beta_range(20, 1, 0.1), beta_range(20 * w, 1 * w, 0.1)
     assert weighted.base < full.base  # pulled towards the 10% area base rate
     assert beta_range(3, 4, 0.2) == beta_range(3.0, 4.0, 0.2)  # same seed for whole counts
+
+
+def test_a_quote_may_join_fragments_from_two_cited_items():
+    a = "ALIROCUMAB (Antibody) on PCSK9: max clinical stage PHASE_4; indications: HC"
+    b = "BOCOCIZUMAB (Antibody) on PCSK9: max clinical stage PHASE_3; indications: Sepsis"
+    joined = "ALIROCUMAB (Antibody) on PCSK9: max clinical stage PHASE_4; BOCOCIZUMAB (Antibody)"
+    assert quote_found(joined, [a, b])
+    assert not quote_found("recommended by current clinical guidelines", ["by clinical guidelines"])
+
+
+def test_a_class_that_works_here_is_not_penalised_for_an_unproven_chain():
+    from app.contracts import TwinProgram
+
+    twins = _twins("exact_target_indication").model_copy(
+        update={
+            "twins": [
+                TwinProgram(drug=d, drug_id=d, disease="HC", max_stage="PHASE_4", status=s)
+                for d, s in (("a", "approved"), ("b", "approved"), ("c", "stopped"))
+            ]
+        }
+    )
+    adjustments, result = score_efficacy(
+        EfficacyInputs(
+            genetic_score=0.95,
+            association_score=0.8,
+            chain=_chain(molecular_effect="weak"),
+            twins=twins,
+        ),
+        CONF,
+        "e",
+    )
+    assert [a.factor for a in adjustments] == ["human genetic support for the target-disease link"]
+    assert result.rating == "moderate"

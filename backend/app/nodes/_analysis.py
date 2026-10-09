@@ -26,7 +26,7 @@ PROMPTS = Path(__file__).parent / "prompts"
 EXCERPT_CHARS = 700
 # the gateway refuses inputs above a "conservative input limit"; calls of ~5.5k tokens went through
 # and ones of ~7k did not, so the evidence part of a message is capped by characters
-DIGEST_CHARS = 9000
+DIGEST_CHARS = 7500
 # reply caps per call; the model reasons inside the same budget, and a cap hit means an empty or
 # cut reply plus a paid repair call (seen live at 2000 for sections). Billing is per token used.
 # The gateway refuses caps above ~4k ("outside the supported range" at 5000).
@@ -254,13 +254,17 @@ def _norm(text: str) -> str:
 
 
 def quote_found(quote: str, excerpts: Iterable[str]) -> bool:
-    """Every part of the quote (models join fragments with an ellipsis) is in one cited excerpt."""
-    parts = [_norm(p) for p in re.split(r"…|\.\.\.", quote)]
-    parts = [p.strip(" .,;:") for p in parts if len(p.strip(" .,;:")) >= 4]
+    """The quote is in a cited excerpt, or it joins fragments (with an ellipsis or a semicolon,
+    often one from each cited item) that are each verbatim in some cited excerpt."""
+    texts = [_norm(x) for x in excerpts]
+    whole = _norm(quote).strip(" .,;:")
+    if len(whole) >= MIN_QUOTE_CHARS and any(whole in t for t in texts):
+        return True
+    parts = [p.strip(" .,;:") for p in re.split(r"…|\.\.\.|;", _norm(quote))]
+    parts = [p for p in parts if len(p) >= 4]
     if sum(len(p) for p in parts) < MIN_QUOTE_CHARS:
         return False
-    texts = [_norm(x) for x in excerpts]
-    return any(all(p in t for p in parts) for t in texts)
+    return all(any(p in t for t in texts) for p in parts)
 
 
 async def gate(

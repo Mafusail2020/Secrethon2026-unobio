@@ -82,7 +82,7 @@ MAX_SHOWN_CLAIMS = 18
 MAX_DILIGENCE = 10
 # the gateway refuses long inputs (see _analysis.DIGEST_CHARS); the risks call also carries a
 # bigger reply schema, every section's summary and the most claims
-USER_CHARS = 12000
+USER_CHARS = 10000
 MIN_DIGEST_CHARS = 1500
 CLAIM_CHARS = 220
 SUMMARY_CHARS = 300
