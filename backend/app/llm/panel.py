@@ -7,6 +7,7 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field, create_model
 
 from app.contracts import PanelCandidate, PanelResult
+from app.llm.limits import GATEWAY_MAX_OUTPUT_TOKENS
 from app.llm.service import LLMService
 from app.llm.types import LLMBudgetError, LLMResult, LLMTask
 
@@ -67,7 +68,6 @@ _COMPARATOR_SYSTEM = (
 
 # a model that appears twice in the pool would otherwise return its cached first answer twice
 _SPREAD = (None, 0.7, 1.0, 0.4)
-_GATEWAY_CAP = 4000
 _COMPARE_CHARS = 12000
 _SUMMARY_FALLBACK = 200
 
@@ -94,7 +94,7 @@ def _comparator_task(task: LLMTask, texts: list[str], models: list[str]) -> LLMT
         system=f"{_COMPARATOR_SYSTEM}\n\nThe task they were given: {task.purpose}.",
         user=f"{answers}\n\nMerge these into `merged`, in the same format each analyst used.",
         schema=_merge_model(task.schema),
-        max_tokens=min(task.max_tokens + 800, _GATEWAY_CAP),
+        max_tokens=min(task.max_tokens + 800, GATEWAY_MAX_OUTPUT_TOKENS),
         temperature=0.0,
     )
 

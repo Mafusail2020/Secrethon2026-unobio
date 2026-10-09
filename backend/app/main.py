@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -15,6 +16,11 @@ from app.graph.lifecycle import recover_interrupted
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     services = await build_services(get_settings())
     await recover_interrupted(services)
+    removed = services.documents.prune(
+        await services.runs.document_ids_in_use(), services.settings.document_ttl_days * 86_400
+    )
+    if removed:
+        logging.getLogger(__name__).info("removed %d unused uploaded file(s)", len(removed))
     app.state.services = services
     try:
         yield

@@ -9,3 +9,9 @@ export function passageLabel(detail: EvidenceDetail): { name: string; where: str
     where: detail.evidence.locator ? ` · ${detail.evidence.locator}` : "",
   };
 }
+
+/** The PDF page a locator like "p. 3", "p. 3 [2]" or "p. 3 (OCR)" names; text files have none. */
+export function pageOf(locator: string | null | undefined): number | undefined {
+  const match = /^p\. (\d+)/.exec(locator ?? "");
+  return match ? Number(match[1]) : undefined;
+}

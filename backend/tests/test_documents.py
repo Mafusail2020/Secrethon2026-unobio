@@ -144,3 +144,64 @@ def test_documents_are_refused_on_a_correction_that_could_not_read_them(client):
         f"/api/runs/{parent}/nodes/ingest_user_input/corrections", json={"text": "recheck"}
     )
     assert kept.json()["program"]["document_ids"] == [a]
+
+
+def _age(store: DocumentStore, document_id: str, days: float) -> None:
+    import os
+    import time
+
+    then = time.time() - days * 86_400
+    for suffix in (".bin", ".json"):
+        os.utime(store.root / f"{document_id}{suffix}", (then, then))
+
+
+def test_pruning_removes_only_old_files_that_no_run_names(tmp_path):
+    store = DocumentStore(tmp_path / "docs")
+    old_unused = store.save("old.txt", b"old and unused").id
+    old_used = store.save("used.txt", b"old but used").id
+    new_unused = store.save("new.txt", b"new and unused").id
+    for doc in (old_unused, old_used):
+        _age(store, doc, 30)
+    removed = store.prune({old_used}, 7 * 86_400)
+    assert removed == [old_unused]
+    assert store.get(old_unused) is None
+    assert store.get(old_used) is not None and store.get(new_unused) is not None
+    assert not list((tmp_path / "docs").glob(f"{old_unused}*"))
+    assert store.prune({old_used}, 7 * 86_400) == []  # nothing else is old enough
+    assert DocumentStore(tmp_path / "missing").prune(set(), 0) == []
+
+
+def test_uploading_the_same_bytes_again_keeps_a_file_from_being_pruned(tmp_path):
+    store = DocumentStore(tmp_path / "docs")
+    doc = store.save("a.txt", b"same bytes").id
+    _age(store, doc, 30)
+    store.save("a-again.txt", b"same bytes")
+    assert store.prune(set(), 7 * 86_400) == []
+
+
+async def test_the_files_in_use_are_the_ones_any_run_or_rerun_names(services):
+    from app.contracts import ProgramInput, RunOptions
+    from app.graph.lifecycle import create_run
+
+    a = services.documents.save("a.txt", b"first").id
+    b = services.documents.save("b.txt", b"second").id
+    program = ProgramInput(
+        indication="Alzheimer's disease", mechanism="BACE1 inhibition", document_ids=[a]
+    )
+    await create_run(services, program, RunOptions())
+    assert await services.runs.document_ids_in_use() == {a}
+    await create_run(services, program.model_copy(update={"document_ids": [a, b]}), RunOptions())
+    assert await services.runs.document_ids_in_use() == {a, b}
+
+
+def test_the_server_clears_stale_unused_uploads_when_it_starts(tmp_path, monkeypatch):
+    from app.core.settings import get_settings
+
+    root = get_settings().data_path / "documents"
+    store = DocumentStore(root)
+    stale = store.save("stale.txt", b"nobody uses me").id
+    fresh = store.save("fresh.txt", b"uploaded a moment ago").id
+    _age(store, stale, 30)
+    with TestClient(create_app()) as client:
+        assert client.get(f"/api/documents/{stale}").status_code == 404
+        assert client.get(f"/api/documents/{fresh}").status_code == 200

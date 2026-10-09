@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -49,6 +50,13 @@ def _clean_name(name: str) -> str:
     return cleaned[:200]
 
 
+def _mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
 class DocumentStore:
     """Uploaded files, content-addressed: the same bytes are one document, whatever the name."""
 
@@ -83,6 +91,23 @@ class DocumentStore:
             return StoredDocument(DocumentInfo.model_validate(json.loads(meta.read_text())), blob)
         except (ValueError, OSError):
             return None
+
+    def prune(self, keep: set[str], older_than_s: float, now: float | None = None) -> list[str]:
+        """Delete files no run names that were last written more than `older_than_s` ago. An upload
+        is written again whenever the same bytes are uploaded, so a file about to be used stays."""
+        cutoff = (now if now is not None else time.time()) - older_than_s
+        removed: list[str] = []
+        if not self.root.is_dir():
+            return removed
+        for meta in self.root.glob("doc_*.json"):
+            document_id = meta.stem
+            blob = self.root / f"{document_id}.bin"
+            if document_id in keep or max(_mtime(meta), _mtime(blob)) > cutoff:
+                continue
+            for path in (blob, meta):
+                path.unlink(missing_ok=True)
+            removed.append(document_id)
+        return removed
 
     @staticmethod
     def _write(path: Path, data: bytes) -> None:

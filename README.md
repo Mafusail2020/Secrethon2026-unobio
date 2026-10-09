@@ -47,6 +47,7 @@ make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
 | `MAX_RUN_COST_USD`, `MAX_RUN_TOKENS` | Per-run budget guards |
 | `MAX_PANEL_SIZE` | Upper bound for panel mode |
 | `MAX_CHAT_QUESTIONS` | Follow-up questions allowed per run (default 20) |
+| `DOCUMENT_TTL_DAYS` | An uploaded file that no run names is deleted this many days after it was last written (default 7), when the server starts |
 | `CACHE_TTL_DAYS` | Source cache TTL |
 | `SEC_USER_AGENT` | Descriptive User-Agent with contact email for SEC requests |
 | `DATA_DIR` | SQLite and vector files (git-ignored) |

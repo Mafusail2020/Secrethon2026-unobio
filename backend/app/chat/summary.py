@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from app.chat.context import MAX_CHARS, build_context
 from app.chat.documents import Passage, documents_block
 from app.contracts import ChatMessage, UnderwritingReport
+from app.llm.limits import GATEWAY_MAX_OUTPUT_TOKENS, GATEWAY_PROMPT_CHARS
 from app.llm.service import LLMService
 from app.llm.types import LLMResult, LLMTask
 
@@ -38,9 +39,8 @@ SECTION_ORDER = (
     "capital",
 )
 CITATION = re.compile(r"\[\[([^\[\]\s]+)\]\]")
-# the gateway refuses a prompt past ~14k characters, system prompt included (measured); with file passages in
-# the prompt the report text gets what is left
-PROMPT_CHARS = 13_000
+# with file passages in the prompt the report text gets what is left of the gateway's limit
+PROMPT_CHARS = GATEWAY_PROMPT_CHARS
 MIN_CONTEXT_CHARS = 4_000
 SHOWN_IN_TEMPLATE = 3
 QUOTE_CHARS = 240
@@ -210,7 +210,7 @@ async def summarise_with_llm(
         system=SYSTEM,
         user=f"<report>\n{context}</report>\n{block}",
         schema=SummaryDraft,
-        max_tokens=4000,  # a reasoning model spends most of it before the first visible word
+        max_tokens=GATEWAY_MAX_OUTPUT_TOKENS,
         temperature=0.3,
     )
     result = await llm.complete(task, model)

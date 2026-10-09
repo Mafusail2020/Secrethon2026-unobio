@@ -100,6 +100,12 @@ class RunsRepo:
                 current = row.parent_run_id
         return chain[::-1]
 
+    async def document_ids_in_use(self) -> set[str]:
+        """Every uploaded file any run (original or re-run) was given."""
+        async with self.db.session() as s:
+            programs = await s.scalars(select(RunRow.program))
+            return {d for p in programs for d in (p or {}).get("document_ids", [])}
+
     async def mark_interrupted(self) -> list[str]:
         async with self.db.session() as s, s.begin():
             ids = list(

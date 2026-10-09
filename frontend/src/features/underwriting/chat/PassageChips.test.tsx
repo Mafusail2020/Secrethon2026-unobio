@@ -55,7 +55,7 @@ describe("PassageChips", () => {
     act(() => chips[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(host.querySelector("blockquote")?.textContent).toContain("Quote from ev_b.");
     expect(chips[1]!.getAttribute("aria-expanded")).toBe("true");
-    expect(host.querySelector("blockquote a")?.getAttribute("href")).toBe("/api/documents/doc_0123456789abcdef/file");
+    expect(host.querySelector("blockquote a")?.getAttribute("href")).toBe("/api/documents/doc_0123456789abcdef/file#page=7");
     act(() => chips[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(host.querySelector("blockquote")).toBeNull();
     unmount();

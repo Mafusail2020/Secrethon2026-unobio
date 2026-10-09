@@ -52,7 +52,8 @@ describe("a citation of a passage in the user's file", () => {
     const card = host.querySelector('[role="dialog"]')!;
     expect(card.textContent).toContain("BACE1 mouse study.pdf · p. 3");
     expect(card.textContent).toContain("Brain Abeta42 fell 62 percent in mice.");
-    expect(card.querySelector("a")?.getAttribute("href")).toBe("/api/documents/doc_0123456789abcdef/file");
+    expect(card.textContent).toContain("Open the file at page 3");
+    expect(card.querySelector("a")?.getAttribute("href")).toBe("/api/documents/doc_0123456789abcdef/file#page=3");
     act(() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
     expect(host.querySelector('[role="dialog"]')).toBeNull();
     unmount();
