@@ -128,6 +128,27 @@ describe("run thread", () => {
     expect(markup).not.toContain("<b>"); // raw HTML from the model is shown as text, never rendered
   });
 
+  it("numbers the passages of the user's files with the claims, and lists every source the briefing cites", () => {
+    const message = {
+      role: "assistant",
+      run_id: "r1",
+      content: "## Verdict\n\nThe file says so [[ev_a]] and a claim agrees [[c1]].\n\n## Your documents\n\n- a quote [[ev_a]] and a second [[ev_b]]",
+      cited_claim_ids: ["c1"],
+      cited_evidence_ids: ["ev_a", "ev_b"],
+    } as ChatMessage;
+    const markup = html(
+      <QueryClientProvider client={new QueryClient()}>
+        <RunThread run={run} spec={spec} stream={events.reduce(applyEvent, initialStream)} decision="conditional" report={undefined} summary={{ message, pending: false, failed: false, retry: () => {} }} onOpenReport={() => {}} onReconnect={() => {}} />
+      </QueryClientProvider>,
+    );
+    expect(markup).toMatch(/aria-label="Show passage 1 from your files"[^>]*>1<\/button>/);
+    expect(markup).toMatch(/aria-label="Open claim 2"[^>]*>2<\/button>/);
+    expect(markup).toMatch(/aria-label="Show passage 3 from your files"[^>]*>3<\/button>/);
+    expect(markup).not.toContain("[[");
+    expect(markup).toContain("Sources cited (3)");
+    expect(markup).not.toContain("Claims cited");
+  });
+
   it("says when the summary is being written or could not be", () => {
     const stream = events.reduce(applyEvent, initialStream);
     const view = (summary: { message: ChatMessage | undefined; pending: boolean; failed: boolean }) =>

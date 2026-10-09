@@ -265,6 +265,15 @@ the rest by first use (`cited_claim_ids` is that order), and a briefing that cit
 diligence questions with no model call. One model call per run, logged under node id `summary`. The frontend asks for it when
 the run completes; the endpoint is idempotent, so a reload shows the stored text.
 
+When the run read uploaded files, the briefing uses them too. The endpoint picks the passages that match the program (its indication,
+mechanism and drug name, ranked by the FTS index, up to 6 chunks and 3000 characters) and the prompt gets them in a `<documents>` block
+after the report, with a `## Your documents` section in the structure; the report text is trimmed to what is left of the gateway's
+~14k characters. A statement from a file cites the passage as `[[ev_...]]`. `gate_summary` strikes marks for ids that were not shown to
+the model, and the template briefing (mock mode, or a draft that cites nothing real) quotes the top three passages word for word with
+Markdown and citation marks escaped. Passage ids are stored with the briefing in the same JSON column as claim ids (the `ev_` prefix tells
+them apart). In the UI claims and passages share one numbering by first use; a passage's number opens its quote, and the list under the
+briefing reads "Sources cited".
+
 ## 7. Effort and panel [1b]
 
 `config/effort.yaml` maps `low | medium | high | panel` to a model tier plus knobs. The model defaults to the cheapest

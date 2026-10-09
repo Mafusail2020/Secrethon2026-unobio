@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from pydantic import BaseModel, Field
 
 from app.chat.context import build_context
-from app.chat.documents import Passage
+from app.chat.documents import Passage, documents_block
 from app.contracts import ChatMessage, UnderwritingReport
 from app.llm.service import LLMService
 from app.llm.types import LLMResult, LLMTask
@@ -36,13 +36,6 @@ class ChatAnswer(BaseModel):
     cited_evidence_ids: list[str] = Field(default_factory=list)
 
 
-def _documents_block(passages: Sequence[Passage]) -> str:
-    if not passages:
-        return ""
-    lines = [f'[{p.evidence.id}] {p.label}: "{p.evidence.excerpt}"' for p in passages]
-    return "<documents>\n" + "\n".join(lines) + "\n</documents>\n"
-
-
 def build_prompt(
     report_text: str,
     history: list[ChatMessage],
@@ -51,7 +44,7 @@ def build_prompt(
 ) -> str:
     turns = "\n".join(f"{m.role}: {m.content[:400]}" for m in history[-6:])
     return (
-        f"<report>\n{report_text}</report>\n{_documents_block(passages)}"
+        f"<report>\n{report_text}</report>\n{documents_block(passages)}"
         f"<conversation>\n{turns}\n</conversation>\n<question>\n{question}\n</question>"
     )
 
@@ -86,9 +79,7 @@ async def answer_with_llm(
     run_id: str,
     passages: Sequence[Passage] = (),
 ) -> tuple[ChatMessage, LLMResult]:
-    spare = (
-        PROMPT_CHARS - len(SYSTEM) - len(_documents_block(passages)) - TURN_CHARS - len(question)
-    )
+    spare = PROMPT_CHARS - len(SYSTEM) - len(documents_block(passages)) - TURN_CHARS - len(question)
     context, valid_ids = build_context(report, max(MIN_CONTEXT_CHARS, min(CONTEXT_CHARS, spare)))
     task = LLMTask(
         purpose="chat.answer",

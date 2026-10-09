@@ -349,7 +349,7 @@ def test_live_summary_logs_the_call_once_and_a_bad_draft_falls_back(
     calls: list[str] = []
     real = sorted(build_context(REPORT)[1])[0]
 
-    async def fake(llm, model, report, rid):
+    async def fake(llm, model, report, rid, passages=()):
         calls.append(rid)
         result = LLMResult(
             model="gw-model",

@@ -3,8 +3,9 @@ import ReactMarkdown, { defaultUrlTransform, type Components } from "react-markd
 import remarkGfm from "remark-gfm";
 import type { UnderwritingReport } from "../../../api/types";
 import { withCitationLinks } from "./citations";
+import { PassageMark } from "./PassageMark";
 
-const urlTransform = (url: string) => (url.startsWith("claim:") ? url : defaultUrlTransform(url));
+const urlTransform = (url: string) => (url.startsWith("claim:") || url.startsWith("passage:") ? url : defaultUrlTransform(url));
 
 const heading = "font-semibold first:mt-0";
 
@@ -33,6 +34,7 @@ function Anchor({ href, children }: ComponentPropsWithoutRef<"a">) {
       </sup>
     );
   }
+  if (href?.startsWith("passage:")) return <PassageMark id={href.slice("passage:".length)}>{children}</PassageMark>;
   return (
     <a href={href} target="_blank" rel="noreferrer noopener" className="text-brand underline">
       {children}
@@ -69,11 +71,14 @@ const components: Components = {
 export function MarkdownText({
   text,
   ids,
+  passageIds = [],
   report,
   onOpenClaim,
 }: {
   text: string;
   ids: string[];
+  /** passages of the user's files the text cites; numbered together with the claims */
+  passageIds?: string[];
   report: UnderwritingReport | undefined;
   onOpenClaim: (claimId: string) => void;
 }) {
@@ -81,7 +86,7 @@ export function MarkdownText({
   return (
     <ClaimContext.Provider value={claims}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={urlTransform} components={components}>
-        {withCitationLinks(text, ids)}
+        {withCitationLinks(text, ids, passageIds)}
       </ReactMarkdown>
     </ClaimContext.Provider>
   );

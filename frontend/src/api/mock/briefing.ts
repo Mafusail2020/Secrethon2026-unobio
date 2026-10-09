@@ -10,7 +10,7 @@ const usd = (x: number) => {
 };
 
 /** Mirrors the backend's template briefing, so the mock UI shows the same shape with no server. */
-export function briefing(report: UnderwritingReport): { text: string; cited: string[] } {
+export function briefing(report: UnderwritingReport): { text: string; cited: string[]; passages: string[] } {
   const { verdict, pos } = report;
   const cite = (ids: string[]) => ids.filter((id) => id in report.claims).map((id) => ` [[${id}]]`).join("");
   const parts = [
@@ -31,6 +31,18 @@ export function briefing(report: UnderwritingReport): { text: string; cited: str
       parts.push([`### ${s.title}`, s.summary, points].filter(Boolean).join("\n\n"));
     }
   }
+  const filePassages = Object.values(report.evidence)
+    .filter((e) => report.sources[e.source_id]?.identifiers.document)
+    .slice(0, 3);
+  if (filePassages.length) {
+    const quote = (text: string) => text.replace(/([*_`[\]\\])/g, "\\$1");
+    parts.push(
+      "## Your documents",
+      filePassages
+        .map((e) => `- **${report.sources[e.source_id]!.title.replace("User document: ", "")}${e.locator ? `, ${e.locator}` : ""}:** "${quote(e.excerpt)}" [[${e.id}]]`)
+        .join("\n"),
+    );
+  }
   if (report.valuation) {
     const v = report.valuation;
     parts.push(
@@ -49,6 +61,6 @@ export function briefing(report: UnderwritingReport): { text: string; cited: str
   const next = [...verdict.conditions.map((c) => `- ${c}`), ...report.diligence_questions.slice(0, 3).map((q) => `- *Ask:* ${q.question}`)];
   if (next.length) parts.push("## What to do next", next.join("\n"));
   const text = parts.join("\n\n");
-  const cited = [...new Set([...text.matchAll(/\[\[([^[\]\s]+)\]\]/g)].map((m) => m[1]!))];
-  return { text, cited };
+  const marks = [...new Set([...text.matchAll(/\[\[([^[\]\s]+)\]\]/g)].map((m) => m[1]!))];
+  return { text, cited: marks.filter((id) => id in report.claims), passages: marks.filter((id) => id in report.evidence) };
 }

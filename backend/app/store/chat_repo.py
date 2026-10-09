@@ -67,11 +67,13 @@ class ChatRepo:
             row = await s.get(RunSummaryRow, run_id)
             if row is None:
                 return None
+            claims, evidence = _split(row.cited_claim_ids)
             return ChatMessage(
                 role="assistant",
                 content=row.content,
                 run_id=row.run_id,
-                cited_claim_ids=row.cited_claim_ids,
+                cited_claim_ids=claims,
+                cited_evidence_ids=evidence,
             )
 
     async def put_summary(self, run_id: str, message: ChatMessage) -> None:
@@ -80,7 +82,7 @@ class ChatRepo:
                 RunSummaryRow(
                     run_id=run_id,
                     content=message.content,
-                    cited_claim_ids=message.cited_claim_ids,
+                    cited_claim_ids=[*message.cited_claim_ids, *message.cited_evidence_ids],
                     ts=utcnow(),
                 )
             )

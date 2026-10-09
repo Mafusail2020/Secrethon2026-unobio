@@ -40,7 +40,7 @@ the conversation; below 768 px the history is a drawer.
 6. When it completes, a structured briefing appears in the thread (a smaller version of the report: Verdict, Why this
    call, What the report found, Funding, Risks and unknowns, What to do next). The small numbers are citations: a number
    opens the report at that claim, and **Claims cited** at the end lists them. Under it, the verdict card: click **Open
-   report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run.
+   report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run. If the run read files, the briefing has a **Your documents** section: its grey numbers open the quote from the file (file and page), and the list at the end reads **Sources cited**.
 
 ## 2. Drill-down (recommendation → claims → evidence → sources)
 

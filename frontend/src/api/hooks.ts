@@ -36,6 +36,15 @@ export const useReportOf = (runId: string | null | undefined) =>
     staleTime: 60_000,
   });
 
+export const useEvidenceDetail = (evidenceId: string, enabled = true) =>
+  useQuery({
+    queryKey: ["evidence", evidenceId],
+    queryFn: async () => (await getApi()).getEvidence(evidenceId),
+    enabled,
+    staleTime: Infinity,
+    retry: false,
+  });
+
 export const useNode = (runId: string, nodeId: string | undefined, version: string) =>
   useQuery({
     queryKey: ["node", runId, nodeId, version],

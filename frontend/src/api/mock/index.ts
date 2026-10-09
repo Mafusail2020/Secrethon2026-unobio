@@ -343,8 +343,8 @@ export const mockApi: Api = {
     const run = need(runId);
     if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
     if (!run.readout) {
-      const { text, cited } = briefing(run.report);
-      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited, cited_evidence_ids: [] };
+      const { text, cited, passages } = briefing(run.report);
+      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited, cited_evidence_ids: passages };
     }
     return wait({ ...run.readout });
   },

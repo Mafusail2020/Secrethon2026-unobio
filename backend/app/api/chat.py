@@ -115,17 +115,24 @@ async def run_summary(run_id: str, services: Svc) -> ChatMessage:
         stored = await services.chat.get_summary(run_id)
         if stored:
             return stored
+        program = report.program
+        about = f"{program.indication} {program.mechanism} {program.drug_name or ''} results"
+        passages = await passages_for(services, report, about)
         if services.settings.llm_mode == "mock":
-            message = template_summary(report, run_id)
+            message = template_summary(report, run_id, passages)
         else:
             try:
                 message, result = await summarise_with_llm(
-                    services.llm.service, services.llm.registry.default_id(), report, run_id
+                    services.llm.service,
+                    services.llm.registry.default_id(),
+                    report,
+                    run_id,
+                    passages,
                 )
             except Exception as exc:  # the template briefing beats an empty thread
                 if not isinstance(exc, LLMParseError):
                     log.warning("briefing call failed on %s: %s", run_id, exc)
-                message = template_summary(report, run_id)
+                message = template_summary(report, run_id, passages)
             else:
                 await services.llm_repo.add_call(
                     run_id,
