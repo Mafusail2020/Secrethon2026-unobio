@@ -5,6 +5,7 @@ import { getApi } from "../../../../../api/client";
 import { useDeckScript, useRunDetail } from "../../../../../api/hooks";
 import { ErrorBox } from "../../../../../components/ui/ErrorBox";
 import { Spinner } from "../../../../../components/ui/Spinner";
+import { createDeckPdf, saveFile } from "./deckPdf";
 import { DeckSlides } from "./DeckSlides";
 import { buildDeck } from "./deckModel";
 import { SLIDE_H, SLIDE_W } from "./SlideFrame";
@@ -53,6 +54,22 @@ export default function DeckPage() {
   const script = useDeckScript(runId, !!report);
   // the deck waits for its words: showing the report's own wording first and swapping it makes the slides jump
   const deck = useMemo(() => (report && !script.isPending ? buildDeck(report, script.data) : undefined), [report, script.isPending, script.data]);
+  const [making, setMaking] = useState<{ done: number; total: number } | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  const savePdf = async () => {
+    const nodes = [...(stage.current?.querySelectorAll<HTMLElement>(".deck-slide") ?? [])];
+    if (nodes.length === 0 || !report) return;
+    setFailed(null);
+    setMaking({ done: 0, total: nodes.length });
+    try {
+      const file = await createDeckPdf(nodes, (done, total) => setMaking({ done, total }));
+      saveFile(file, `Unobio underwriting - ${report.program.mechanism} in ${report.program.indication} - committee deck.pdf`);
+    } catch (error) {
+      setFailed(error instanceof Error ? error.message : "the browser could not draw the slides");
+    } finally {
+      setMaking(null);
+    }
+  };
   const rewrite = useMutation({
     mutationFn: async () => (await getApi()).postDeck(runId!, true),
     onSuccess: (written) => queryClient.setQueryData(["deck", runId], written),
@@ -88,13 +105,17 @@ export default function DeckPage() {
         </button>
         <button
           type="button"
-          disabled={!deck}
-          onClick={() => window.print()}
+          disabled={!deck || !!making}
+          onClick={() => void savePdf()}
           className="rounded-sm bg-brand px-4 py-1.5 text-sm font-medium text-white hover:bg-royal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50"
         >
-          Save as PDF
+          {making ? `Creating the PDF… ${making.done} of ${making.total}` : "Download PDF"}
         </button>
-        <p className="basis-full text-xs text-muted">In the print window choose “Save as PDF”, and turn on background graphics.</p>
+        {failed && (
+          <p role="alert" className="basis-full text-xs text-red-700">
+            Could not create the PDF: {failed}.
+          </p>
+        )}
       </header>
       <div ref={stage} className="deck-stage min-h-0 flex-1 overflow-auto px-6 py-6">
         {report && script.isPending && (

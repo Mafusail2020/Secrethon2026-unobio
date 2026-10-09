@@ -6,6 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import reportJson from "../../../../../../../contracts/fixtures/report_bace1_alzheimers.json";
 import type { DeckScript, UnderwritingReport } from "../../../../../api/types";
 import DeckPage from "./DeckPage";
+import { createDeckPdf, saveFile } from "./deckPdf";
+
+vi.mock("./deckPdf", () => ({ createDeckPdf: vi.fn(), saveFile: vi.fn() }));
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -57,7 +60,13 @@ beforeEach(() => {
   // jsdom has no layout: the page only needs something that can be observed
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.mocked(createDeckPdf).mockReset();
+  vi.mocked(saveFile).mockReset();
+});
+
+const pdfButton = (host: HTMLElement) => [...host.querySelectorAll("header button")].find((b) => /PDF/.test(b.textContent ?? "")) as HTMLButtonElement;
 
 describe("the deck page", () => {
   it("waits for the model's words, then shows the slides with them and says who wrote what", async () => {
@@ -106,6 +115,40 @@ describe("the deck page", () => {
     await until(() => host.textContent?.includes("A rewritten headline") ?? false);
     expect(posts).toEqual(["POST /api/runs/r1/deck", "POST /api/runs/r1/deck?rewrite=true"]);
     expect(host.textContent).not.toContain("The model's headline for the call");
+    unmount();
+  });
+
+  it("creates the PDF from the slides on screen, shows its progress, and saves it under the program's name", async () => {
+    stubApi(() => json(script));
+    let finish: (file: Blob) => void = () => {};
+    vi.mocked(createDeckPdf).mockImplementation((slides, onProgress) => {
+      onProgress?.(3, slides.length);
+      return new Promise<Blob>((resolve) => (finish = resolve));
+    });
+    const { host, unmount } = mount();
+    await until(() => host.querySelectorAll(".deck-frame").length === 12);
+    expect(pdfButton(host).textContent).toBe("Download PDF");
+    await act(async () => pdfButton(host).click());
+    expect(vi.mocked(createDeckPdf).mock.calls[0]![0]).toHaveLength(12);
+    expect(pdfButton(host).textContent).toBe("Creating the PDF… 3 of 12");
+    expect(pdfButton(host).disabled).toBe(true);
+    const file = new Blob(["%PDF"]);
+    await act(async () => finish(file));
+    expect(saveFile).toHaveBeenCalledWith(file, `Unobio underwriting - ${report.program.mechanism} in ${report.program.indication} - committee deck.pdf`);
+    expect(pdfButton(host).textContent).toBe("Download PDF");
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    unmount();
+  });
+
+  it("says so, and lets the reader try again, when the browser cannot draw the slides", async () => {
+    stubApi(() => json(script));
+    vi.mocked(createDeckPdf).mockRejectedValue(new Error("canvas is too large"));
+    const { host, unmount } = mount();
+    await until(() => host.querySelectorAll(".deck-frame").length === 12);
+    await act(async () => pdfButton(host).click());
+    expect(host.querySelector('[role="alert"]')?.textContent).toBe("Could not create the PDF: canvas is too large.");
+    expect(saveFile).not.toHaveBeenCalled();
+    expect(pdfButton(host).disabled).toBe(false);
     unmount();
   });
 });
