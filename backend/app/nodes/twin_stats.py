@@ -56,11 +56,14 @@ def _describe(p: Program) -> str:
 def _dropped_drugs(ctx: NodeContext, programs_hint: list[str]) -> set[str]:
     """Drugs a correction asks to leave out, e.g. 'exclude atabecestat'."""
     texts = [c.text for c in ctx.corrections_for() if DROP_WORDS.search(c.text)]
+    # the drop word must lead to the name: "stopped without efficacy, like verubecestat" keeps it
     return {
         name
         for name in programs_hint
         for t in texts
-        if re.search(rf"\b{re.escape(name)}\b", t, re.I)
+        if re.search(
+            rf"{DROP_WORDS.pattern}\W+(?:[\w-]+(?:,|\s)+){{0,4}}?{re.escape(name)}\b", t, re.I
+        )
     }
 
 
