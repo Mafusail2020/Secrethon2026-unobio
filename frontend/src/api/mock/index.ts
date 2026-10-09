@@ -332,8 +332,10 @@ export const mockApi: Api = {
     });
   },
   getEvidence: (evidenceId) => {
-    const evidence = baseReport.evidence[evidenceId];
-    const source = evidence && baseReport.sources[evidence.source_id];
+    // passages of uploaded files exist only in the run that read them
+    const holder = [...runs.values()].map((r) => r.report).find((r) => r?.evidence[evidenceId]) ?? baseReport;
+    const evidence = holder.evidence[evidenceId];
+    const source = evidence && holder.sources[evidence.source_id];
     if (!evidence || !source) throw new ApiError(404, "evidence_not_found", `no evidence ${evidenceId}`);
     return wait({ evidence, source });
   },
@@ -342,7 +344,7 @@ export const mockApi: Api = {
     if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
     if (!run.readout) {
       const { text, cited } = briefing(run.report);
-      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited };
+      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited, cited_evidence_ids: [] };
     }
     return wait({ ...run.readout });
   },
@@ -354,13 +356,23 @@ export const mockApi: Api = {
     if (!question) throw new ApiError(422, "validation_error", "send a question");
     // canned: point at the claims behind the verdict, which is what a real answer would cite
     const cited = run.report.verdict.reason_codes.flatMap((r) => r.claim_ids).slice(0, 3);
+    const fileSources = new Set(
+      Object.values(run.report.sources)
+        .filter((s) => s.identifiers.document)
+        .map((s) => s.id),
+    );
+    const passages = Object.values(run.report.evidence)
+      .filter((e) => fileSources.has(e.source_id))
+      .map((e) => e.id)
+      .slice(0, 2);
     const reply: ChatMessage = {
       role: "assistant",
       run_id: runId,
       content: `Mock reply to "${question.slice(0, 80)}". The claims below are the ones the verdict rests on.`,
       cited_claim_ids: cited,
+      cited_evidence_ids: passages,
     };
-    run.chat.push({ role: "user", content: question, run_id: runId, cited_claim_ids: [] }, reply);
+    run.chat.push({ role: "user", content: question, run_id: runId, cited_claim_ids: [], cited_evidence_ids: [] }, reply);
     return wait(reply);
   },
   subscribe(runId, onEvent, onState) {

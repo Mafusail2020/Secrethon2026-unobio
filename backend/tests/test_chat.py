@@ -180,7 +180,7 @@ def test_live_mode_records_the_model_call_and_gates_the_answer(
     services.settings.llm_mode = "live"
     ghost = ChatMessage(role="assistant", content=REFUSAL, run_id=run_id, cited_claim_ids=[])
 
-    async def fake(llm, model, report, history, question, rid):
+    async def fake(llm, model, report, history, question, rid, passages=()):
         result = LLMResult(
             model="gw-model",
             text="",

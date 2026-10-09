@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.deps import get_services
 from app.chat.answer import answer_with_llm, mock_answer
+from app.chat.documents import passages_for
 from app.chat.summary import summarise_with_llm, template_summary
 from app.contracts import ChatMessage, ErrorResponse, LLMCallRecord
 from app.core.errors import ApiError
@@ -54,13 +55,20 @@ async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMes
         raise ApiError(429, "chat_limit", "this run has reached its follow-up question limit")
 
     history = await services.chat.list(run_id)
+    passages = await passages_for(services, report, question)
     if services.settings.llm_mode == "mock":
-        reply = mock_answer(report, question, run_id)
+        reply = mock_answer(report, question, run_id, passages)
     else:
         registry = services.llm.registry
         try:
             reply, result = await answer_with_llm(
-                services.llm.service, registry.default_id(), report, history, question, run_id
+                services.llm.service,
+                registry.default_id(),
+                report,
+                history,
+                question,
+                run_id,
+                passages,
             )
         except LLMParseError as exc:
             raise ApiError(
@@ -79,9 +87,7 @@ async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMes
                 latency_ms=result.latency_ms,
             ),
         )
-    await services.chat.add(
-        run_id, ChatMessage(role="user", content=question, run_id=run_id, cited_claim_ids=[])
-    )
+    await services.chat.add(run_id, ChatMessage(role="user", content=question, run_id=run_id))
     await services.chat.add(run_id, reply)
     return reply
 

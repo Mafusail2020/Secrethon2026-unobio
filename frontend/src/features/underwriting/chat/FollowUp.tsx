@@ -3,6 +3,7 @@ import type { UnderwritingReport } from "../../../api/types";
 import { ArrowUpIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
 import { ClaimChips } from "./ClaimChips";
+import { PassageChips } from "./PassageChips";
 import type { FollowUp } from "./useFollowUp";
 
 const NOTICE = {
@@ -35,6 +36,7 @@ export function FollowUpMessages({
               <div className="text-[0.95rem] leading-relaxed">
                 <p className="whitespace-pre-wrap">{m.content}</p>
                 <ClaimChips ids={m.cited_claim_ids} report={report} onOpen={onOpenClaim} />
+                <PassageChips ids={m.cited_evidence_ids} />
               </div>
             )}
           </li>

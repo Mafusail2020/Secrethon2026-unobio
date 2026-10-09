@@ -3,7 +3,7 @@ import { mockApi } from "./index";
 
 const program = { indication: "Alzheimer's disease", mechanism: "BACE1 inhibition", links: [] };
 const ask = (id: string, content: string) =>
-  mockApi.postMessage(id, { role: "user", content, run_id: id, cited_claim_ids: [] });
+  mockApi.postMessage(id, { role: "user", content, run_id: id, cited_claim_ids: [], cited_evidence_ids: [] });
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());

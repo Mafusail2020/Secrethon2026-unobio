@@ -70,8 +70,8 @@ afterEach(() => {
 describe("follow-up chat", () => {
   it("shows earlier questions with their cited claims and opens a claim on click", async () => {
     const earlier: ChatMessage[] = [
-      { role: "user", content: "Why conditional?", run_id: "r1", cited_claim_ids: [] },
-      { role: "assistant", content: "Because of the trials.", run_id: "r1", cited_claim_ids: [claimId] },
+      { role: "user", content: "Why conditional?", run_id: "r1", cited_claim_ids: [], cited_evidence_ids: [] },
+      { role: "assistant", content: "Because of the trials.", run_id: "r1", cited_claim_ids: [claimId], cited_evidence_ids: [] },
     ];
     api.getMessages.mockResolvedValue(earlier);
     const onOpenClaim = await mount();
@@ -82,7 +82,7 @@ describe("follow-up chat", () => {
   });
 
   it("sends a question and appends the reply to the thread", async () => {
-    api.postMessage.mockResolvedValue({ role: "assistant", content: "Grounded answer.", run_id: "r1", cited_claim_ids: [claimId] });
+    api.postMessage.mockResolvedValue({ role: "assistant", content: "Grounded answer.", run_id: "r1", cited_claim_ids: [claimId], cited_evidence_ids: [] });
     await mount();
     await ask("  What about safety?  ");
     expect(api.postMessage).toHaveBeenCalledWith("r1", expect.objectContaining({ role: "user", content: "What about safety?" }));
@@ -92,7 +92,7 @@ describe("follow-up chat", () => {
   });
 
   it("sends on Enter and keeps Shift+Enter for a new line", async () => {
-    api.postMessage.mockResolvedValue({ role: "assistant", content: "ok", run_id: "r1", cited_claim_ids: [] });
+    api.postMessage.mockResolvedValue({ role: "assistant", content: "ok", run_id: "r1", cited_claim_ids: [], cited_evidence_ids: [] });
     await mount();
     await act(async () => {
       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(box(), "line one");
