@@ -247,7 +247,16 @@ def make_nodes(stance: CaseStance) -> dict[str, NodeRun]:
         k = ctx.effort.retrieval_k
         hits = [[e.id for e in await ctx.retriever.retrieve(q, ids, stance, k)] for q in queries]
         fresh = await _fresh_evidence(stance, state, ctx)
-        found = rank_hits([*hits, fresh], max(12, 3 * k))
+        own = [
+            i
+            for i in state.get("scratch", {})
+            .get("ingest_user_input", {})
+            .get("program_evidence_ids", [])
+            if i in usable_evidence(state)
+        ]
+        cap = max(12, 3 * k)
+        # the program's own data first: it is what both sides must argue about
+        found = list(dict.fromkeys([*own, *rank_hits([*hits, fresh], cap)]))[:cap]
         ctx.log(
             f"retrieved {len(found)} evidence items for {len(queries)} queries"
             + (f" ({len(fresh)} from a fresh search)" if fresh else "")

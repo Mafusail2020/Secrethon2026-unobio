@@ -290,10 +290,18 @@ def score_efficacy(
         told.append(f"{len(x.same_target_approved)} approved drug(s) on the target")
 
     if in_prior:
-        gaps.append(
-            "translation chain not scored: same-target programs in this disease are already in "
-            "the prior"
-        )
+        # a note on the metric, not a gap: the verdict turns gaps into conditions to resolve
+        metrics = [
+            m.model_copy(
+                update={
+                    "note": f"{m.note}; not scored, same-target programs in this disease are "
+                    "already in the prior"
+                }
+            )
+            if m.key == "chain_supported_share"
+            else m
+            for m in metrics
+        ]
     # the rating still reads the chain and how the class fared here; the ledger does not
     rated = rating(
         adjustments + in_prior,

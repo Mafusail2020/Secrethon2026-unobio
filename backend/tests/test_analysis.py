@@ -540,7 +540,9 @@ async def test_efficacy_lane_end_to_end_writes_chain_adjustments_and_assessment(
     assert adjustments == {}
     assessment = state["assessments"]["efficacy"]
     assert assessment.rating == "concerning"  # the rating still reads the contradicted chain
-    assert any("already in the prior" in g for g in assessment.gaps)
+    assert not any("already in the prior" in g for g in assessment.gaps)
+    chain_metric = next(m for m in assessment.metrics if m.key == "chain_supported_share")
+    assert "already in the prior" in (chain_metric.note or "")
     assessment = state["assessments"]["efficacy"]
     assert set(assessment.claim_ids) == set(state["claims"])
 
@@ -885,3 +887,16 @@ def test_a_class_that_works_here_is_not_penalised_for_an_unproven_chain():
     )
     assert [a.factor for a in adjustments] == ["human genetic support for the target-disease link"]
     assert result.rating == "moderate"
+
+
+async def test_the_programs_own_data_reaches_the_lanes_first():
+    store, ids = await _store()
+    allowed = list(ids.values())
+    state = _state(
+        allowed,
+        scratch={"ingest_user_input": {"program_evidence_ids": [ids["worse"]]}},
+    )
+    out = await assessments.make_nodes("efficacy")["efficacy_gather"](
+        state, FakeCtx("efficacy_gather", store, allowed=allowed)
+    )
+    assert out["scratch"]["efficacy_gather"]["evidence_ids"][0] == ids["worse"]
