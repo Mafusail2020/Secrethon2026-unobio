@@ -146,10 +146,7 @@ def decide(inputs: Inputs, conf: dict[str, Any]) -> Verdict:
         reasons.append(
             ReasonCode(
                 code="RNPV",
-                text=(
-                    f"risk-adjusted NPV ${rnpv.base / 1e6:,.0f}M "
-                    f"(${rnpv.low / 1e6:,.0f}M to ${rnpv.high / 1e6:,.0f}M)"
-                ),
+                text=(f"risk-adjusted NPV {usd(rnpv.base)} ({usd(rnpv.low)} to {usd(rnpv.high)})"),
                 direction="positive" if rnpv.base > 0 else "negative",
                 cause="commercial",
             )
@@ -179,7 +176,7 @@ def decide(inputs: Inputs, conf: dict[str, Any]) -> Verdict:
                 "target engagement or a differentiating biomarker)"
             )
 
-    confidence = _confidence(pos, inputs.twin, th)
+    confidence = _confidence(pos, inputs.twin, th, kill, failures)
     order = {"TWIN_EFFICACY_FAILURES": 0, "USER_REPORTED_FAILURE": 0, "POSTERIOR_POS": 2, "RNPV": 3}
     reasons = sorted(reasons, key=lambda r: order.get(r.code, 1))[:MAX_REASONS]
     rationale = _rationale(decision, kill, pos, rnpv)
@@ -192,7 +189,18 @@ def decide(inputs: Inputs, conf: dict[str, Any]) -> Verdict:
     )
 
 
-def _confidence(pos, twin: TwinStats | None, th: dict[str, float]) -> Confidence:
+def usd(value: float) -> str:
+    return f"{'-' if value < 0 else ''}${abs(value) / 1e6:,.0f}M"
+
+
+def _confidence(
+    pos, twin: TwinStats | None, th: dict[str, float], kill: list[str], failures: int
+) -> Confidence:
+    # a kill flag rests on programs that already failed, not on the width of the PoS range
+    if "TWIN_EFFICACY_FAILURES" in kill:
+        return "high" if failures > th["kill_min_efficacy_failures"] else "medium"
+    if kill:
+        return "medium"
     decided = sum(t.status in ("approved", "stopped") for t in twin.twins) if twin else 0
     if pos is None or decided < th["min_decided_twins_for_confidence"]:
         return "low"
@@ -209,7 +217,7 @@ def _rationale(decision: Decision, kill: list[str], pos, rnpv) -> str:
     if pos is not None:
         parts.append(f"PoS {pos.base:.1%} ({pos.low:.1%}–{pos.high:.1%})")
     if rnpv is not None:
-        parts.append(f"rNPV ${rnpv.low / 1e6:,.0f}M to ${rnpv.high / 1e6:,.0f}M")
+        parts.append(f"rNPV {usd(rnpv.low)} to {usd(rnpv.high)}")
     head = {
         "invest": "Invest",
         "conditional": "Conditional",
