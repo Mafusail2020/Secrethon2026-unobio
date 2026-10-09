@@ -150,3 +150,30 @@ Add `?scenario=` to `/underwriting` before starting a run:
 
 `make check` runs lint, backend tests, `tsc`, `eslint`, `vitest` (pure logic and render tests, including sparse,
 degraded, panel and 200-claim reports) and the generated-types check.
+
+## 8. Before you present
+
+Five minutes, on the machine and browser that will be on screen. Everything here is free except the first deck on a run
+(two model calls).
+
+1. **Servers.** `curl localhost:8000/api/health` answers `"status":"ok"`; on the demo machine `llm_mode` is `live` and
+   `has_api_key` is `true`. `make spend` shows what is left of the budget. Open `/`, press **Gravity**.
+2. **Clean browser state.** Clear this site's data (or use a fresh window), so no layout, collapsed group or typed draft from
+   rehearsal shows up. Window at 1440 px wide; check 1024 px once.
+3. **Each demo run** (BACE1, PCSK9, LRRK2: the ids Person B's final runs came with, which live in the `app.db` that holds them):
+   - the history row opens it, the briefing is there, **Report** opens on the call with four question cards;
+   - open a claim, then **Evidence**: the quote and a source link that opens;
+   - **Generate report → Full report (PDF)** downloads; open the file: the call and figures on page 1, a footer with the run id on
+     every page, numbered sources at the end, no page nearly empty;
+   - **Generate report → Investment committee deck** shows 12 slides (give it up to a minute the first time on a live model, then
+     it is kept); **Download PDF** saves 12 landscape pages; the title slide is dark with white text; Ctrl+F finds a word from a slide.
+4. **Do not on stage:** press **Rewrite** on the deck (a paid call each time), start panel-effort runs, or run the same input
+   twice for the sake of it.
+5. **The correction** you will show: do it once beforehand and note the run it creates, so the **What changed** banner is the
+   second time you see it, not the first.
+6. If a download does nothing, check the browser did not block it (the address bar shows it) and that the backend is up: the
+   report PDF comes from `GET /api/runs/{id}/report.pdf`, so open that URL directly to see the error.
+
+A scripted walk of sections 1 to 4 and 6 (home, a new run, briefing, report, claim and evidence, the four exports, deck,
+sources, logs, graph, follow-up, correction, documents, 1024 and 760 px) ran against the dev server with the mock model and
+passed in full on 9 Oct 2026.
