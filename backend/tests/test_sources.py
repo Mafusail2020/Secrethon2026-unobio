@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 import pytest
 import respx
@@ -78,6 +80,21 @@ async def test_sqlite_cache_survives_a_new_instance_and_expires(tmp_path):
     assert await fresh.get("probe:k", force_refresh=True) is None
     await fresh.put("probe:old", {"v": 2}, ttl_days=-1)
     assert await fresh.get("probe:old") is None
+    await db.dispose()
+
+
+async def test_sqlite_cache_takes_parallel_writes_of_one_key(tmp_path):
+    db = Database(tmp_path / "app.db")
+    await db.init()
+    caches = [SqliteSourceCache(db) for _ in range(3)] * 4
+    # parallel fetch nodes cache the same request; read-then-insert raced on the key
+    for n in range(10):
+        await asyncio.gather(*(c.put(f"probe:{n}", {"v": i}) for i, c in enumerate(caches)))
+    cache = caches[0]
+    assert (await cache.get("probe:9"))["v"] in range(12)
+    await cache.put("probe:same", {"v": "old"})
+    await cache.put("probe:same", {"v": "new"})
+    assert await cache.get("probe:same") == {"v": "new"}
     await db.dispose()
 
 
