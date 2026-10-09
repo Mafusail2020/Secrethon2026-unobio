@@ -101,7 +101,7 @@ def _ev(text: str, key: str) -> tuple[SourceRef, Evidence]:
     source = SourceRef(
         id=source_id("paper", key),
         type="paper",
-        title=f"Paper {key}",
+        title=f"Paper about {key} results",
         publisher="Journal",
         retrieved_at=utcnow(),
     )
@@ -800,3 +800,53 @@ async def test_reply_caps_stay_within_what_the_gateway_accepts():
     await ask(ctx, "p", "s", "u", DraftClaims, 10_000)
     assert llm.tasks[0].max_tokens == MAX_OUT_TOKENS
     assert max(OUT_TOKENS.values()) <= MAX_OUT_TOKENS
+
+
+async def test_a_quote_from_the_source_title_counts():
+    store, ids = await _store()
+    ctx = FakeCtx("bear_claim_gate", store)
+    claims, quotes = to_claims(
+        [_claim(text="Titled.", evidence_ids=[ids["fail"]], quote="Paper about fail results")],
+        "bear_claim_writer",
+    )
+    gated = await gate(ctx, claims, quotes, set(ids.values()))
+    assert [c.status for c in gated.values()] == ["accepted"]
+
+
+def test_abstract_markup_is_stripped():
+    from app.sources.records import plain_text
+
+    raw = "<title>Abstract</title> <p>Alzheimer&apos;s <i>disease</i></p>"
+    raw += "<h4>Methods</h4>A<sup>2</sup>, x<y"
+    assert plain_text(raw) == "Alzheimer's disease Methods: A2, x<y"
+
+
+def test_kill_flag_verdict_is_confident_and_money_is_signed():
+    from app.quant.verdict import usd
+
+    assert usd(-133_275_272) == "-$133M" and usd(1_098_463_143) == "$1,098M"
+
+
+def test_pasted_typography_is_plain_for_entity_search():
+    from app.nodes.input_resolver import plain
+
+    assert plain("Crohn’s disease") == "Crohn's disease"
+    assert plain("anti‑IL‑23 “p19”") == 'anti-IL-23 "p19"'
+
+
+def test_generic_areas_do_not_make_programs_comparable():
+    from app.quant.twin_stats import GENERIC_AREAS
+
+    assert "EFO_0000651" in GENERIC_AREAS  # phenotype: Alzheimer's and obesity both carry it
+
+
+def test_other_indication_twins_weigh_less_than_same_disease_ones():
+    from app.quant.base_rates import twin_param
+    from app.quant.twin_stats import beta_range
+
+    weights = twin_param("level_weight")
+    assert weights["exact_target_indication"] == 1.0 and weights["target_any"] < 1.0
+    w = weights["target_any"]
+    full, weighted = beta_range(20, 1, 0.1), beta_range(20 * w, 1 * w, 0.1)
+    assert weighted.base < full.base  # pulled towards the 10% area base rate
+    assert beta_range(3, 4, 0.2) == beta_range(3.0, 4.0, 0.2)  # same seed for whole counts
