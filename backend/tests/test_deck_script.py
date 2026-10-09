@@ -238,17 +238,17 @@ def _halves(claim: str) -> dict[str, DeckDraft | Exception]:
     }
 
 
-async def test_the_deck_is_written_in_two_calls_over_different_slides_and_merged():
+async def test_the_deck_is_written_in_parallel_calls_over_different_slides_and_merged():
     backend = Scripted(_halves(CLAIMS[0]))
     script, results = await write_script(_service(backend), "m", REPORT)
-    assert len(results) == 2 and len(backend.tasks) == 2
-    first, second = backend.tasks
+    assert len(results) == len(GROUPS) and len(backend.tasks) == len(GROUPS)
+    first, *rest = backend.tasks
     for group, task in zip(GROUPS, backend.tasks, strict=True):
         assert f"Write these slides: {', '.join(group)}." in task.user
         assert task.purpose == "deck.script" and task.schema is DeckDraft and task.system == SYSTEM
         assert "NUMBERS" in task.user and task.user.startswith("<report>")
         assert len(task.system) + len(task.user) <= GATEWAY_PROMPT_CHARS + 1_000
-    assert "`subtitle`" in first.user and "`subtitle`" not in second.user
+    assert "`subtitle`" in first.user and all("`subtitle`" not in t.user for t in rest)
     assert [s.slide for s in script.slides] == ["call", "works", "risks", "recommendation"]
     assert script.subtitle == "BACE1 in Alzheimer's: conditional"
     assert (
