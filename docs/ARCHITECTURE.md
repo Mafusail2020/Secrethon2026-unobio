@@ -388,6 +388,15 @@ The history rows are frosted glass over it (`styles/glass.css`): the picked row 
 row a whiter, more opaque blur; neither has an outline, the blur, tint and soft shadow are the edge; both are lighter than the field, so text only gains contrast, and reduced transparency turns the
 blur off. There is no arrival flash on the row, because an animated background hides the glass while it runs.
 
+**Home to workspace transition.** `shell/portalTransition.ts` wraps `router.navigate`: a move between `/` and `/underwriting*` is
+made with React Router's `viewTransition` option, after setting `data-portal` and `--portal-x/y/r` (the click point and the radius
+to the far corner) on `<html>`. `styles/transition.css` reads them: the new page opens through a feathered circular mask (an
+animated registered length, `--portal-t`) while the old one scales down and dims, both around the click point. The flag is removed
+when no view-transition animation is left running. Nothing is done with reduced motion on or without `startViewTransition`.
+Measured on a 110 Hz display: the page update takes about 50 ms, the reveal starts 100 to 150 ms after the click and runs 1.2 s at
+about 9 ms a frame. The history's WebGL mist is mounted 600 ms late (it was the heaviest thing on arrival) and fades in, and the
+greeting starts typing once the reveal is mostly done.
+
 ## 9c. Implementing and testing a node [1b]
 
 1. Edit the node module; keep `SPEC` and the `run(state, ctx)` signature. Return only keys listed in `SPEC.writes`

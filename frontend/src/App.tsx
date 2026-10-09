@@ -5,6 +5,7 @@ import UnderwritingPage from "./features/underwriting/UnderwritingPage";
 import { ChatLayout } from "./shell/ChatLayout";
 import { GravityShell } from "./shell/GravityShell";
 import { HomePage } from "./shell/HomePage";
+import { installPortalTransition } from "./shell/portalTransition";
 import { UnobioShell } from "./shell/UnobioShell";
 
 const router = createBrowserRouter([
@@ -27,6 +28,8 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+installPortalTransition(router);
 
 export default function App() {
   return <RouterProvider router={router} />;

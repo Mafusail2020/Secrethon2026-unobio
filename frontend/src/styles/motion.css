@@ -89,3 +89,9 @@
 @media (prefers-reduced-motion: reduce) {
   .uw-caret { display: none; }
 }
+
+/* the history's mist comes up after the page has arrived, instead of being there at the first frame */
+.uw-mist-in { animation: uw-fade 1200ms ease-out 350ms backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .uw-mist-in { animation: none; }
+}

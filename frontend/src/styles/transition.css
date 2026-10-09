@@ -1,0 +1,57 @@
+/* Home <-> workspace: the page being entered opens as a circle from the spot that was clicked, over the page
+   being left, which sinks away from that spot. shell/portalTransition.ts sets data-portal and the three
+   variables on <html> for the length of the move, so nothing here touches any other navigation. Only
+   transforms, opacity and a clip run, all on the compositor. */
+:root[data-portal]::view-transition-group(root) {
+  animation-duration: 1200ms;
+}
+:root[data-portal]::view-transition-image-pair(root) {
+  isolation: auto;
+}
+:root[data-portal]::view-transition-old(root),
+:root[data-portal]::view-transition-new(root) {
+  display: block;
+  mix-blend-mode: normal;
+  animation-duration: 1200ms;
+  animation-fill-mode: both;
+  transform-origin: var(--portal-x, 50%) var(--portal-y, 50%);
+}
+:root[data-portal]::view-transition-old(root) {
+  animation-name: portal-leave;
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+:root[data-portal]::view-transition-new(root) {
+  animation-name: portal-enter;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1);
+}
+@keyframes portal-leave {
+  to {
+    transform: scale(0.94);
+    filter: brightness(0.55) saturate(0.8);
+  }
+}
+/* a registered length, so the soft edge of the opening can be animated */
+@property --portal-t {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes portal-enter {
+  from {
+    --portal-t: 0px;
+    transform: scale(1.07);
+  }
+  to {
+    --portal-t: calc(var(--portal-r, 150vmax) + 180px);
+    transform: scale(1);
+  }
+}
+/* the page opens through a feathered circle: solid inside, fading to nothing over 180px at its rim */
+:root[data-portal]::view-transition-new(root) {
+  -webkit-mask-image: radial-gradient(circle at var(--portal-x, 50%) var(--portal-y, 50%), #000 calc(var(--portal-t) - 180px), transparent var(--portal-t));
+  mask-image: radial-gradient(circle at var(--portal-x, 50%) var(--portal-y, 50%), #000 calc(var(--portal-t) - 180px), transparent var(--portal-t));
+}
+/* the copied header slides in when it mounts; mid-move it should simply be there in the new page */
+:root[data-portal] .ub-site .nav-enter {
+  animation: none;
+}

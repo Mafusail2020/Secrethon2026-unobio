@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Composer } from "./Composer";
 import { useTypewriter } from "./useTypewriter";
 
@@ -25,7 +26,9 @@ function Typed({ text, count, caret }: { text: string; count: number; caret: boo
 
 /** The new-chat screen: a short greeting, typed out as the page opens, and the big composer. */
 export function Welcome() {
-  const { counts, done } = useTypewriter(PARTS);
+  // arriving through the home-page transition, the new page is still opening: start typing once it is mostly there
+  const [delay] = useState(() => (document.documentElement.hasAttribute("data-portal") ? 560 : 120));
+  const { counts, done } = useTypewriter(PARTS, 280, delay);
   // the caret sits where the typing is: after the last part that has started and is not yet complete
   const at = counts.findIndex((n, i) => n < PARTS[i]!.text.length);
   const caretAt = done ? -1 : Math.max(at, 0);

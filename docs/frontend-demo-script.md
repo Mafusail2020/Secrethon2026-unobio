@@ -15,6 +15,10 @@ The backend dev server on :8000 is `uv run uvicorn ... --reload`; if it stops an
 `API_PROXY_TARGET=http://localhost:8001 npx vite --port 5180`.
 
 The home page (`/`) is a locked copy of unobio.com. Only its logo (home) and **Gravity** (the workspace) are links.
+The step between the two is a reveal: the workspace opens as a soft-edged circle from the spot you clicked (**Gravity**) while the
+home page sinks away beneath it, and the logo does the same the other way. It is the browser's View Transitions API through the
+router (`shell/portalTransition.ts`, `styles/transition.css`); the locked home files are untouched. It is skipped with "reduce
+motion" on and in browsers without view transitions, where the page just changes.
 
 ## 1. The main flow (BACE1)
 

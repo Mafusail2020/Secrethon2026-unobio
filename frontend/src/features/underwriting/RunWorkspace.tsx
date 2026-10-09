@@ -32,6 +32,16 @@ function panelFromState(state: unknown): TabId | null {
   return panel && VIEWS.includes(panel) ? (panel as TabId) : null;
 }
 
+/** The history's mist is a WebGL canvas: starting it is the heaviest thing the page mounts, so it waits until the page has arrived. */
+function DeferredMist() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setReady(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
+  return ready ? <GlyphField {...PRESETS.mist} className="uw-mist-in absolute inset-0 h-full w-full" /> : null;
+}
+
 export function RunWorkspace({ runId }: { runId: string | undefined }) {
   const location = useLocation();
   const [attempt, setAttempt] = useState(0);
@@ -116,7 +126,7 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
         }`}
       >
         <div className="relative h-full w-72 max-w-[85vw]">
-          <GlyphField {...PRESETS.mist} className="absolute inset-0 h-full w-full" />
+          <DeferredMist />
           <Sidebar currentId={runId} onNavigate={() => !isWide() && setSidebarOpen(false)} />
         </div>
       </aside>

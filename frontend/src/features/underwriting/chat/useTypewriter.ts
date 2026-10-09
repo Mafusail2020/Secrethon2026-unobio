@@ -19,8 +19,8 @@ export function typedCounts(elapsed: number, parts: TypedPart[], pause: number):
 
 const reducedMotion = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-/** Types the parts out one after another, from the moment the component appears. Reduced motion shows them whole. */
-export function useTypewriter(parts: TypedPart[], pause = 280): { counts: number[]; done: boolean } {
+/** Types the parts out one after another, `delay` ms after the component appears. Reduced motion shows them whole. */
+export function useTypewriter(parts: TypedPart[], pause = 280, delay = 0): { counts: number[]; done: boolean } {
   const [counts, setCounts] = useState<number[]>(() => (reducedMotion() ? parts.map((p) => p.text.length) : parts.map(() => 0)));
   const key = parts.map((p) => `${p.speed}:${p.text}`).join("|");
 
@@ -29,7 +29,7 @@ export function useTypewriter(parts: TypedPart[], pause = 280): { counts: number
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
-      const next = typedCounts(now - start, parts, pause);
+      const next = typedCounts(now - start - delay, parts, pause);
       setCounts((prev) => (prev.length === next.length && prev.every((n, i) => n === next[i]) ? prev : next));
       if (next.some((n, i) => n < parts[i]!.text.length)) frame = requestAnimationFrame(tick);
     };
@@ -37,7 +37,7 @@ export function useTypewriter(parts: TypedPart[], pause = 280): { counts: number
     return () => cancelAnimationFrame(frame);
     // `key` stands for the parts: a new array with the same text must not restart the typing
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, pause]);
+  }, [key, pause, delay]);
 
   return { counts, done: counts.every((n, i) => n >= parts[i]!.text.length) };
 }
