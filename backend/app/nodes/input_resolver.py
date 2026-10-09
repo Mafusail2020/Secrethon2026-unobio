@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from typing import Any
 
 from app.contracts import Confidence, EntityRef, NodeSpec, ResolvedEntities
@@ -57,6 +58,15 @@ FILLER = {
     *("molecule", "monoclonal", "humanized", "human", "fully", "recombinant", "bispecific"),
 }
 CONFIDENT_RATIO = 3.0
+
+
+def plain(text: str) -> str:
+    """Typographic quotes and dashes (pasted from Word or a web page) as ASCII: Open Targets finds
+    "Crohn's disease" but not "Crohn’s disease"."""
+    text = unicodedata.normalize("NFKC", text)
+    text = re.sub(r"[‘’‚‛′`]", "'", text)
+    text = re.sub(r"[“”„‟″]", '"', text)
+    return re.sub(r"[‐‑‒–—―−]", "-", text).strip()
 
 
 def _norm(text: str) -> str:
@@ -204,11 +214,13 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     }
     notes: list[str] = []
     try:
-        disease = await _disease(ot, program.indication, overrides["disease"], ctx, fr)
+        disease = await _disease(ot, plain(program.indication), overrides["disease"], ctx, fr)
         if disease is None:
             raise ValueError(f"could not resolve the indication '{program.indication}'")
-        target = await _target(ot, program.mechanism, overrides["target"], ctx, fr)
-        drug = await _drug(ot, program.drug_name, overrides["drug"], ctx, fr)
+        target = await _target(ot, plain(program.mechanism), overrides["target"], ctx, fr)
+        drug = await _drug(
+            ot, program.drug_name and plain(program.drug_name), overrides["drug"], ctx, fr
+        )
     except SourceError as exc:
         raise ValueError(f"Open Targets is unavailable, cannot resolve the program: {exc}") from exc
 
