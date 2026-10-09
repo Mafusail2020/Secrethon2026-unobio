@@ -22,10 +22,11 @@ interface Props {
 
 function status(row: DocumentRow, report: UnderwritingReport | undefined): string {
   if (!row.inRun) return "Not in this version";
-  if (!report) return "Read by this run";
-  if (row.evidence === 0) return "Nothing from it reached the evidence";
-  const items = `${row.evidence} evidence ${row.evidence === 1 ? "item" : "items"}`;
-  return `${items}, cited by ${row.citedBy} ${row.citedBy === 1 ? "claim" : "claims"}`;
+  if (!report) return "In this run";
+  if (!row.read) return "Could not be read, so nothing from it was used";
+  const read = `${row.chunks} ${row.chunks === 1 ? "passage" : "passages"} read`;
+  if (row.citedBy === 0) return `${read}, no claim cites it`;
+  return `${read}, cited by ${row.citedBy} ${row.citedBy === 1 ? "claim" : "claims"}`;
 }
 
 /** The files the analysis reads, as a list to tick. Changing the ticks makes a new version of the run. */

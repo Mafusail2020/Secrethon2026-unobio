@@ -96,7 +96,7 @@ function buildReport(run: MockRun): UnderwritingReport {
       publisher: "You",
       published_at: null,
       retrieved_at: run.summary.created_at,
-      identifiers: { document: id },
+      identifiers: { document: id, chunks: "1" },
     };
     const evidenceId = `ev_${id.slice(4)}`;
     report.evidence[evidenceId] = {

@@ -7,7 +7,10 @@ export interface DocumentRow {
   /** the run being looked at read it */
   inRun: boolean;
   checked: boolean;
-  /** evidence items of this run that came out of the document, and claims citing any of them */
+  /** the run turned the file into a source (it could be read) and how many chunks of text that gave */
+  read: boolean;
+  chunks: number;
+  /** of those, the evidence items the report keeps (the ones a claim cites), and the claims citing them */
   evidence: number;
   citedBy: number;
 }
@@ -17,14 +20,18 @@ export function lineageDocumentIds(versions: Pick<RunSummary, "program">[]): str
   return [...new Set(versions.flatMap((v) => v.program.document_ids ?? []))];
 }
 
-/** What a run took from a document. The ingest step marks the sources it makes from a file with identifiers.document. */
-export function documentUse(report: UnderwritingReport | undefined, documentId: string): { evidence: number; citedBy: number } {
-  if (!report) return { evidence: 0, citedBy: 0 };
-  const sources = new Set(Object.values(report.sources).filter((s) => s.identifiers?.document === documentId).map((s) => s.id));
+/** What a run took from a document. The ingest step marks the source it makes from a file with identifiers.document. */
+export function documentUse(report: UnderwritingReport | undefined, documentId: string): Pick<DocumentRow, "read" | "chunks" | "evidence" | "citedBy"> {
+  const none = { read: false, chunks: 0, evidence: 0, citedBy: 0 };
+  if (!report) return none;
+  const found = Object.values(report.sources).filter((s) => s.identifiers?.document === documentId);
+  if (found.length === 0) return none;
+  const sources = new Set(found.map((s) => s.id));
   const evidence = Object.values(report.evidence).filter((e) => sources.has(e.source_id)).map((e) => e.id);
   const own = new Set(evidence);
   const citedBy = Object.values(report.claims).filter((c) => c.status !== "rejected" && c.evidence_ids.some((id) => own.has(id))).length;
-  return { evidence: evidence.length, citedBy };
+  const chunks = found.reduce((sum, s) => sum + (Number(s.identifiers.chunks) || 0), 0);
+  return { read: true, chunks: chunks || evidence.length, evidence: evidence.length, citedBy };
 }
 
 interface Inputs {

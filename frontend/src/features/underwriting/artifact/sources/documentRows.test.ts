@@ -12,7 +12,7 @@ const C = doc("c", "c.md");
 const withDocument = (id: string): UnderwritingReport => {
   const report = structuredClone(base);
   const [sourceId, source] = Object.entries(report.sources)[0]!;
-  report.sources[sourceId] = { ...source, type: "user_provided", identifiers: { document: id } };
+  report.sources[sourceId] = { ...source, type: "user_provided", identifiers: { document: id, chunks: "12" } };
   return report;
 };
 
@@ -30,12 +30,19 @@ describe("documentUse", () => {
     const own = Object.values(report.evidence).filter((e) => e.source_id === sourceId);
     const citing = Object.values(report.claims).filter((c) => c.status !== "rejected" && c.evidence_ids.some((id) => own.some((e) => e.id === id)));
     expect(own.length).toBeGreaterThan(0);
-    expect(documentUse(report, A.id)).toEqual({ evidence: own.length, citedBy: citing.length });
+    expect(documentUse(report, A.id)).toEqual({ read: true, chunks: 12, evidence: own.length, citedBy: citing.length });
   });
 
-  it("is zero for a document the run did not read, or before there is a report", () => {
-    expect(documentUse(withDocument(A.id), B.id)).toEqual({ evidence: 0, citedBy: 0 });
-    expect(documentUse(undefined, A.id)).toEqual({ evidence: 0, citedBy: 0 });
+  it("says a document was not read when the run made no source from it, or before there is a report", () => {
+    const none = { read: false, chunks: 0, evidence: 0, citedBy: 0 };
+    expect(documentUse(withDocument(A.id), B.id)).toEqual(none);
+    expect(documentUse(undefined, A.id)).toEqual(none);
+  });
+
+  it("counts a file as read even when no claim cites it", () => {
+    const report = withDocument(A.id);
+    report.claims = {};
+    expect(documentUse(report, A.id)).toMatchObject({ read: true, chunks: 12, citedBy: 0 });
   });
 });
 
@@ -57,7 +64,8 @@ describe("buildDocumentRows", () => {
 
   it("shows what the run took from each document", () => {
     expect(rows()[0]!.evidence).toBeGreaterThan(0);
-    expect(rows()[1]!.evidence).toBe(0);
+    expect(rows()[0]!.read).toBe(true);
+    expect(rows()[1]!.read).toBe(false);
   });
 
   it("leaves the name empty until it is known", () => {

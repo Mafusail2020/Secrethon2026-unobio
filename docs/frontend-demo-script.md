@@ -84,8 +84,8 @@ the conversation; below 768 px the history is a drawer.
 1. In the new-chat card press **Add details**, then drop a PDF, TXT or MD file on the **Documents** area (up to five, 10 MB
    each). A file the server refuses shows why under the list; **×** removes one. Start the run.
 2. Open **Sources** in the top bar. **Your documents** is the first card, above the closed **Found by the analysis**: one row per file with a tick box, its
-   size, and what the run took from it (evidence items and the claims citing them; "Nothing from it reached the evidence" until
-   the ingest step reads files). **Open** shows the file itself.
+   size, and whether the run read it ("23 passages read, cited by 2 claims", "…, no claim cites it", or "Could not be read, so
+   nothing from it was used" for a scan or a broken file). **Open** shows the file itself.
 3. Untick a file, or drop another one on the strip below the list: a bar says how many are selected. **Re-run with these**
    makes a new version that starts again from the user-input step (the steps before it are reused) and opens it on the Graph
    view. In the new version the left-out file is still listed, unticked and marked "Not in this version", so it can be put back.
