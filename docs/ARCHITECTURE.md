@@ -233,6 +233,11 @@ and 400 chunks. The step records what it read in its scratch (`documents_read`: 
 assembler lists those sources even when no claim cites them and adds the chunk count to `identifiers.chunks`, so the Sources
 view can say "23 passages read, no claim cites it". Unreadable files also become a line in `critical_unknowns`.
 
+A PDF page with no text layer is read with OCR when the optional `ocr` extra is installed (`rapidocr-onnxruntime`, offline, about
+1 to 2 seconds a page, up to 30 pages per file; roughly nine words in ten come out right on a decent scan). Such a page's locator reads
+`p. 3 (OCR)`, so a citation says where its text came from. Without the extra a scan is reported as unreadable. OCR runs in a worker
+thread so a long scan does not stall the event loop.
+
 ### Follow-up chat
 
 `backend/app/chat/`. `context.py` renders the finished report as plain text: verdict, reasons, up to 60 non-rejected
@@ -242,6 +247,14 @@ data; the system prompt says to use only the report text. `gate_answer` drops ci
 answer marked supported with no valid citation is replaced by a fixed refusal, so the chat never states what it cannot tie
 to a claim. In `mock` mode the answer is canned from the verdict's reason claims. Live calls are logged to `llm_calls` with
 node id `chat`, so they count in the trace and cost.
+
+When the run read uploaded files, `chat/documents.py` also hands the model the passages of those files that match the question
+(up to 6 chunks and 3500 characters, ranked by the same FTS index; a question that matches nothing gets the start of the files).
+They sit in a `<documents>` block with their evidence ids, and the answer may cite them in `cited_evidence_ids` the way it cites
+claims in `cited_claim_ids`. `gate_answer` keeps only passage ids that were in front of the model, and an answer marked supported
+with neither a real claim nor a real passage is replaced by the refusal. Passage ids are stored in the same JSON column as claim
+ids, told apart by their `ev_` prefix, because there is no migration step and existing databases hold the demo runs. Parsed files are
+cached in memory per document id. The UI shows each as a chip (file and page) that opens the quote.
 
 `summary.py` writes the briefing that sits under a finished run: a compact Markdown report of 400 to 650 words (Verdict, Why this
 call, What the report found with one subsection per report section, Funding to the next milestone, Risks and unknowns, What

@@ -3,6 +3,7 @@ an evidence item whose locator names the page, so a quote can be checked against
 
 import io
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from pypdf import PdfReader
@@ -13,6 +14,7 @@ from app.contracts.ids import evidence_id, source_id
 from app.sources.records import chunk_text
 
 MAX_PAGES = 300
+OCR_MAX_PAGES = 30
 MAX_CHARS = 400_000
 MAX_CHUNKS = 400
 PART_CHARS = 3000
@@ -41,6 +43,49 @@ class Page:
 class DocumentText:
     pages: list[Page]
     truncated: bool
+    #: pages whose text came from OCR of a scan, marked "(OCR)" in their locators
+    ocr_pages: int = 0
+    #: scanned pages left unread because of the OCR page limit
+    ocr_skipped: int = 0
+
+
+Ocr = Callable[[bytes], str]
+_engine: Ocr | None | bool = None
+
+
+def _ocr() -> Ocr | None:
+    """OCR is an optional install (the `ocr` extra); without it a scan is reported as unreadable."""
+    global _engine
+    if _engine is None:
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError:
+            _engine = False
+        else:
+            engine = RapidOCR()
+
+            def recognise(data: bytes) -> str:
+                found, _ = engine(data)
+                return " ".join(line[1] for line in found or [])
+
+            _engine = recognise
+    return _engine or None
+
+
+def use_ocr(engine: Ocr | None) -> None:
+    """Swap the OCR engine (tests); None switches OCR off."""
+    global _engine
+    _engine = engine if engine is not None else False
+
+
+def _scanned_text(page: object, ocr: Ocr) -> str:
+    try:
+        images = list(page.images)[:4]  # type: ignore[attr-defined]
+        return _tidy(" ".join(ocr(image.data) for image in images))
+    except (
+        Exception
+    ):  # an image the decoder or the engine cannot handle is just a page without text
+        return ""
 
 
 def _tidy(text: str) -> str:
@@ -48,19 +93,26 @@ def _tidy(text: str) -> str:
 
 
 def _read_pdf(data: bytes) -> DocumentText:
+    ocr = _ocr()
     try:
         reader = PdfReader(io.BytesIO(data))
         if reader.is_encrypted and not reader.decrypt(""):
             raise DocumentUnreadable("the PDF is password-protected")
         pages: list[Page] = []
-        total = 0
+        total = ocr_pages = ocr_skipped = 0
         truncated = len(reader.pages) > MAX_PAGES
         for number, page in enumerate(reader.pages[:MAX_PAGES], start=1):
-            text = _tidy(page.extract_text() or "")
+            text, label = _tidy(page.extract_text() or ""), f"p. {number}"
+            if not text and ocr is not None:
+                if ocr_pages < OCR_MAX_PAGES:
+                    text, label = _scanned_text(page, ocr), f"p. {number} (OCR)"
+                    ocr_pages += bool(text)
+                else:
+                    ocr_skipped += 1
             if not text:
                 continue
             total += len(text)
-            pages.append(Page(f"p. {number}", text))
+            pages.append(Page(label, text))
             if total >= MAX_CHARS:
                 truncated = True
                 break
@@ -69,8 +121,11 @@ def _read_pdf(data: bytes) -> DocumentText:
     except (PyPdfError, ValueError, KeyError, TypeError, OSError, RecursionError) as exc:
         raise DocumentUnreadable("the PDF could not be read") from exc
     if not pages:
-        raise DocumentUnreadable("the PDF has no text layer (a scan?)")
-    return DocumentText(pages, truncated)
+        raise DocumentUnreadable(
+            "the PDF has no text layer (a scan?)"
+            + ("" if ocr is not None else " and OCR is not installed")
+        )
+    return DocumentText(pages, truncated, ocr_pages, ocr_skipped)
 
 
 def _read_text(data: bytes) -> DocumentText:

@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -55,7 +56,7 @@ class DocumentsRead:
         return summary(documents_read=self.read, documents_unread=self.unread)
 
 
-def read_documents(state: GraphState, ctx: NodeContext) -> DocumentsRead:
+async def read_documents(state: GraphState, ctx: NodeContext) -> DocumentsRead:
     """The files the run was given, as evidence chunks with page locators."""
     program = state["program"]
     store = DocumentStore(get_settings().data_path / "documents")
@@ -71,7 +72,8 @@ def read_documents(state: GraphState, ctx: NodeContext) -> DocumentsRead:
             continue
         name = stored.info.name
         try:
-            text = read_document(stored.read(), stored.info.kind)
+            # OCR of a long scan takes seconds a page; keep the event loop free meanwhile
+            text = await asyncio.to_thread(read_document, stored.read(), stored.info.kind)
         except DocumentUnreadable as exc:
             ctx.log(f"{name}: {exc}; not used as evidence", "warn")
             out.unread.append(name)
@@ -80,6 +82,10 @@ def read_documents(state: GraphState, ctx: NodeContext) -> DocumentsRead:
         ctx.log(f"{name}: {len(text.pages)} pages or parts, {len(items)} evidence chunks")
         if text.truncated:
             ctx.log(f"{name} is long; only the start was read", "warn")
+        if text.ocr_pages:
+            ctx.log(f"{name}: read {text.ocr_pages} scanned page(s) with OCR; expect some errors")
+        if text.ocr_skipped:
+            ctx.log(f"{name}: {text.ocr_skipped} scanned page(s) skipped (OCR limit)", "warn")
         out.records.append((source, items))
         out.read[document_id] = {"source_id": source.id, "name": name, "chunks": len(items)}
         chunks += [e for e in items if e.id not in excluded]
@@ -137,7 +143,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
             )
         )
 
-    docs = read_documents(state, ctx)
+    docs = await read_documents(state, ctx)
     records += docs.records
     if not records:
         ctx.log("no user-provided material")
@@ -156,7 +162,7 @@ async def _fixture_run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     program = state["program"]
     added = [c for c in ctx.corrections_for() if c.add_notes or c.add_links]
     await nap(ctx.node_id)
-    docs = read_documents(state, ctx)
+    docs = await read_documents(state, ctx)
     if docs.records:
         n_sources, n_evidence = await register(ctx, state, docs.records)
         ctx.log(f"registered {n_sources} document source(s), {n_evidence} evidence item(s)")
