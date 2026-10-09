@@ -55,7 +55,7 @@ the conversation; below 768 px the history is a drawer.
 3. Hover the **extracted** chip: the tooltip explains the six labels.
 4. A question with nothing to weigh says **Not enough evidence**, with what could not be established.
 5. **All claims** → filter by stance *against* and search "terminated"; **Clear** resets.
-6. Sources view: two cards. **Your documents** (blue edge, "You added") holds your files; **Found by the analysis** (grey edge,
+6. Sources view: two cards. **Your documents** (blue edge) holds your files; **Found by the analysis** (grey edge,
    "Public sources") is closed and says how many sources there are and who from. Press **Show**: sort by **Cited by**, filter
    **trial**, click "1 claim" and open it in the report. Your uploaded files are not repeated in that table.
 7. Logs view: filter by step, search, **Group by step**, **Copy**.

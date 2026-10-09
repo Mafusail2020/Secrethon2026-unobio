@@ -73,19 +73,14 @@ function Panel({ run, report, canRerun }: Props) {
       <div className="flex items-center gap-3">
         <ReportIcon width={20} height={20} className="shrink-0 text-brand" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 id={`${uid}-title`} className="text-base font-semibold">
-              Your documents
-            </h2>
-            <span className="rounded-full border border-brand/40 bg-brand/10 px-2 py-px text-[0.7rem] font-medium text-royal">You added</span>
-          </div>
+          <h2 id={`${uid}-title`} className="text-base font-semibold">
+            Your documents
+          </h2>
           <p className="mt-0.5 text-sm text-muted">Tick the files the analysis should read.</p>
         </div>
       </div>
 
-      {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-muted">This run read no documents of yours. Add a PDF, text or markdown file to give the analysis your own data.</p>
-      ) : (
+      {rows.length > 0 && (
         <ul className="mt-3 divide-y divide-line/70 rounded-sm border border-line bg-surface" aria-label="Documents">
           {rows.map((row) => {
             const name = row.info?.name ?? "Loading the name";
