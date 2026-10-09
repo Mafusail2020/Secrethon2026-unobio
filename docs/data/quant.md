@@ -22,11 +22,13 @@ No model calls anywhere in this layer. Every number is a formula over Open Targe
    `unknown`, not stopped (tafolecimab: approved in China, no approval record in Open Targets).
 3. Salt forms collapse by parent name (inclisiran + inclisiran sodium = one program).
 4. Only twins that reached the program's stage count (a Phase 2 program ignores twins that died in Phase 1).
-5. Match levels, first with ≥ 3 decided twins: `exact_target_indication` (disease + descendants) → `target_area` →
+5. Match levels, first with ≥ 3 decided twins: `exact_target_indication` (disease, descendants and direct parents that are not area roots; Open Targets files resmetirom's approval under fatty liver, not MASH) → `target_area` →
    `target_any` → `target_class` (other targets sharing the ChEMBL l5 class; logged as different mechanisms) →
    `area_base_rate`.
-6. Prior = 5th/50th/95th percentile of Beta(approved + k·b, stopped + k·(1 − b)), k = 5, b = the area's probability of
-   approval from the program's stage. Sampled with a fixed seed, so a run repeats exactly.
+6. Prior = mean with 5th/95th percentiles of Beta(approved + k·b, stopped + k·(1 − b)), k = 5, b = the area's probability of
+   approval from the program's stage. The mean, not the median, because rNPV is an expected value and a Beta with few
+   twins is skewed (the median of the bare area prior sits about a third below b). Percentiles are sampled with a fixed
+   seed, so a run repeats exactly.
 7. Stop reasons: Open Targets' ML classes → efficacy (`Negative`), safety (`Safety_Sideeffects`), business
    (`Business_Administrative`, `Logistics_Resources`), other.
 8. `failure_mix`: from the stopped twins once ≥ 5 have a recorded reason (90 % Wilson intervals), otherwise the

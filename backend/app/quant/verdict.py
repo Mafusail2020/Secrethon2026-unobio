@@ -19,6 +19,14 @@ from app.contracts.common import Confidence, Decision
 
 LATE = {"PHASE_2_3", "PHASE_3", "PREAPPROVAL", "APPROVAL", "PHASE_4"}
 MAX_REASONS = 5
+# "not terminated", "no safety signal", "wasn't discontinued": a few words before, same clause
+NEGATED = re.compile(
+    r"\b(?:not|no|never|without|\w+n't)\b[^\w.:;!?]+(?:\w+[^\w.:;!?]+){0,3}$", re.I
+)
+
+
+def reports_failure(text: str, words: re.Pattern[str]) -> bool:
+    return any(not NEGATED.search(text[: m.start()]) for m in words.finditer(text))
 
 
 @dataclass
@@ -75,7 +83,7 @@ def decide(inputs: Inputs, conf: dict[str, Any]) -> Verdict:
         )
 
     failure_words = re.compile(rf"\b({conf['corrections']['failure_words']})\b", re.I)
-    reported = [c for c in inputs.corrections if failure_words.search(c.text)]
+    reported = [c for c in inputs.corrections if reports_failure(c.text, failure_words)]
     if reported:
         kill.append("USER_REPORTED_FAILURE")
         reasons.append(

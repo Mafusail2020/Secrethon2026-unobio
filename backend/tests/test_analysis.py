@@ -908,3 +908,11 @@ async def test_the_programs_own_data_reaches_the_lanes_first():
         state, FakeCtx("efficacy_gather", store, allowed=allowed)
     )
     assert out["scratch"]["efficacy_gather"]["evidence_ids"][0] == ids["worse"]
+
+
+def test_the_prior_centre_is_the_beta_mean_so_rnpv_is_an_expected_value():
+    from app.quant.twin_stats import beta_range
+
+    bare = beta_range(0, 0, 0.142)
+    assert bare.base == 0.142 and bare.low < bare.base < bare.high
+    assert beta_range(3, 2, 0.5).base == round((3 + 2.5) / (5 + 5), 4)
