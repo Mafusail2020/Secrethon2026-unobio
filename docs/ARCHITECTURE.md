@@ -90,9 +90,11 @@ change the posterior, only the picture of the steps.
 
 ### 2c. Two knowledge stores [later]
 
-Today `knowledge_indexer` builds a word-overlap vector index (a stand-in for LanceDB) and a trivial graph (disease, target
-and drug nodes with `mentioned_in` edges to every source); the retrievers ignore the graph. The plan is two stores with
-different jobs, not one graph:
+Today `knowledge_indexer` builds a BM25 full-text index in SQLite FTS5 (`store/vector.py`; there is no vector database and no
+embeddings: a run holds a few hundred evidence items, keyword ranking is enough, needs no model download or credits, and
+the quote gate is lexical anyway) and a graph of typed edges, each pointing at an evidence id. The retriever uses the graph
+only to boost ranking (x1.5 for evidence on an edge touching the program's target or disease, x1.25 one hop away). The plan is
+two stores with different jobs, not one graph:
 
 | Store | Scope | Built | Used by |
 |---|---|---|---|
@@ -216,6 +218,21 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | POST | `/documents` | `DocumentInfo` (201). The raw file is the body, its name percent-encoded in `X-File-Name`. PDF, TXT or MD up to 10 MB; 413 `document_too_large`, 415 `unsupported_document`, 422 `invalid_document`. Kept under `DATA_DIR/documents` by content hash (`doc_` + 16 hex), so the same bytes are one document. A run names up to five in `program.document_ids`; `POST /runs` answers 422 `unknown_document` for an id that was never uploaded. Reading them is the ingest node's job (`DocumentStore.get(id).read()`) |
 | GET | `/documents/{id}`, `/documents/{id}/file` | `DocumentInfo`; the file as uploaded (inline, `nosniff`, `sandbox`), so a reader can check a quote against it |
 
+### Uploaded documents
+
+`POST /documents` only keeps the file. `ingest_user_input` reads it (`sources/documents.py`): a PDF page by page with `pypdf`
+(text only; a scan with no text layer, a password-protected file or a broken one is logged and listed in `documents_unread`),
+text and Markdown in parts of about 3000 characters at paragraph breaks. Each page or part is cut into sentence-aligned
+chunks of about 1500 characters, each a verbatim slice, so the quote gate works on them like on any evidence. One document is
+one `user_provided` source (`identifiers.document` = the document id) and every chunk is an evidence item whose locator is the
+page (`p. 3`, or `p. 3 [2]` when a page has several chunks; `part 2` for text). All chunks are registered, so
+`knowledge_indexer` indexes them and the retrievers can find them. In addition, the few chunks that mention the program's own
+terms (up to 6, 3500 characters in all, across every file) are added to `program_evidence_ids`, which the efficacy and safety
+lanes and both cases are handed first, after the user's own notes. Reading is capped at 300 pages or 400k characters per file
+and 400 chunks. The step records what it read in its scratch (`documents_read`: source id, name, chunk count); the report
+assembler lists those sources even when no claim cites them and adds the chunk count to `identifiers.chunks`, so the Sources
+view can say "23 passages read, no claim cites it". Unreadable files also become a line in `critical_unknowns`.
+
 ### Follow-up chat
 
 `backend/app/chat/`. `context.py` renders the finished report as plain text: verdict, reasons, up to 60 non-rejected
@@ -256,7 +273,7 @@ SQLite at `backend/data/app.db` via SQLAlchemy 2 async, `create_all` at startup,
 report JSON), `run_events`, `node_executions` (compact output for the UI plus the full state delta for replay),
 `corrections`, `chat_messages`, `run_summaries`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
 real stores; until then `store/fakes.py` keeps them in memory (so `/evidence/{id}` only knows evidence from the running
-process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
+process). The full-text index is the `evidence_fts` table in the same SQLite file. Uploaded files are under `backend/data/documents`. `backend/data/` is git-ignored.
 
 ## 9b. Frontend [1b]
 
@@ -426,7 +443,7 @@ reads `assessments` and weighs them. Gathering and scoring are code and cost not
   replay.
 - **`asyncio.gather` instead of `Send` for section analysts.** `Send` creates N invocations of one node id, which muddies
   events and replay. One node, one record, per-section progress. `Send` remains possible later.
-- **SQLite + LanceDB.** Zero-ops, file based, enough for a hackathon and a single-box demo.
+- **SQLite, with FTS5 instead of LanceDB.** Zero-ops, file based, enough for a hackathon and a single-box demo. Embeddings would add a model dependency and cost for a few hundred items per run; revisit if long uploaded documents make keyword matching miss.
 - **APIs, not scrapers.** Official APIs behind `sources/` with a cache; a scraper only for a real gap with approval.
 - **Mock-first LLM.** `LLM_MODE=mock` gives deterministic zero-cost output for development and tests. Deliverables
   (demo, cost per run, README numbers) come from `live` runs.

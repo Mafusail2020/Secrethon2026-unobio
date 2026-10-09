@@ -65,12 +65,21 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     evidence = {e.id: e for e in await ctx.store.evidence.get_many_evidence(wanted)}
     # twin programs cite their trial records even when no claim does, so those links must resolve
     twin_sources = {i for t in (twin.twins if twin else []) for i in t.source_ids}
+    # a file the user uploaded is listed whether or not a claim cites it, so the reader can see it was read
+    ingested = state.get("scratch", {}).get("ingest_user_input", {})
+    read_files = ingested.get("documents_read", {})
+    file_sources = {f["source_id"] for f in read_files.values()}
     sources = {
         s.id: s
         for s in await ctx.store.evidence.get_sources(
-            sorted({e.source_id for e in evidence.values()} | twin_sources)
+            sorted({e.source_id for e in evidence.values()} | twin_sources | file_sources)
         )
     }
+    for f in read_files.values():
+        if f["source_id"] in sources:
+            found = sources[f["source_id"]]
+            identifiers = {**found.identifiers, "chunks": str(f["chunks"])}
+            sources[found.id] = found.model_copy(update={"identifiers": identifiers})
     # last line of defence: no accepted claim may point at evidence the store does not have
     claims = gate_claims(cited, set(evidence))
     ctx.log(f"{len(claims)} claims, {len(evidence)} evidence items, {len(sources)} sources")
@@ -91,7 +100,13 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         assessments=assessments,
         valuation=state.get("valuation"),
         key_risks=state.get("key_risks", []),
-        critical_unknowns=state.get("critical_unknowns", []),
+        critical_unknowns=[
+            *state.get("critical_unknowns", []),
+            *(
+                f"{n} could not be read, so nothing in it was used."
+                for n in ingested.get("documents_unread", [])
+            ),
+        ],
         diligence_questions=state.get("diligence_questions", [])[:10],
         claims=claims,
         evidence=evidence,
