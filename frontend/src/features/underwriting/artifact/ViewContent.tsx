@@ -175,7 +175,7 @@ export function ViewContent({
           Synthetic data: parts of this run come from stub steps and contain placeholder content.
         </p>
       )}
-      <div className="min-h-0 flex-1 overflow-auto" data-print-flow>
+      <div className="relative min-h-0 flex-1 overflow-auto" data-print-flow>
         <ErrorBoundary resetKey={`${tab}:${run?.id ?? ""}`}>
           {tab === "report" &&
             (report && run ? (
