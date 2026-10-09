@@ -8,7 +8,7 @@ from app.core.services import Services
 from app.sources.documents import DocumentUnreadable, document_records, read_document
 
 MAX_PASSAGES = 6
-MAX_CHARS = 3500
+MAX_CHARS = 3000
 _KEPT = 8
 _chunks: dict[str, list[tuple[Evidence, str]]] = {}
 

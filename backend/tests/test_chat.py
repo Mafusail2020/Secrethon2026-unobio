@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from app.chat.answer import REFUSAL, ChatAnswer, answer_with_llm, build_prompt, gate_answer
-from app.chat.context import MAX_CLAIMS, build_context, usable_claims
+from app.chat.context import MAX_CHARS, MAX_CLAIMS, build_context, usable_claims
 from app.chat.summary import (
     CITATION,
     SummaryDraft,
@@ -63,7 +63,9 @@ def test_context_is_capped():
     many = {f"c{i}": base.model_copy(update={"id": f"c{i}"}) for i in range(MAX_CLAIMS + 40)}
     big = REPORT.model_copy(update={"claims": many})
     assert len(usable_claims(big)) == MAX_CLAIMS
-    assert len(build_context(big)[0]) < 20_000
+    text = build_context(big)[0]
+    assert len(text) <= MAX_CHARS
+    assert "SECTION " in text and "more claims not shown" in text
 
 
 def test_gate_accepts_valid_citations_drops_invented_ones_and_refuses_unbacked_answers():

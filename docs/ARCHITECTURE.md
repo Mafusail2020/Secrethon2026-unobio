@@ -7,7 +7,8 @@ drug program, never the company.
 
 Status legend: **[1a]** contracts and skeleton, **[1b]** walking skeleton (both shipped), **[later]** planned. The fetch,
 analysis, quant and verdict nodes are real. The fixture helpers in `nodes/_fixture.py` remain for mock mode and as the contract
-example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode is implemented (`llm/panel.py`) and tested with a faked gateway; it has not been run live.
+example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode (`llm/panel.py`) has been run live once (2 analysts); answers too long to compare in one call keep the first
+analyst's answer and say agreement is unknown.
 
 ## 1. Principles
 
@@ -249,7 +250,7 @@ to a claim. In `mock` mode the answer is canned from the verdict's reason claims
 node id `chat`, so they count in the trace and cost.
 
 When the run read uploaded files, `chat/documents.py` also hands the model the passages of those files that match the question
-(up to 6 chunks and 3500 characters, ranked by the same FTS index; a question that matches nothing gets the start of the files).
+(up to 6 chunks and 3000 characters, ranked by the same FTS index; a question that matches nothing gets the start of the files).
 They sit in a `<documents>` block with their evidence ids, and the answer may cite them in `cited_evidence_ids` the way it cites
 claims in `cited_claim_ids`. `gate_answer` keeps only passage ids that were in front of the model, and an answer marked supported
 with neither a real claim nor a real passage is replaced by the refusal. Passage ids are stored in the same JSON column as claim

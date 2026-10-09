@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -11,6 +12,8 @@ from app.contracts import ChatMessage, ErrorResponse, LLMCallRecord
 from app.core.errors import ApiError
 from app.core.services import Services
 from app.llm.types import LLMParseError
+
+log = logging.getLogger(__name__)
 
 router = APIRouter()
 Svc = Annotated[Services, Depends(get_services)]
@@ -74,6 +77,9 @@ async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMes
             raise ApiError(
                 502, "chat_failed", "the model's answer could not be read; try again"
             ) from exc
+        except Exception as exc:  # a refused or failed gateway call
+            log.warning("chat answer failed on %s: %s", run_id, exc)
+            raise ApiError(502, "chat_failed", "the model could not answer; try again") from exc
         await services.llm_repo.add_call(
             run_id,
             "chat",
@@ -116,7 +122,9 @@ async def run_summary(run_id: str, services: Svc) -> ChatMessage:
                 message, result = await summarise_with_llm(
                     services.llm.service, services.llm.registry.default_id(), report, run_id
                 )
-            except LLMParseError:
+            except Exception as exc:  # the template briefing beats an empty thread
+                if not isinstance(exc, LLMParseError):
+                    log.warning("briefing call failed on %s: %s", run_id, exc)
                 message = template_summary(report, run_id)
             else:
                 await services.llm_repo.add_call(

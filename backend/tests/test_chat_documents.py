@@ -144,3 +144,33 @@ def test_chat_messages_without_files_are_unchanged(client):
 
 def test_the_user_message_keeps_no_citations():
     assert ChatMessage(role="user", content="x").cited_evidence_ids == []
+
+
+async def test_the_whole_prompt_stays_under_the_gateway_limit_with_files_history_and_question():
+    from app.chat.answer import SYSTEM, answer_with_llm
+    from tests.test_chat import _service
+
+    service, backend = _service(ChatAnswer(supported=False, answer="not covered"))
+    evidence = next(iter(REPORT.evidence.values()))
+    passages = [
+        Passage(
+            evidence.model_copy(
+                update={"id": f"ev_{i:016x}", "excerpt": "x" * 480, "locator": f"p. {i}"}
+            ),
+            "study.pdf",
+        )
+        for i in range(6)
+    ]
+    history = [ChatMessage(role="user", content="h" * 900) for _ in range(6)]
+    big = REPORT.model_copy(
+        update={
+            "claims": {
+                f"c{i}": c.model_copy(update={"id": f"c{i}", "text": "t" * 290})
+                for i, c in enumerate(list(REPORT.claims.values()) * 8)
+            }
+        }
+    )
+    await answer_with_llm(service, "m", big, history, "q" * 2000, "r", passages)
+    task = backend.tasks[0]
+    assert len(task.system) + len(task.user) <= 14_000
+    assert all(f"[{p.evidence.id}]" in task.user for p in passages) and SYSTEM == task.system

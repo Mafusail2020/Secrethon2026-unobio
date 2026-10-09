@@ -6,3 +6,4 @@ models:
     price_in_per_mtok: null
     price_out_per_mtok: null
     default: true
+    temperature: false  # the gateway answers 502 and still charges when a temperature is sent

@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, create_model
 
 from app.contracts import PanelCandidate, PanelResult
 from app.llm.service import LLMService
-from app.llm.types import LLMParseError, LLMResult, LLMTask
+from app.llm.types import LLMBudgetError, LLMResult, LLMTask
 
 log = logging.getLogger(__name__)
 
@@ -68,6 +68,7 @@ _COMPARATOR_SYSTEM = (
 # a model that appears twice in the pool would otherwise return its cached first answer twice
 _SPREAD = (None, 0.7, 1.0, 0.4)
 _GATEWAY_CAP = 4000
+_COMPARE_CHARS = 12000
 _SUMMARY_FALLBACK = 200
 
 
@@ -131,11 +132,17 @@ class LivePanelRunner:
         names = [m for m, _ in kept]
         results = [r for _, r in kept]
         comparator = _comparator_task(task, [r.text for r in results], names)
+        # the gateway refuses long prompts; N full answers often are one, so skip a doomed call
+        if len(comparator.system) + len(comparator.user) > _COMPARE_CHARS:
+            log.warning("panel answers on %s are too long to compare", task.purpose)
+            return self._unmerged(results, names, "The answers were too long to compare")
         try:
             merged = await service.complete(comparator, names[0])
-        except (LLMParseError, ValueError) as exc:
+        except LLMBudgetError:
+            raise
+        except Exception as exc:  # a refused comparison must not cost the analysts' answers
             log.warning("panel comparison failed on %s: %s", task.purpose, exc)
-            return self._unmerged(results, names)
+            return self._unmerged(results, names, "The comparison step failed")
 
         parsed: Any = merged.parsed
         assert parsed is not None
@@ -168,7 +175,7 @@ class LivePanelRunner:
         )
 
     @staticmethod
-    def _unmerged(results: list[LLMResult], names: list[str]) -> LLMResult:
+    def _unmerged(results: list[LLMResult], names: list[str], why: str) -> LLMResult:
         tokens_in, tokens_out, cost = _total(results)
         panel = PanelResult(
             candidates=[
@@ -176,9 +183,7 @@ class LivePanelRunner:
                 for i, (m, r) in enumerate(zip(names, results, strict=True))
             ],
             consensus="The answers could not be compared; the first one is used as written.",
-            disagreements=[
-                "The comparison step failed, so agreement between the analysts is unknown."
-            ],
+            disagreements=[f"{why}, so agreement between the analysts is unknown."],
             agreement=0.0,
         )
         return replace(

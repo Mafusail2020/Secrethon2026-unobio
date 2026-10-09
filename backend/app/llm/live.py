@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Collection
 
 from openai import (
     APIConnectionError,
@@ -38,8 +39,10 @@ class LiveBackend:
     cacheable = True
     is_mock = False
 
-    def __init__(self, client: AsyncOpenAI) -> None:
+    def __init__(self, client: AsyncOpenAI, no_temperature: Collection[str] = ()) -> None:
         self.client = client
+        # models the gateway fails (502, still charged) when a temperature is sent
+        self.no_temperature = set(no_temperature)
         # structured-output mode that worked for a model; probed lazily on its first schema call
         self._mode: dict[str, Mode] = {}
 
@@ -55,7 +58,7 @@ class LiveBackend:
             "messages": messages,
             "max_completion_tokens": task.max_tokens,
         }
-        if task.temperature is not None:
+        if task.temperature is not None and model not in self.no_temperature:
             kwargs["temperature"] = task.temperature
         if fmt is not None:
             kwargs["response_format"] = fmt
