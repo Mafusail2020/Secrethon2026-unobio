@@ -100,10 +100,13 @@ the conversation; below 768 px the history is a drawer.
    writes the words (up to a minute the first time, kept after that); each slide then has an action headline, short bullets and a
    so-what line. **Rewrite** asks for new words, and the header says whether the words are the model's or the report's own. The
    figures and charts are always the report's. Every bullet cites a claim or a passage of your files, or restates the report's
-   numbers, and each slide's footer lists the sources behind it. **Save as PDF** opens the print window: pick "Save as PDF" and
-   turn on background graphics. The file has one 16:9 page per slide. On a synthetic report every slide carries a red
-   synthetic-data line. **Back to the report** returns.
-2. **Full report (PDF)**: prints the report page with every branch open.
+   numbers, and each slide's footer lists the sources behind it. **Download PDF** draws each slide in the browser and saves a
+   file with one 16:9 page per slide ("Creating the PDF… n of 12" while it works, a few seconds); no print window. On a
+   synthetic report every slide carries a red synthetic-data line. **Back to the report** returns.
+2. **Full report (PDF)**: downloads an A4 file the backend builds (`GET /api/runs/{id}/report.pdf`): the call and figures, the four
+   questions with claims for and against, the numbers behind it (chart, tables), every claim by section with its quotes and
+   rejection reasons, risks, numbered sources with links, and the run details. Selectable text, about 80 KB. In the mock there is
+   no backend, so this item prints the report page instead.
 3. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
 4. **Download the trace** (live only).
 
@@ -140,7 +143,7 @@ Add `?scenario=` to `/underwriting` before starting a run:
 3. Drag the thin bar between the conversation and the panels to give either side more room (focus it and use ←/→ too).
 4. Reload: the arrangement is back. Close all views and reload: they stay closed.
 5. Click a citation number in the briefing while Report is behind another tab: Report comes to the front at that claim.
-6. **Print** from the Report with a split layout: only the report prints.
+6. **Full report (PDF)** from a split layout downloads the same file, whatever panels are open.
 
 ## 7. Automated checks
 

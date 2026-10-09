@@ -17,7 +17,8 @@ a mock run has few or no claims; `LLM_MODE=live` spends credits, so it is off un
 
 The report opens on the call, then the four questions an investor asks (will it work in people, will it get through trials
 and regulators, will it be used, is funding it worth it), with the claims for and against under each. **Generate report**
-makes a landscape investment-committee deck (12 slides, saved as a PDF), prints the full report, or copies it as Markdown.
+makes a landscape investment-committee deck (12 slides, downloaded as a PDF), downloads the full report as a PDF, or copies it
+as Markdown. Neither PDF goes through the browser's print dialog.
 In live mode the model writes the deck's words (an action headline, cited bullets and a so-what per slide, two calls, written
 once per run and kept); the figures, charts and tables are the report's own, and a gate drops any bullet that cites no real claim
 or passage and any sentence with a number the report does not hold. Without a model the deck uses the report's own wording.
