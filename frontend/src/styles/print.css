@@ -80,3 +80,39 @@
     content-visibility: visible !important;
   }
 }
+
+/* The investment-committee deck: one 1280 by 720 slide per landscape page. DeckPage sets body[data-print="deck"]
+   and adds the matching @page rule only while it is mounted. */
+@media print {
+  body[data-print="deck"] [data-print-hide] {
+    display: none !important;
+  }
+  body[data-print="deck"] .deck-root,
+  body[data-print="deck"] .deck-stage {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: none !important;
+  }
+  body[data-print="deck"] .deck-stage > div {
+    display: block !important;
+  }
+  body[data-print="deck"] .deck-frame {
+    width: 1280px !important;
+    height: 720px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    break-after: page;
+    overflow: hidden;
+  }
+  body[data-print="deck"] .deck-scale {
+    transform: none !important;
+  }
+  body[data-print="deck"] .deck-slide,
+  body[data-print="deck"] .deck-slide * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

@@ -45,11 +45,13 @@ the conversation; below 768 px the history is a drawer.
 
 1. Report view: it opens on the call (decision, probability, value, what carries it and what holds it back) and four
    question cards, each with a standing and a for/against scale. The header is one row: the chips jump between the questions and
-   highlight where you are, and once you scroll past the call the first chip shows the decision and probability; Copy, Trace and
-   Print sit at its right. **Expand all** opens every branch.
+   highlight where you are, and once you scroll past the call the first chip shows the decision and probability; the
+   **Generate report** button sits at its right. **Expand all** opens every branch.
 2. Open **Will it get through trials and regulators?**, then a claim from **Against**, then **▸ Evidence (2)** on the
    "TERMINATED" claim: the verbatim quote (`overallStatus: TERMINATED`), where it sits, the source type, and a working
-   ClinicalTrials.gov link. The sections, charts and all claims are under the closed **Full report**.
+   ClinicalTrials.gov link. **The numbers behind it** (closed) holds the evidence ledger, where the risk comes from, what the
+   claims rest on, where the evidence comes from, similar programs and funding; the sections and all claims are under the
+   closed **Full report**.
 3. Hover the **extracted** chip: the tooltip explains the six labels.
 4. A question with nothing to weigh says **Not enough evidence**, with what could not be established.
 5. **All claims** → filter by stance *against* and search "terminated"; **Clear** resets.
@@ -75,10 +77,18 @@ the conversation; below 768 px the history is a drawer.
    ring in blue when the draft would recompute any step inside.) While the form is open the steps that would
    recompute are outlined and the rest dim.
 
-## 4. Export
+## 4. Generate report
 
-Report header, on the same row as the chips: **Copy** (as Markdown: paste somewhere: verdict, sections, claims with source links,
-run details), **Trace** (download, live only), **Print** (preview: only the report prints, no site chrome).
+**Generate report** (report header, right of the chips) opens a menu:
+
+1. **Investment committee deck**: opens a page of 12 landscape slides (title, our call, the four questions, how the chance of
+   success was built, similar programs, funding, how solid the evidence is, key risks, our recommendation). Every line is a
+   claim, number or range of the report; each slide's footer lists the sources behind it. **Save as PDF** opens the print
+   window: pick "Save as PDF" and turn on background graphics. The file has one 16:9 page per slide. On a synthetic report
+   every slide carries a red synthetic-data line. **Back to the report** returns.
+2. **Full report (PDF)**: prints the report page with every branch open.
+3. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
+4. **Download the trace** (live only).
 
 ## 5. Messy data (mock only)
 

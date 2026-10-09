@@ -5,8 +5,9 @@ optional drug, modality, stage, preclinical results, notes and links. Output: **
 and a report where every claim drills down Recommendation → Claims → Evidence → Sources. The unit of analysis is the
 drug program, never the company.
 
-Status legend: **[1a]** contracts and skeleton, **[1b]** walking skeleton (both shipped), **[later]** planned. Node bodies other
-than `report_assembler` are still fixture-driven stubs until Person B replaces them; everything around them is real.
+Status legend: **[1a]** contracts and skeleton, **[1b]** walking skeleton (both shipped), **[later]** planned. The fetch,
+analysis, quant and verdict nodes are real. The fixture helpers in `nodes/_fixture.py` remain for mock mode and as the contract
+example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode is not implemented yet.
 
 ## 1. Principles
 

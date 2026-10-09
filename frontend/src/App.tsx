@@ -1,5 +1,6 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import GlyphFieldLab from "./features/lab/GlyphFieldLab";
+import DeckPage from "./features/underwriting/artifact/report/deck/DeckPage";
 import UnderwritingPage from "./features/underwriting/UnderwritingPage";
 import { ChatLayout } from "./shell/ChatLayout";
 import { GravityShell } from "./shell/GravityShell";
@@ -12,6 +13,7 @@ const router = createBrowserRouter([
     children: [{ path: "/", element: <HomePage /> }],
   },
   { path: "/lab/glyph-field", element: <GlyphFieldLab /> },
+  { path: "/underwriting/runs/:runId/deck", element: <DeckPage /> },
   {
     element: <GravityShell />,
     children: [

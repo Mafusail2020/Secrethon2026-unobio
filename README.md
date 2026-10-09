@@ -9,10 +9,18 @@ Concept for Unobio, not affiliated. Design and decisions: [docs/ARCHITECTURE.md]
 
 ## Status
 
-Walking skeleton (PR 1a and 1b): the whole pipeline runs end to end with streaming, corrections and a UI. Node bodies are
-fixture-driven stubs, so reports are synthetic and say so (`FIXTURE:` text, `meta.synthetic`). Real data fetching, analysis
-and quant arrive node by node. The LLM layer is real: `live` mode is implemented and tested against a faked gateway, and
-costs nothing until you set `LLM_MODE=live`.
+The pipeline runs end to end with streaming, corrections, a chat, and a report you can walk from the call down to the
+sources. Data fetching (ClinicalTrials.gov, Europe PMC, openFDA, Open Targets), the analysis nodes, the quant (evidence
+ledger, similar programs, valuation) and the verdict are real. In `LLM_MODE=mock` the analysis nodes get canned replies, so
+a mock run has few or no claims; `LLM_MODE=live` spends credits, so it is off until you set it. A report that still contains
+`FIXTURE:` placeholder text says so (`meta.synthetic`), and so does the committee deck.
+
+The report opens on the call, then the four questions an investor asks (will it work in people, will it get through trials
+and regulators, will it be used, is funding it worth it), with the claims for and against under each. **Generate report**
+makes a landscape investment-committee deck (12 slides, written from the report only, saved as a PDF), prints the full
+report, or copies it as Markdown.
+
+Not done yet: panel mode in live (several models analysing independently) falls back to a single call with a warning.
 
 ## Quick start
 
