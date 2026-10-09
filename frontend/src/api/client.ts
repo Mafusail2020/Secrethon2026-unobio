@@ -132,6 +132,10 @@ export const liveApi: Api = {
 export const documentFileUrl = (documentId: string): string | null =>
   import.meta.env.VITE_API_MODE === "mock" ? null : `/api/documents/${documentId}/file`;
 
+/** The report as a PDF file, built by the backend. The mock has no backend, so the browser prints instead. */
+export const reportPdfUrl = (runId: string): string | null =>
+  import.meta.env.VITE_API_MODE === "mock" ? null : `/api/runs/${runId}/report.pdf`;
+
 /** The trace download exists only on the real backend. */
 export const traceUrl = (runId: string): string | null =>
   import.meta.env.VITE_API_MODE === "mock" ? null : `/api/runs/${runId}/trace`;

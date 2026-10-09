@@ -211,6 +211,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs/{id}/report`, `/runs/{id}/nodes/{node}` | `UnderwritingReport`; full `NodeExecution` |
 | POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable. `document_ids` (only on `ingest_user_input`, 422 `documents_need_ingest` otherwise) replaces the set of documents the new version reads; an empty list means none, absent keeps the parent's |
 | GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
+| GET | `/runs/{id}/report.pdf` | the report as an A4 PDF download (`application/pdf`, `Content-Disposition: attachment`); 404 `run_not_found`, 409 `run_not_completed`. Built by `report_pdf/build.py` with reportlab and the bundled DejaVu fonts (`app/assets/fonts`, so Greek letters and math signs render); no LLM, no network |
 | GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
 | GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
 | POST | `/runs/{id}/summary` | the plain-language read-out of a completed run (`ChatMessage` with cited claim ids). Written once and stored in `run_summaries`; asking again returns the same text. 409 until the run completed |
@@ -234,6 +235,13 @@ text or the passages (small counts up to 12 are free), and drops a claim slide w
 `run_decks`; `rewrite=true` writes it again. In mock mode, or when both calls fail or nothing survives, the script is empty and the
 frontend builds the deck from the report's own wording, which is also what any slide the model left out gets. The deck page waits for
 the script before showing slides so nothing jumps, and has a Rewrite button. Cost is logged under node id `deck`.
+
+**PDF files.** Neither export uses the browser's print dialog (Chrome's preview of the report page came out blank on some machines).
+The report PDF is built by the backend (above), straight from the stored `UnderwritingReport`: the verdict and figures, the four
+questions, a ledger chart and tables, every claim with quotes and rejection reasons, risks, and numbered sources. The deck PDF is
+made in the browser by `deckPdf.ts`: each fixed 1280×720 slide is drawn with `html-to-image` at 2× and placed on its own landscape
+page with `jsPDF` (both loaded only when the button is pressed). It has no text layer, as the slides are images; no `backgroundColor`
+is passed to `html-to-image`, since that would paint over the navy title slide. The print styles stay for the mock, which has no backend.
 
 ### Uploaded documents
 
