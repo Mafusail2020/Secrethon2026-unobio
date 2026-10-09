@@ -152,3 +152,20 @@ async def test_plain_text_task_sends_no_response_format(make_service):
     assert result.text == "hello" and result.parsed is None
     assert gateway.formats() == [None]
     assert [m["role"] for m in gateway.bodies[0]["messages"]] == ["user"]
+
+
+async def test_a_model_that_rejects_temperature_never_gets_one(tmp_path):
+    db = Database(tmp_path / "t.db")
+    await db.init()
+    gateway = Gateway(_reply("hello"))
+    client = AsyncOpenAI(
+        base_url="https://gw.example.org/v1",
+        api_key="test-key",
+        max_retries=0,
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(gateway)),
+    )
+    registry = ModelRegistry([ModelInfo(id="m", label="m", tier="cheap", available=True)])
+    service = LLMService(LiveBackend(client, {"m"}), registry, LLMRepo(db), cache_enabled=False)
+    await service.complete(LLMTask(purpose="p", system="", user="hi", temperature=0.2), "m")
+    assert "temperature" not in gateway.bodies[0]
+    await db.dispose()

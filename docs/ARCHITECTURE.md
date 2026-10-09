@@ -7,7 +7,8 @@ drug program, never the company.
 
 Status legend: **[1a]** contracts and skeleton, **[1b]** walking skeleton (both shipped), **[later]** planned. The fetch,
 analysis, quant and verdict nodes are real. The fixture helpers in `nodes/_fixture.py` remain for mock mode and as the contract
-example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode is implemented (`llm/panel.py`) and tested with a faked gateway; it has not been run live.
+example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode (`llm/panel.py`) has been run live once (2 analysts); answers too long to compare in one call keep the first
+analyst's answer and say agreement is unknown.
 
 ## 1. Principles
 

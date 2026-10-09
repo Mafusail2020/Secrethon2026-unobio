@@ -136,6 +136,27 @@ async def test_an_unparsable_comparison_keeps_the_first_answer_and_says_agreemen
     assert result.tokens_in == 200
 
 
+async def test_a_refused_comparison_keeps_the_first_answer():
+    service = FakeService(
+        {"a": {"verdict": "invest", "score": 7}, "b": {"verdict": "pass", "score": 2}},
+        RuntimeError("Request exceeds the conservative input limit"),
+    )
+    result = await LivePanelRunner().run(service, TASK, ["a", "b"])  # type: ignore[arg-type]
+    assert result.parsed == Answer(verdict="invest", score=7)
+    assert result.panel is not None and "unknown" in result.panel.disagreements[0]
+
+
+async def test_answers_too_long_to_compare_skip_the_comparison_call():
+    long = "x" * 7000
+    service = FakeService(
+        {"a": {"verdict": long, "score": 7}, "b": {"verdict": long, "score": 2}}, COMPARE
+    )
+    result = await LivePanelRunner().run(service, TASK, ["a", "b"])  # type: ignore[arg-type]
+    assert [t.purpose for t, _ in service.calls] == ["section.thesis", "section.thesis"]
+    assert result.parsed is not None and result.parsed.score == 7
+    assert result.panel is not None and "too long" in result.panel.disagreements[0]
+
+
 async def test_free_text_tasks_are_merged_as_text():
     class TextService(FakeService):
         async def complete(self, task: LLMTask, model: str) -> LLMResult:

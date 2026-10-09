@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 
+import yaml
 from openai import AsyncOpenAI
 
 from app.core.settings import Settings
@@ -30,7 +31,9 @@ def build_live_backend(settings: Settings) -> tuple[Backend, AsyncOpenAI]:
     if not key:
         raise RuntimeError("LLM_MODE=live needs TEAM_API_KEY in .env")
     client = AsyncOpenAI(base_url=settings.llm_base_url, api_key=key)
-    return LiveBackend(client), client
+    raw = yaml.safe_load((settings.config_dir / "models.yaml").read_text()) or {}
+    no_temperature = {m["id"] for m in raw.get("models", []) if m.get("temperature") is False}
+    return LiveBackend(client, no_temperature), client
 
 
 async def build_llm_stack(settings: Settings, repo: LLMRepo) -> LLMStack:
