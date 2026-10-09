@@ -27,6 +27,19 @@ export function buildSourceRows(report: UnderwritingReport): SourceRow[] {
   }));
 }
 
+/** The sources the analysis went and found: everything except the files the user uploaded, which have their own list. */
+export function analysisSources(report: UnderwritingReport): UnderwritingReport {
+  const found = Object.fromEntries(Object.entries(report.sources).filter(([, s]) => !s.identifiers?.document));
+  return { ...report, sources: found };
+}
+
+/** How many there are and who published them, most first, for a header that is read before the table is opened. */
+export function summarizeSources(report: UnderwritingReport): { count: number; publishers: string[] } {
+  const counts = new Map<string, number>();
+  for (const s of Object.values(report.sources)) counts.set(s.publisher, (counts.get(s.publisher) ?? 0) + 1);
+  return { count: Object.keys(report.sources).length, publishers: [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name) };
+}
+
 const value = (row: SourceRow, key: SortKey): string | number => {
   switch (key) {
     case "title": return row.source.title.toLowerCase();

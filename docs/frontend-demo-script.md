@@ -23,7 +23,8 @@ The screen is laid out like a chat app: history on the left, the conversation in
 again, or the ✕ on the tab, to close it). The views are draggable, see section 6b. Below 1280 px the panel area covers
 the conversation; below 768 px the history is a drawer.
 
-1. Open `/underwriting`. Type **Alzheimer's disease** as the indication and **BACE1 inhibition** as the mechanism. Nothing
+1. Open `/underwriting`: the greeting types itself out, character by character (all at once with "reduce motion" on), and the card
+   below it does not move while it does. Type **Alzheimer's disease** as the indication and **BACE1 inhibition** as the mechanism. Nothing
    runs yet. Report, Sources and Logs are greyed out until there is a run; **Graph** already works.
 2. Effort: hover **Panel** and read the hint ("Several models analyse independently…"), then click back to **Medium**.
 3. Press **⌘/Ctrl+Enter** or the arrow button. The URL becomes `/underwriting/runs/<id>`; the run appears in the
@@ -55,7 +56,9 @@ the conversation; below 768 px the history is a drawer.
 3. Hover the **extracted** chip: the tooltip explains the six labels.
 4. A question with nothing to weigh says **Not enough evidence**, with what could not be established.
 5. **All claims** → filter by stance *against* and search "terminated"; **Clear** resets.
-6. Sources view: sort by **Cited by**, filter **trial**, click "1 claim" and open it in the report.
+6. Sources view: two cards. **Your documents** (blue edge) holds your files; **Found by the analysis** (grey edge,
+   "Public sources") is closed and says how many sources there are and who from. Press **Show**: sort by **Cited by**, filter
+   **trial**, click "1 claim" and open it in the report. Your uploaded files are not repeated in that table.
 7. Logs view: filter by step, search, **Group by step**, **Copy**.
 
 8. Back in the conversation, ask **Why is this conditional and not a no?** in the box at the bottom (it opens once the
@@ -76,6 +79,17 @@ the conversation; below 768 px the history is a drawer.
 5. Alternative path: **Graph** → click **Quantify and decide** to open it → click **Verdict** → **Correct** tab. (Folded boxes
    ring in blue when the draft would recompute any step inside.) While the form is open the steps that would
    recompute are outlined and the rest dim.
+
+## 3b. Your documents
+
+1. In the new-chat card press **Add details**, then drop a PDF, TXT or MD file on the **Documents** area (up to five, 10 MB
+   each). A file the server refuses shows why under the list; **×** removes one. Start the run.
+2. Open **Sources** in the top bar. **Your documents** is the first card, above the closed **Found by the analysis**: one row per file with a tick box, its
+   size, and whether the run read it ("23 passages read, cited by 2 claims", "…, no claim cites it", or "Could not be read, so
+   nothing from it was used" for a scan or a broken file). **Open** shows the file itself.
+3. Untick a file, or drop another one on the strip below the list: a bar says how many are selected. **Re-run with these**
+   makes a new version that starts again from the user-input step (the steps before it are reused) and opens it on the Graph
+   view. In the new version the left-out file is still listed, unticked and marked "Not in this version", so it can be put back.
 
 ## 4. Generate report
 

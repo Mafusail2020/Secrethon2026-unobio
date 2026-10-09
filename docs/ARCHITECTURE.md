@@ -91,9 +91,11 @@ change the posterior, only the picture of the steps.
 
 ### 2c. Two knowledge stores [later]
 
-Today `knowledge_indexer` builds a word-overlap vector index (a stand-in for LanceDB) and a trivial graph (disease, target
-and drug nodes with `mentioned_in` edges to every source); the retrievers ignore the graph. The plan is two stores with
-different jobs, not one graph:
+Today `knowledge_indexer` builds a BM25 full-text index in SQLite FTS5 (`store/vector.py`; there is no vector database and no
+embeddings: a run holds a few hundred evidence items, keyword ranking is enough, needs no model download or credits, and
+the quote gate is lexical anyway) and a graph of typed edges, each pointing at an evidence id. The retriever uses the graph
+only to boost ranking (x1.5 for evidence on an edge touching the program's target or disease, x1.25 one hop away). The plan is
+two stores with different jobs, not one graph:
 
 | Store | Scope | Built | Used by |
 |---|---|---|---|
@@ -207,13 +209,35 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/runs?limit=`, `/runs/{id}` | `RunSummary[]`; `RunDetail` (node list without logs and LLM calls) |
 | GET | `/runs/{id}/events` | SSE of `RunEvent`; `id:` is the seq |
 | GET | `/runs/{id}/report`, `/runs/{id}/nodes/{node}` | `UnderwritingReport`; full `NodeExecution` |
-| POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable |
+| POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable. `document_ids` (only on `ingest_user_input`, 422 `documents_need_ingest` otherwise) replaces the set of documents the new version reads; an empty list means none, absent keeps the parent's |
 | GET | `/runs/{id}/diff/{other}` | `ReportDiff` going from `id` to `other`; 400 across lineages |
 | GET | `/runs/{id}/trace` | JSON download: run, lineage, corrections, events, node executions, LLM calls |
 | GET | `/evidence/{id}` | `EvidenceDetail` (evidence plus its source) |
 | POST | `/runs/{id}/summary` | the plain-language read-out of a completed run (`ChatMessage` with cited claim ids). Written once and stored in `run_summaries`; asking again returns the same text. 409 until the run completed |
 | GET | `/runs/{id}/messages` | chat history of the run, oldest first |
 | POST | `/runs/{id}/messages` | follow-up question (`role: user`, 1–2000 chars); returns the assistant `ChatMessage`. 409 until the run completed, 422 on a bad message, 429 after `MAX_CHAT_QUESTIONS`, 502 `chat_failed` if the model reply is unreadable |
+| POST | `/documents` | `DocumentInfo` (201). The raw file is the body, its name percent-encoded in `X-File-Name`. PDF, TXT or MD up to 10 MB; 413 `document_too_large`, 415 `unsupported_document`, 422 `invalid_document`. Kept under `DATA_DIR/documents` by content hash (`doc_` + 16 hex), so the same bytes are one document. A run names up to five in `program.document_ids`; `POST /runs` answers 422 `unknown_document` for an id that was never uploaded. Reading them is the ingest node's job (`DocumentStore.get(id).read()`) |
+| GET | `/documents/{id}`, `/documents/{id}/file` | `DocumentInfo`; the file as uploaded (inline, `nosniff`, `sandbox`), so a reader can check a quote against it |
+
+### Uploaded documents
+
+`POST /documents` only keeps the file. `ingest_user_input` reads it (`sources/documents.py`): a PDF page by page with `pypdf`
+(text only; a scan with no text layer, a password-protected file or a broken one is logged and listed in `documents_unread`),
+text and Markdown in parts of about 3000 characters at paragraph breaks. Each page or part is cut into sentence-aligned
+chunks of about 1500 characters, each a verbatim slice, so the quote gate works on them like on any evidence. One document is
+one `user_provided` source (`identifiers.document` = the document id) and every chunk is an evidence item whose locator is the
+page (`p. 3`, or `p. 3 [2]` when a page has several chunks; `part 2` for text). All chunks are registered, so
+`knowledge_indexer` indexes them and the retrievers can find them. In addition, the few chunks that mention the program's own
+terms (up to 6, 3500 characters in all, across every file) are added to `program_evidence_ids`, which the efficacy and safety
+lanes and both cases are handed first, after the user's own notes. Reading is capped at 300 pages or 400k characters per file
+and 400 chunks. The step records what it read in its scratch (`documents_read`: source id, name, chunk count); the report
+assembler lists those sources even when no claim cites them and adds the chunk count to `identifiers.chunks`, so the Sources
+view can say "23 passages read, no claim cites it". Unreadable files also become a line in `critical_unknowns`.
+
+A PDF page with no text layer is read with OCR when the optional `ocr` extra is installed (`rapidocr-onnxruntime`, offline, about
+1 to 2 seconds a page, up to 30 pages per file; roughly nine words in ten come out right on a decent scan). Such a page's locator reads
+`p. 3 (OCR)`, so a citation says where its text came from. Without the extra a scan is reported as unreadable. OCR runs in a worker
+thread so a long scan does not stall the event loop.
 
 ### Follow-up chat
 
@@ -224,6 +248,14 @@ data; the system prompt says to use only the report text. `gate_answer` drops ci
 answer marked supported with no valid citation is replaced by a fixed refusal, so the chat never states what it cannot tie
 to a claim. In `mock` mode the answer is canned from the verdict's reason claims. Live calls are logged to `llm_calls` with
 node id `chat`, so they count in the trace and cost.
+
+When the run read uploaded files, `chat/documents.py` also hands the model the passages of those files that match the question
+(up to 6 chunks and 3000 characters, ranked by the same FTS index; a question that matches nothing gets the start of the files).
+They sit in a `<documents>` block with their evidence ids, and the answer may cite them in `cited_evidence_ids` the way it cites
+claims in `cited_claim_ids`. `gate_answer` keeps only passage ids that were in front of the model, and an answer marked supported
+with neither a real claim nor a real passage is replaced by the refusal. Passage ids are stored in the same JSON column as claim
+ids, told apart by their `ev_` prefix, because there is no migration step and existing databases hold the demo runs. Parsed files are
+cached in memory per document id. The UI shows each as a chip (file and page) that opens the quote.
 
 `summary.py` writes the briefing that sits under a finished run: a compact Markdown report of 400 to 650 words (Verdict, Why this
 call, What the report found with one subsection per report section, Funding to the next milestone, Risks and unknowns, What
@@ -255,7 +287,7 @@ SQLite at `backend/data/app.db` via SQLAlchemy 2 async, `create_all` at startup,
 report JSON), `run_events`, `node_executions` (compact output for the UI plus the full state delta for replay),
 `corrections`, `chat_messages`, `run_summaries`, `llm_calls`, `llm_cache`. Person B adds `source_cache`, `sources`, `evidence`, `kg_nodes`, `kg_edges` with the
 real stores; until then `store/fakes.py` keeps them in memory (so `/evidence/{id}` only knows evidence from the running
-process). Vectors live in LanceDB under `backend/data/vectors` [later]. `backend/data/` is git-ignored.
+process). The full-text index is the `evidence_fts` table in the same SQLite file. Uploaded files are under `backend/data/documents`. `backend/data/` is git-ignored.
 
 ## 9b. Frontend [1b]
 
@@ -425,7 +457,7 @@ reads `assessments` and weighs them. Gathering and scoring are code and cost not
   replay.
 - **`asyncio.gather` instead of `Send` for section analysts.** `Send` creates N invocations of one node id, which muddies
   events and replay. One node, one record, per-section progress. `Send` remains possible later.
-- **SQLite + LanceDB.** Zero-ops, file based, enough for a hackathon and a single-box demo.
+- **SQLite, with FTS5 instead of LanceDB.** Zero-ops, file based, enough for a hackathon and a single-box demo. Embeddings would add a model dependency and cost for a few hundred items per run; revisit if long uploaded documents make keyword matching miss.
 - **APIs, not scrapers.** Official APIs behind `sources/` with a cache; a scraper only for a real gap with approval.
 - **Mock-first LLM.** `LLM_MODE=mock` gives deterministic zero-cost output for development and tests. Deliverables
   (demo, cost per run, README numbers) come from `live` runs.

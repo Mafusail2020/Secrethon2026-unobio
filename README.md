@@ -59,7 +59,7 @@ make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
 
 | Target | What it does |
 |---|---|
-| `setup` | `uv sync` and `npm install` |
+| `setup` | `uv sync --extra ocr` and `npm install`. The `ocr` extra (about 250 MB) lets uploaded scanned PDFs be read; a plain `uv sync` removes it, and scans are then reported as unreadable |
 | `dev` | Backend and frontend together |
 | `check` | `ruff` check and format check, `pytest`, `tsc`, `eslint`, `vitest`, generated types up to date |
 | `types` | Export OpenAPI to `contracts/openapi.json`, regenerate `frontend/src/api/types.gen.ts` |

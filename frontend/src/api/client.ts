@@ -2,6 +2,7 @@ import type {
   ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
+  DocumentInfo,
   EvidenceDetail,
   GraphSpec,
   HealthStatus,
@@ -23,6 +24,9 @@ export interface Api {
   models(): Promise<ModelInfo[]>;
   listRuns(): Promise<RunSummary[]>;
   createRun(body: CreateRunRequest): Promise<RunSummary>;
+  /** Keeps a file for the next run; the run names it by the returned id. */
+  uploadDocument(file: File): Promise<DocumentInfo>;
+  getDocument(documentId: string): Promise<DocumentInfo>;
   getRun(runId: string): Promise<RunDetail>;
   getReport(runId: string): Promise<UnderwritingReport>;
   getNode(runId: string, nodeId: string): Promise<NodeExecution>;
@@ -85,6 +89,14 @@ export const liveApi: Api = {
   models: () => request("/models"),
   listRuns: () => request("/runs?limit=100"),
   createRun: (body) => post("/runs", body),
+  getDocument: (id) => request(`/documents/${id}`),
+  // the raw file is the body; its name travels in a header so no multipart parser is needed
+  uploadDocument: (file) =>
+    request("/documents", {
+      method: "POST",
+      headers: { "Content-Type": file.type || "application/octet-stream", "X-File-Name": encodeURIComponent(file.name) },
+      body: file,
+    }),
   getRun: (id) => request(`/runs/${id}`),
   getReport: (id) => request(`/runs/${id}/report`),
   getNode: (id, nodeId) => request(`/runs/${id}/nodes/${nodeId}`),
@@ -111,6 +123,10 @@ export const liveApi: Api = {
     return () => source.close();
   },
 };
+
+/** The uploaded file itself, for a reader to open. The mock has no file behind an id. */
+export const documentFileUrl = (documentId: string): string | null =>
+  import.meta.env.VITE_API_MODE === "mock" ? null : `/api/documents/${documentId}/file`;
 
 /** The trace download exists only on the real backend. */
 export const traceUrl = (runId: string): string | null =>

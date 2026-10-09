@@ -86,8 +86,12 @@ export function RunWorkspace({ runId }: { runId: string | undefined }) {
   const grew = `${stream.events.length}:${follow.messages.length}:${follow.ask.isPending}:${detail.isPending}:${readout.isLoading}:${!!readout.data}`;
   useEffect(() => {
     const el = scroller.current;
-    if (el && pinned.current) el.scrollTo({ top: el.scrollHeight });
-  }, [grew]);
+    if (!el) return;
+    // the new-chat screen is not a thread: it starts at the top, and its entrance animation (which briefly
+    // makes the pane taller) must not be followed down and then snapped back
+    if (!runId) el.scrollTo({ top: 0 });
+    else if (pinned.current) el.scrollTo({ top: el.scrollHeight });
+  }, [grew, runId]);
 
   const hasViews = dock.open.length > 0;
   const dockPx = Math.round((rowWidth * dockPercent) / 100);

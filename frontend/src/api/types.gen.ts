@@ -4,6 +4,63 @@
  */
 
 export interface paths {
+    "/api/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Document
+         * @description The raw file as the request body, its name percent-encoded in X-File-Name.
+         */
+        post: operations["post_document_api_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Document */
+        get: operations["get_document_api_documents__document_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{document_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Document File
+         * @description The file as uploaded, so a reader can check a quote against it.
+         */
+        get: operations["get_document_file_api_documents__document_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/evidence/{evidence_id}": {
         parameters: {
             query?: never;
@@ -360,6 +417,8 @@ export interface components {
         ChatMessage: {
             /** Cited Claim Ids */
             cited_claim_ids: string[];
+            /** Cited Evidence Ids */
+            cited_evidence_ids: string[];
             /** Content */
             content: string;
             /**
@@ -443,6 +502,8 @@ export interface components {
             add_links?: string[];
             /** Add Notes */
             add_notes?: string | null;
+            /** Document Ids */
+            document_ids?: string[] | null;
             /** Exclude Evidence Ids */
             exclude_evidence_ids?: string[];
             /** Text */
@@ -465,6 +526,23 @@ export interface components {
             requires: ("proprietary_data" | "patient_level_data" | "kol_interview" | "new_experiment" | "cmc_diligence" | "ip_diligence" | "public_research")[];
             /** Why It Matters */
             why_it_matters: string;
+        };
+        /**
+         * DocumentInfo
+         * @description A file the user uploaded before starting a run; the run names it by id.
+         */
+        DocumentInfo: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "pdf" | "text";
+            /** Name */
+            name: string;
+            /** Size Bytes */
+            size_bytes: number;
         };
         /** EntityRef */
         EntityRef: {
@@ -818,6 +896,8 @@ export interface components {
         ProgramInput: {
             /** Biomarkers */
             biomarkers?: string | null;
+            /** Document Ids */
+            document_ids?: string[];
             /** Drug Name */
             drug_name?: string | null;
             /** Indication */
@@ -1295,6 +1375,100 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    post_document_api_documents_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-file-name": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentInfo"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_document_api_documents__document_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentInfo"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_document_file_api_documents__document_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_evidence_api_evidence__evidence_id__get: {
         parameters: {
             query?: never;

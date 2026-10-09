@@ -7,6 +7,7 @@ import type {
   ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
+  DocumentInfo,
   GraphSpec,
   LLMCall,
   NodeExecution,
@@ -42,6 +43,7 @@ interface MockRun {
 }
 
 const runs = new Map<string, MockRun>();
+const documents = new Map<string, DocumentInfo>();
 let counter = 0;
 
 const flips = (run: MockRun) => run.corrections.some((c) => /terminated/i.test(c.text));
@@ -82,6 +84,31 @@ function buildReport(run: MockRun): UnderwritingReport {
     parent_run_id: run.summary.parent_run_id ?? null,
     correction_id: run.summary.parent_run_id ? (last?.id ?? null) : null,
   };
+  for (const id of run.summary.program.document_ids ?? []) {
+    const info = documents.get(id);
+    if (!info) continue;
+    const sourceId = `src_${id.slice(4)}`;
+    report.sources[sourceId] = {
+      id: sourceId,
+      type: "user_provided",
+      title: `User document: ${info.name}`,
+      url: null,
+      publisher: "You",
+      published_at: null,
+      retrieved_at: run.summary.created_at,
+      identifiers: { document: id, chunks: "1" },
+    };
+    const evidenceId = `ev_${id.slice(4)}`;
+    report.evidence[evidenceId] = {
+      id: evidenceId,
+      source_id: sourceId,
+      excerpt: `FIXTURE: text read from ${info.name}`,
+      locator: "p. 1",
+      entity_ids: [],
+      kind: "text",
+      data: null,
+    };
+  }
   if (flips(run)) {
     report.verdict = {
       ...report.verdict,
@@ -235,6 +262,20 @@ export const mockApi: Api = {
         .sort((a, b) => b.created_at.localeCompare(a.created_at)),
     ),
   createRun: (body) => wait({ ...create(body).summary }),
+  uploadDocument: async (file) => {
+    const kind = /\.pdf$/i.test(file.name) ? "pdf" : /\.(txt|md)$/i.test(file.name) ? "text" : undefined;
+    if (!kind) throw new ApiError(415, "unsupported_document", "only PDF, TXT and MD files are accepted");
+    if (file.size > 10_000_000) throw new ApiError(413, "document_too_large", `${file.name} is over 10 MB`);
+    const seed = [...`${file.name}:${file.size}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const info: DocumentInfo = { id: `doc_${seed.toString(16).padStart(16, "0")}`, name: file.name, kind, size_bytes: file.size };
+    documents.set(info.id, info);
+    return wait(info);
+  },
+  getDocument: (id) => {
+    const info = documents.get(id);
+    if (!info) throw new ApiError(404, "document_not_found", `no document ${id}`);
+    return wait(info);
+  },
   getRun: (id) => {
     const run = need(id);
     const nodes = runnableNodes(spec).flatMap((n) => {
@@ -262,7 +303,11 @@ export const mockApi: Api = {
     if (!entry) throw new ApiError(404, "node_not_found", `no node ${nodeId}`);
     if (!entry.correctable) throw new ApiError(422, "node_not_correctable", `${nodeId} cannot be corrected`);
     const correction = { id: `cor_mock_${counter + 1}`, run_id: id, node_id: nodeId, text: body.text };
-    const child = create({ program: parent.summary.program, options: parent.summary.options }, parent, correction);
+    if (body.document_ids && nodeId !== "ingest_user_input") {
+      throw new ApiError(422, "documents_need_ingest", "documents change at ingest_user_input");
+    }
+    const program = body.document_ids ? { ...parent.summary.program, document_ids: body.document_ids } : parent.summary.program;
+    const child = create({ program, options: parent.summary.options }, parent, correction);
     return wait({ ...child.summary });
   },
   getDiff: (from, to) => {
@@ -287,8 +332,10 @@ export const mockApi: Api = {
     });
   },
   getEvidence: (evidenceId) => {
-    const evidence = baseReport.evidence[evidenceId];
-    const source = evidence && baseReport.sources[evidence.source_id];
+    // passages of uploaded files exist only in the run that read them
+    const holder = [...runs.values()].map((r) => r.report).find((r) => r?.evidence[evidenceId]) ?? baseReport;
+    const evidence = holder.evidence[evidenceId];
+    const source = evidence && holder.sources[evidence.source_id];
     if (!evidence || !source) throw new ApiError(404, "evidence_not_found", `no evidence ${evidenceId}`);
     return wait({ evidence, source });
   },
@@ -297,7 +344,7 @@ export const mockApi: Api = {
     if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
     if (!run.readout) {
       const { text, cited } = briefing(run.report);
-      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited };
+      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited, cited_evidence_ids: [] };
     }
     return wait({ ...run.readout });
   },
@@ -309,13 +356,23 @@ export const mockApi: Api = {
     if (!question) throw new ApiError(422, "validation_error", "send a question");
     // canned: point at the claims behind the verdict, which is what a real answer would cite
     const cited = run.report.verdict.reason_codes.flatMap((r) => r.claim_ids).slice(0, 3);
+    const fileSources = new Set(
+      Object.values(run.report.sources)
+        .filter((s) => s.identifiers.document)
+        .map((s) => s.id),
+    );
+    const passages = Object.values(run.report.evidence)
+      .filter((e) => fileSources.has(e.source_id))
+      .map((e) => e.id)
+      .slice(0, 2);
     const reply: ChatMessage = {
       role: "assistant",
       run_id: runId,
       content: `Mock reply to "${question.slice(0, 80)}". The claims below are the ones the verdict rests on.`,
       cited_claim_ids: cited,
+      cited_evidence_ids: passages,
     };
-    run.chat.push({ role: "user", content: question, run_id: runId, cited_claim_ids: [] }, reply);
+    run.chat.push({ role: "user", content: question, run_id: runId, cited_claim_ids: [], cited_evidence_ids: [] }, reply);
     return wait(reply);
   },
   subscribe(runId, onEvent, onState) {

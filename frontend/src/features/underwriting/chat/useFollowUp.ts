@@ -14,11 +14,11 @@ export function useFollowUp(runId: string, enabled: boolean) {
 
   const ask = useMutation({
     mutationFn: async (content: string) =>
-      (await getApi()).postMessage(runId, { role: "user", content, run_id: runId, cited_claim_ids: [] }),
+      (await getApi()).postMessage(runId, { role: "user", content, run_id: runId, cited_claim_ids: [], cited_evidence_ids: [] }),
     onSuccess: (reply, content) => {
       queryClient.setQueryData<ChatMessage[]>(["messages", runId], (old = []) => [
         ...old,
-        { role: "user", content, run_id: runId, cited_claim_ids: [] },
+        { role: "user", content, run_id: runId, cited_claim_ids: [], cited_evidence_ids: [] },
         reply,
       ]);
     },

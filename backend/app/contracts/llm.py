@@ -23,3 +23,5 @@ class ChatMessage(Contract):
     content: str
     run_id: str | None = None
     cited_claim_ids: list[str] = Field(default_factory=list)
+    # passages of the user's uploaded files the answer rests on (evidence ids)
+    cited_evidence_ids: list[str] = Field(default_factory=list)

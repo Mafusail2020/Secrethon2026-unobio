@@ -34,6 +34,18 @@ _OptShort = Annotated[str | None, StringConstraints(max_length=300), AfterValida
 _OptLong = Annotated[str | None, StringConstraints(max_length=5000), AfterValidator(_blank_to_none)]
 
 
+DocumentId = Annotated[str, StringConstraints(pattern=r"^doc_[0-9a-f]{16}$")]
+
+
+class DocumentInfo(Contract):
+    """A file the user uploaded before starting a run; the run names it by id."""
+
+    id: DocumentId
+    name: Annotated[str, StringConstraints(max_length=200)]
+    kind: Literal["pdf", "text"]
+    size_bytes: int = Field(ge=0)
+
+
 class ProgramInput(Contract):
     indication: _Required
     mechanism: _Required
@@ -45,6 +57,7 @@ class ProgramInput(Contract):
     route: _OptShort = None
     notes: _OptLong = None
     links: list[HttpUrl] = Field(default_factory=list, max_length=20)
+    document_ids: list[DocumentId] = Field(default_factory=list, max_length=5)
 
 
 class RunOptions(Contract):

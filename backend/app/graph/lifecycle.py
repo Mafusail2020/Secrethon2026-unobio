@@ -54,6 +54,15 @@ async def create_correction_run(
     if not entry.spec.correctable:
         raise ApiError(422, "node_not_correctable", f"{node_id} cannot be corrected")
 
+    program = parent.program
+    if request.document_ids is not None:
+        if node_id != "ingest_user_input":
+            raise ApiError(422, "documents_need_ingest", "documents change at ingest_user_input")
+        missing = [d for d in request.document_ids if services.documents.get(d) is None]
+        if missing:
+            raise ApiError(422, "unknown_document", f"no uploaded document {', '.join(missing)}")
+        program = program.model_copy(update={"document_ids": list(request.document_ids)})
+
     correction = Correction(
         id=new_id("cor"),
         run_id=parent_run_id,
@@ -69,7 +78,7 @@ async def create_correction_run(
     if request.add_links or request.add_notes:
         options = options.model_copy(update={"force_refresh": True})
     return await create_run(
-        services, parent.program, options, parent_run_id=parent_run_id, correction_id=correction.id
+        services, program, options, parent_run_id=parent_run_id, correction_id=correction.id
     )
 
 

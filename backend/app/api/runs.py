@@ -39,6 +39,9 @@ async def post_run(body: CreateRunRequest, services: Svc) -> RunSummary:
     options, cap = body.options, services.settings.max_panel_size
     if options.panel_size > cap or len(options.panel_models or []) > cap:
         raise ApiError(422, "validation_error", f"panel size is capped at {cap}")
+    unknown = [d for d in body.program.document_ids if services.documents.get(d) is None]
+    if unknown:
+        raise ApiError(422, "unknown_document", f"no uploaded document {', '.join(unknown)}")
     return await create_run(services, body.program, options)
 
 

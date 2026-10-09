@@ -267,6 +267,13 @@
             "title": "Cited Claim Ids",
             "type": "array"
           },
+          "cited_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cited Evidence Ids",
+            "type": "array"
+          },
           "content": {
             "title": "Content",
             "type": "string"
@@ -293,6 +300,7 @@
         },
         "required": [
           "cited_claim_ids",
+          "cited_evidence_ids",
           "content",
           "role",
           "run_id"
@@ -498,6 +506,22 @@
             ],
             "title": "Add Notes"
           },
+          "document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "pattern": "^doc_[0-9a-f]{16}$",
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Ids"
+          },
           "exclude_evidence_ids": {
             "items": {
               "type": "string"
@@ -581,6 +605,43 @@
           "why_it_matters"
         ],
         "title": "DiligenceQuestion",
+        "type": "object"
+      },
+      "DocumentInfo": {
+        "additionalProperties": false,
+        "description": "A file the user uploaded before starting a run; the run names it by id.",
+        "properties": {
+          "id": {
+            "pattern": "^doc_[0-9a-f]{16}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "pdf",
+              "text"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "size_bytes": {
+            "minimum": 0.0,
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "size_bytes"
+        ],
+        "title": "DocumentInfo",
         "type": "object"
       },
       "EntityRef": {
@@ -1577,6 +1638,15 @@
               }
             ],
             "title": "Biomarkers"
+          },
+          "document_ids": {
+            "items": {
+              "pattern": "^doc_[0-9a-f]{16}$",
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Document Ids",
+            "type": "array"
           },
           "drug_name": {
             "anyOf": [
@@ -3074,6 +3144,124 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/documents": {
+      "post": {
+        "description": "The raw file as the request body, its name percent-encoded in X-File-Name.",
+        "operationId": "post_document_api_documents_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-file-name",
+            "required": true,
+            "schema": {
+              "title": "X-File-Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Post Document"
+      }
+    },
+    "/api/documents/{document_id}": {
+      "get": {
+        "operationId": "get_document_api_documents__document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Document"
+      }
+    },
+    "/api/documents/{document_id}/file": {
+      "get": {
+        "description": "The file as uploaded, so a reader can check a quote against it.",
+        "operationId": "get_document_file_api_documents__document_id__file_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Document File"
+      }
+    },
     "/api/evidence/{evidence_id}": {
       "get": {
         "operationId": "get_evidence_api_evidence__evidence_id__get",

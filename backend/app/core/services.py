@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from app.core.documents import DocumentStore
 from app.core.events import EventBus
 from app.core.settings import Settings
 from app.llm.factory import LLMStack, build_llm_stack
@@ -30,6 +31,7 @@ class Services:
     corrections: CorrectionsRepo
     chat: ChatRepo
     llm_repo: LLMRepo
+    documents: DocumentStore
     bus: EventBus
     llm: LLMStack
     store: Store
@@ -62,6 +64,7 @@ async def build_services(settings: Settings) -> Services:
         corrections=CorrectionsRepo(db),
         chat=ChatRepo(db),
         llm_repo=llm_repo,
+        documents=DocumentStore(settings.data_path / "documents"),
         bus=bus,
         llm=await build_llm_stack(settings, llm_repo),
         store=store,

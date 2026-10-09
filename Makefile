@@ -1,7 +1,7 @@
 .PHONY: setup dev check lint test fe-check types types-check graph-spec llm-smoke spend
 
 setup:
-	cd backend && uv sync
+	cd backend && uv sync --extra ocr
 	cd frontend && npm install
 
 dev:
