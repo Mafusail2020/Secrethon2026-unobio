@@ -272,7 +272,12 @@ async def gate(
     """gate_claims (ids exist in the run) plus the quote check; a failed quote downgrades to unknown."""
     gated = gate_claims(claims, valid)
     cited = {i for c in gated.values() for i in c.evidence_ids}
-    excerpts = {e.id: e.excerpt for e in await ctx.store.evidence.get_many_evidence(list(cited))}
+    items = await ctx.store.evidence.get_many_evidence(list(cited))
+    sources = await ctx.store.evidence.get_sources(list({e.source_id for e in items}))
+    titles = {s.id: s.title for s in sources}
+    # the digest shows each item under its source title (a trial's official title, a paper's
+    # title), so a quote from the title is a quote from what the model was given
+    excerpts = {e.id: f"{titles.get(e.source_id, '')}\n{e.excerpt}" for e in items}
     out: dict[str, Claim] = {}
     for cid, c in gated.items():
         if c.status != "rejected" and c.label in EVIDENCE_REQUIRED:

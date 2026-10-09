@@ -1,6 +1,7 @@
 """API payloads -> SourceRef + Evidence. Excerpts are verbatim text or a plain rendering of the
 structured record they come from; the claim gate matches quotes against them."""
 
+import html
 import re
 from datetime import datetime
 from typing import Any
@@ -42,6 +43,19 @@ def _date(text: str | None) -> datetime | None:
         except ValueError:
             continue
     return None
+
+
+# only known markup, so a literal "x<y and y>z" in the text survives
+_INLINE = re.compile(r"</?(?:i|b|u|em|strong|sup|sub|span|italic|bold)\b[^>]*>", re.I)
+_BLOCK = re.compile(r"</?(?:p|br|div|sec|list|list-item|abstract)\b[^>]*>", re.I)
+
+
+def plain_text(markup: str) -> str:
+    """Europe PMC abstracts carry JATS/HTML tags (<title>Abstract</title><p>...); keep the words."""
+    text = re.sub(r"<title>.*?</title>", " ", markup, flags=re.I | re.S)
+    text = re.sub(r"<h\d>(.*?)</h\d>", r" \1: ", text, flags=re.I | re.S)
+    text = html.unescape(_BLOCK.sub(" ", _INLINE.sub("", text)))
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def _evidence(
@@ -131,7 +145,7 @@ def paper_records(
         retrieved_at=utcnow(),
         identifiers=identifiers,
     )
-    abstract = (paper.get("abstract") or "").strip()
+    abstract = plain_text(paper.get("abstract") or "")
     excerpt, locator = (
         (abstract[:ABSTRACT_MAX], "abstract") if abstract else (paper["title"], "title")
     )
