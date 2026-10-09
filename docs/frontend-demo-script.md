@@ -101,7 +101,8 @@ the conversation; below 768 px the history is a drawer.
    so-what line. **Rewrite** asks for new words, and the header says whether the words are the model's or the report's own. The
    figures and charts are always the report's. Every bullet cites a claim or a passage of your files, or restates the report's
    numbers, and each slide's footer lists the sources behind it. **Download PDF** draws each slide in the browser and saves a
-   file with one 16:9 page per slide ("Creating the PDF… n of 12" while it works, a few seconds); no print window. On a
+   file with one 16:9 page per slide ("Creating the PDF… n of 12" while it works, a few seconds, about 1.3 MB); no print window. The
+   text is searchable and can be copied (Ctrl+F in the PDF viewer). On a
    synthetic report every slide carries a red synthetic-data line. **Back to the report** returns.
 2. **Full report (PDF)**: downloads an A4 file the backend builds (`GET /api/runs/{id}/report.pdf`): the call and figures, the four
    questions with claims for and against, the numbers behind it (chart, tables), every claim by section with its quotes and

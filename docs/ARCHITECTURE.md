@@ -239,9 +239,12 @@ the script before showing slides so nothing jumps, and has a Rewrite button. Cos
 **PDF files.** Neither export uses the browser's print dialog (Chrome's preview of the report page came out blank on some machines).
 The report PDF is built by the backend (above), straight from the stored `UnderwritingReport`: the verdict and figures, the four
 questions, a ledger chart and tables, every claim with quotes and rejection reasons, risks, and numbered sources. The deck PDF is
-made in the browser by `deckPdf.ts`: each fixed 1280×720 slide is drawn with `html-to-image` at 2× and placed on its own landscape
-page with `jsPDF` (both loaded only when the button is pressed). It has no text layer, as the slides are images; no `backgroundColor`
-is passed to `html-to-image`, since that would paint over the navy title slide. The print styles stay for the mock, which has no backend.
+made in the browser by `deckPdf.ts`: each fixed 1280×720 slide is drawn with `html-to-image` (1.5×, JPEG 0.8) and placed on its own
+landscape page with `jsPDF` (both loaded only when the button is pressed), about 1.3 MB for 12 slides. Over each picture goes the
+slide's own text as invisible lines (`textRuns`: words measured with `Range` rects, divided back to slide pixels, joined per line), so
+the file can be searched and copied from; the built-in PDF font is Latin-1 only, so Greek letters and math signs are spelled out
+(β → beta, ≥ → >=) in that hidden layer and anything else is dropped from it, never from the picture. No `backgroundColor` is
+passed to `html-to-image`, since that would paint over the navy title slide. The print styles stay for the mock, which has no backend.
 
 ### Uploaded documents
 
