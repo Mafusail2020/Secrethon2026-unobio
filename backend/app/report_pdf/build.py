@@ -86,6 +86,10 @@ DECISION = {"invest": "Invest", "conditional": "Conditional", "do_not_invest": "
 DECISION_COLOR = {"invest": GOOD, "conditional": WARN, "do_not_invest": BAD}
 LABELS = ("extracted", "derived", "inferred", "modeled", "hypothesis", "unknown")
 QUOTE_CHARS = 230
+# a table cell cannot be split across pages, so what goes into the boxes is bounded; the full list follows in the sections
+PER_SIDE = 6
+PER_NOTED = 5
+BOX_TEXT_CHARS = 400
 
 
 def _register_fonts() -> None:
@@ -123,10 +127,32 @@ def _styles() -> dict[str, ParagraphStyle]:
         "body": _style("body"),
         "small": _style("small", 7.4, textColor=MUTED),
         "title": _style("title", 20, fontName="DejaVu-Bold", leading=24),
-        "h1": _style("h1", 13.5, fontName="DejaVu-Bold", leading=17, spaceBefore=14, spaceAfter=5),
-        "h2": _style("h2", 10.5, fontName="DejaVu-Bold", leading=14, spaceBefore=9, spaceAfter=3),
+        "h1": _style(
+            "h1",
+            13.5,
+            fontName="DejaVu-Bold",
+            leading=17,
+            spaceBefore=14,
+            spaceAfter=5,
+            keepWithNext=1,
+        ),
+        "h2": _style(
+            "h2",
+            10.5,
+            fontName="DejaVu-Bold",
+            leading=14,
+            spaceBefore=9,
+            spaceAfter=3,
+            keepWithNext=1,
+        ),
         "h3": _style(
-            "h3", 7.6, fontName="DejaVu-Bold", textColor=MUTED, spaceBefore=6, spaceAfter=2
+            "h3",
+            7.6,
+            fontName="DejaVu-Bold",
+            textColor=MUTED,
+            spaceBefore=6,
+            spaceAfter=2,
+            keepWithNext=1,
         ),
         "big": _style("big", 28, fontName="DejaVu-Bold", leading=32),
         "label": _style("label", 7, textColor=MUTED),
@@ -180,7 +206,7 @@ class SourceNumbers:
             n = self.order.index(evidence.source_id) + 1
             if n not in numbers:
                 numbers.append(n)
-        return numbers
+        return sorted(numbers)
 
 
 def _refs(numbers: Sequence[int]) -> str:
@@ -270,7 +296,7 @@ def _claim_flowables(
     refs = _refs(nums.of(claim.evidence_ids))
     out = [
         Paragraph(
-            f"{esc(claim.text)}{refs}<br/><font size='7' color='#4d5573'>{esc(meta)}</font>",
+            f"{esc(claim.text if quotes else _clip(claim.text, BOX_TEXT_CHARS))}{refs}<br/><font size='7' color='#4d5573'>{esc(meta)}</font>",
             s["claim"],
         )
     ]
@@ -306,8 +332,12 @@ def _side(title: str, claims: list[Claim], report, nums, s, good: bool, width: f
     ]
     if not claims:
         inner.append(Paragraph("<i>Nothing found on this side.</i>", s["small"]))
-    for claim in claims:
+    for claim in claims[:PER_SIDE]:
         inner.extend(_claim_flowables(claim, report, nums, s, quotes=False))
+    if len(claims) > PER_SIDE:
+        inner.append(
+            Paragraph(f"+ {len(claims) - PER_SIDE} more, listed in the sections below", s["small"])
+        )
     return _box(inner, GOOD_BG if good else BAD_BG, GOOD if good else BAD, width)
 
 
@@ -447,7 +477,7 @@ def build_report_pdf(report: UnderwritingReport) -> bytes:
         inner = [Paragraph(f"<b>{title}</b>", _style("rs", 8.6, textColor=GOOD if good else BAD))]
         inner += [
             Paragraph(
-                f"• {esc(r.text)}{_refs(nums.of([e for c in r.claim_ids[:1] for e in (report.claims[c].evidence_ids if c in report.claims else [])]))}",
+                f"• {esc(_clip(r.text, BOX_TEXT_CHARS))}{_refs(nums.of([e for c in r.claim_ids[:1] for e in (report.claims[c].evidence_ids if c in report.claims else [])]))}",
                 s["claim"],
             )
             for r in items
@@ -512,8 +542,15 @@ def build_report_pdf(report: UnderwritingReport) -> bytes:
         flow += block[3:]
         if neutral:
             flow.append(Paragraph("Also noted", s["h3"]))
-            for c in neutral:
+            for c in neutral[:PER_NOTED]:
                 flow.extend(_claim_flowables(c, report, nums, s, quotes=False))
+            if len(neutral) > PER_NOTED:
+                flow.append(
+                    Paragraph(
+                        f"+ {len(neutral) - PER_NOTED} more, listed in the sections below",
+                        s["small"],
+                    )
+                )
         unknowns = [
             u for x in sections if x in report.sections for u in report.sections[x].unknowns
         ]
