@@ -7,7 +7,7 @@ from typing import Annotated, Any, Literal, Union, get_args, get_origin
 from annotated_types import Ge, Gt, MinLen
 from pydantic import BaseModel, ValidationError
 
-from app.contracts import FailureMix, LedgerStep, RiskAdjustment
+from app.contracts import DocumentInfo, FailureMix, LedgerStep, RiskAdjustment
 from app.llm.backend import RawCompletion
 from app.llm.types import LLMParseError, LLMTask
 
@@ -22,6 +22,12 @@ def register_mock_fixture(purpose: str, data: dict[str, Any]) -> None:
 _SHARE = {"low": 0.4, "base": 0.5, "high": 0.6, "unit": "share"}
 # models with cross-field rules that the smallest-instance builder cannot satisfy
 _OVERRIDES: dict[type[BaseModel], dict[str, Any]] = {
+    DocumentInfo: {
+        "id": "doc_0123456789abcdef",
+        "name": "mock.pdf",
+        "kind": "pdf",
+        "size_bytes": 0,
+    },
     FailureMix: {
         "shares": [
             {"cause": "efficacy", "share": _SHARE},

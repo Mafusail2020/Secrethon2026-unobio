@@ -466,6 +466,23 @@ export interface components {
             /** Why It Matters */
             why_it_matters: string;
         };
+        /**
+         * DocumentInfo
+         * @description A file the user uploaded before starting a run; the run names it by id.
+         */
+        DocumentInfo: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "pdf" | "text";
+            /** Name */
+            name: string;
+            /** Size Bytes */
+            size_bytes: number;
+        };
         /** EntityRef */
         EntityRef: {
             /** External Ids */
@@ -818,6 +835,8 @@ export interface components {
         ProgramInput: {
             /** Biomarkers */
             biomarkers?: string | null;
+            /** Document Ids */
+            document_ids?: string[];
             /** Drug Name */
             drug_name?: string | null;
             /** Indication */

@@ -583,6 +583,43 @@
         "title": "DiligenceQuestion",
         "type": "object"
       },
+      "DocumentInfo": {
+        "additionalProperties": false,
+        "description": "A file the user uploaded before starting a run; the run names it by id.",
+        "properties": {
+          "id": {
+            "pattern": "^doc_[0-9a-f]{16}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "pdf",
+              "text"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "size_bytes": {
+            "minimum": 0,
+            "title": "Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "size_bytes"
+        ],
+        "title": "DocumentInfo",
+        "type": "object"
+      },
       "EntityRef": {
         "additionalProperties": false,
         "properties": {
@@ -1577,6 +1614,15 @@
               }
             ],
             "title": "Biomarkers"
+          },
+          "document_ids": {
+            "items": {
+              "pattern": "^doc_[0-9a-f]{16}$",
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Document Ids",
+            "type": "array"
           },
           "drug_name": {
             "anyOf": [

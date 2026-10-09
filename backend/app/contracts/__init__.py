@@ -41,7 +41,7 @@ from app.contracts.common import (
 from app.contracts.evidence import EntityRef, Evidence, ResolvedEntities, SourceRef
 from app.contracts.graph_spec import GraphEdge, GraphSpec, NodeKind, NodeSpec
 from app.contracts.llm import ChatMessage, ModelInfo
-from app.contracts.program import ProgramInput, RunOptions
+from app.contracts.program import DocumentInfo, ProgramInput, RunOptions
 from app.contracts.quant import (
     FAILURE_CAUSES,
     Assumption,
@@ -72,6 +72,7 @@ from app.contracts.runs import (
 
 # every model that crosses the API boundary; export_openapi injects all of them into the schema
 API_MODELS: tuple[type[BaseModel], ...] = (
+    DocumentInfo,
     ProgramInput,
     RunOptions,
     EntityRef,
@@ -170,6 +171,7 @@ __all__ = [
     "PanelCandidate",
     "PanelResult",
     "PlannedQuestion",
+    "DocumentInfo",
     "ProgramInput",
     "Range",
     "ReasonCode",
