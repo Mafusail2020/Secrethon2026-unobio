@@ -72,3 +72,20 @@
   .uw-rise, .uw-fade, .uw-slide-right, .uw-flash, .uw-ring, .uw-drawer-in, .uw-drawer-out, .uw-stagger > * { animation: none !important; }
   .uw-collapse { transition: none !important; }
 }
+
+/* the caret of text that types itself: a thin bar that takes no room, so the line does not reflow as it moves */
+.uw-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin: 0 -2px 0 0;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: uw-caret 0.9s steps(1) infinite;
+}
+@keyframes uw-caret {
+  50% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .uw-caret { display: none; }
+}

@@ -23,7 +23,8 @@ The screen is laid out like a chat app: history on the left, the conversation in
 again, or the ✕ on the tab, to close it). The views are draggable, see section 6b. Below 1280 px the panel area covers
 the conversation; below 768 px the history is a drawer.
 
-1. Open `/underwriting`. Type **Alzheimer's disease** as the indication and **BACE1 inhibition** as the mechanism. Nothing
+1. Open `/underwriting`: the greeting types itself out, character by character (all at once with "reduce motion" on), and the card
+   below it does not move while it does. Type **Alzheimer's disease** as the indication and **BACE1 inhibition** as the mechanism. Nothing
    runs yet. Report, Sources and Logs are greyed out until there is a run; **Graph** already works.
 2. Effort: hover **Panel** and read the hint ("Several models analyse independently…"), then click back to **Medium**.
 3. Press **⌘/Ctrl+Enter** or the arrow button. The URL becomes `/underwriting/runs/<id>`; the run appears in the
