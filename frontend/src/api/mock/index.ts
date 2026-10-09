@@ -3,10 +3,12 @@ import graphSpecJson from "../../../../contracts/fixtures/graph_spec.json";
 import reportJson from "../../../../contracts/fixtures/report_bace1_alzheimers.json";
 import { affectedSet, runnableNodes } from "../../features/underwriting/graphUtils";
 import { ApiError, type Api, type StreamState } from "../client";
+import { mockDeckScript } from "./deckScript";
 import type {
   ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
+  DeckScript,
   DocumentInfo,
   GraphSpec,
   LLMCall,
@@ -270,6 +272,12 @@ export const mockApi: Api = {
     const info: DocumentInfo = { id: `doc_${seed.toString(16).padStart(16, "0")}`, name: file.name, kind, size_bytes: file.size };
     documents.set(info.id, info);
     return wait(info);
+  },
+  postDeck: (id) => {
+    const run = need(id);
+    if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    const script: DeckScript = mockDeckScript(run.report);
+    return wait(script);
   },
   getDocument: (id) => {
     const info = documents.get(id);

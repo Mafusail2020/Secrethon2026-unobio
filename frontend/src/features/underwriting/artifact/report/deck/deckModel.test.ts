@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import reportJson from "../../../../../../../contracts/fixtures/report_bace1_alzheimers.json";
-import type { UnderwritingReport } from "../../../../../api/types";
+import type { DeckScript, UnderwritingReport } from "../../../../../api/types";
 import { buildDeck, type DeckSlide, type QuestionSlide } from "./deckModel";
 
 const fixture = reportJson as unknown as UnderwritingReport;
@@ -88,5 +88,108 @@ describe("buildDeck", () => {
     expect(thin.slides.find((s) => s.kind === "twins")).toMatchObject({ stats: null });
     expect(thin.slides.find((s) => s.kind === "funding")).toMatchObject({ valuation: null });
     expect(thin.slides.find((s) => s.kind === "call")).toMatchObject({ rnpv: null, capital: null, months: null });
+  });
+});
+
+describe("buildDeck with a model's script", () => {
+  const claim = Object.values(real.claims).find((c) => c.status === "accepted" && c.stance === "con" && c.evidence_ids.length > 0)!;
+  const pro = Object.values(real.claims).find((c) => c.status === "accepted" && c.stance === "pro")!;
+  const script: DeckScript = {
+    subtitle: "A tagline for the program",
+    slides: [
+      {
+        slide: "call",
+        headline: "The call rests on one plausible link",
+        bullets: [
+          { text: "The target is linked to the disease.", stance: "for", claim_ids: [pro.id], evidence_ids: [] },
+          { text: "A late-stage twin failed.", stance: "against", claim_ids: [claim.id], evidence_ids: [] },
+        ],
+        takeaway: "Settle human target engagement first.",
+      },
+      {
+        slide: "works",
+        headline: "Biology is plausible, the human link is not shown",
+        bullets: [{ text: "Only against bullets here.", stance: "against", claim_ids: [claim.id], evidence_ids: [] }],
+        takeaway: null,
+      },
+      {
+        slide: "probability",
+        headline: "Evidence moved the odds down from the starting point",
+        bullets: [{ text: "The chance is lower than where similar programs start.", stance: "neutral", claim_ids: [], evidence_ids: [] }],
+        takeaway: "The range is wide.",
+      },
+      { slide: "money", headline: "Funding is modest next to the value", bullets: [], takeaway: null },
+    ],
+  };
+  const plain = buildDeck(real);
+  const written = buildDeck(real, script);
+  const slide = (id: string) => written.slides.find((s) => s.id === id)!;
+
+  it("changes nothing when there is no script, an empty one, or none worth showing", () => {
+    expect(plain.scripted).toBe(false);
+    expect(buildDeck(real, { subtitle: null, slides: [] })).toEqual(plain);
+    expect(buildDeck(real, undefined)).toEqual(plain);
+  });
+
+  it("puts the model's headline on each slide it wrote, keeps the topic, and leaves the others alone", () => {
+    expect(written.scripted).toBe(true);
+    expect(slide("call")).toMatchObject({ actionTitle: "The call rests on one plausible link", title: "Our call", takeaway: "Settle human target engagement first." });
+    expect(slide("probability").actionTitle).toBe("Evidence moved the odds down from the starting point");
+    expect(slide("q-approval").actionTitle).toBeUndefined();
+    expect(slide("q-approval")).toEqual(plain.slides.find((s) => s.id === "q-approval"));
+  });
+
+  it("uses its bullets for the side they argue and keeps the report's own claims for a side it left empty", () => {
+    const call = slide("call");
+    if (call.kind !== "call") throw new Error("not the call");
+    expect(call.carries.map((l) => l.text)).toEqual(["The target is linked to the disease."]);
+    expect(call.holds.map((l) => l.text)).toEqual(["A late-stage twin failed."]);
+    const works = slide("q-works");
+    const before = plain.slides.find((s) => s.id === "q-works");
+    if (works.kind !== "question" || before?.kind !== "question") throw new Error("not a question");
+    expect(works.cons.map((l) => l.text)).toEqual(["Only against bullets here."]);
+    expect(works.pros).toEqual(before.pros);
+  });
+
+  it("gives each line the label of the claim it cites and the sources behind it", () => {
+    const call = slide("call");
+    if (call.kind !== "call") throw new Error("not the call");
+    expect(call.holds[0]).toMatchObject({ claimId: claim.id, label: claim.label });
+    expect(call.holds[0]!.cites.length).toBeGreaterThan(0);
+    expect(call.sources.length).toBeGreaterThan(0);
+  });
+
+  it("puts what the figures mean under the numeric slides, and keeps the figures", () => {
+    const money = slide("funding");
+    expect(money.actionTitle).toBe("Funding is modest next to the value");
+    expect(money.reading).toEqual([]);
+    const probability = slide("probability");
+    expect(probability.reading?.[0]).toMatchObject({ text: "The chance is lower than where similar programs start.", cites: [] });
+    const before = plain.slides.find((s) => s.id === "probability");
+    if (probability.kind !== "probability" || before?.kind !== "probability") throw new Error("not probability");
+    expect(probability.posterior).toEqual(before.posterior);
+    expect(probability.steps).toEqual(before.steps);
+    const call = slide("call");
+    const callBefore = plain.slides.find((s) => s.id === "call");
+    if (call.kind !== "call" || callBefore?.kind !== "call") throw new Error("not the call");
+    expect([call.pos, call.rnpv, call.decision]).toEqual([callBefore.pos, callBefore.rnpv, callBefore.decision]);
+  });
+
+  it("gives the title slide its subtitle", () => {
+    const title = slide("title");
+    expect(title.kind === "title" && title.subtitle).toBe("A tagline for the program");
+  });
+
+  it("names the uploaded file behind a bullet that cites a passage of it", () => {
+    const withFile = structuredClone(real);
+    const [id, source] = Object.entries(withFile.sources)[0]!;
+    withFile.sources[id] = { ...source, type: "user_provided", title: "User document: study.pdf", identifiers: { document: "doc_0123456789abcdef" } };
+    const deck = buildDeck(withFile, {
+      subtitle: null,
+      slides: [{ slide: "twins", headline: "The file adds a mouse result", bullets: [{ text: "The mouse study shows a drop.", stance: "neutral", claim_ids: [], evidence_ids: ["ev_0123456789abcdef"] }], takeaway: null }],
+    });
+    const twins = deck.slides.find((s) => s.id === "twins")!;
+    expect(twins.reading?.[0]?.cites).toEqual(["study.pdf"]);
+    expect(twins.sources).toContain("study.pdf");
   });
 });

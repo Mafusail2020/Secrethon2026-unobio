@@ -85,3 +85,42 @@ describe("the Generate report menu", () => {
     act(() => root.unmount());
   });
 });
+
+describe("the deck on screen with a model's words", () => {
+  const claim = Object.values(real.claims).find((c) => c.status === "accepted" && c.stance === "pro")!;
+  const script = {
+    subtitle: "Plausible biology, unproven in people",
+    slides: [
+      { slide: "call" as const, headline: "The call rests on one plausible link", bullets: [{ text: "The target is linked to the disease.", stance: "for" as const, claim_ids: [claim.id], evidence_ids: [] }], takeaway: "Settle target engagement first." },
+      { slide: "probability" as const, headline: "Evidence moved the odds down", bullets: [{ text: "Lower than the starting point.", stance: "neutral" as const, claim_ids: [], evidence_ids: [] }], takeaway: null },
+    ],
+  };
+  const markup = renderToStaticMarkup(<DeckSlides deck={buildDeck(real, script)} kicker="Unobio underwriting" />);
+
+  it("shows the headline as the slide's title, with the topic above it, and the takeaway set apart", () => {
+    expect(markup).toMatch(/<h2[^>]*>The call rests on one plausible link<\/h2>/);
+    expect(markup).toMatch(/uppercase[^>]*>Our call<\/p>/);
+    expect(markup).toContain("Settle target engagement first.");
+    expect(markup).toContain("Plausible biology, unproven in people");
+  });
+
+  it("puts the cited lines under the figures of a numeric slide", () => {
+    expect(markup).toContain('aria-label="What it means"');
+    expect(markup).toContain("Lower than the starting point.");
+  });
+
+  it("leaves slides the model did not write as they were, and still warns on every slide when synthetic", () => {
+    expect(markup).toContain("Will it get through trials and regulators?");
+    const synthetic = renderToStaticMarkup(<DeckSlides deck={buildDeck(fixture, script)} kicker="Unobio underwriting" />);
+    expect(count(synthetic, SYNTHETIC_WARNING)).toBe(12);
+  });
+
+  it("shows three of the questions to ask, not four, when a takeaway takes the room of the last", () => {
+    const withTakeaway = buildDeck(real, { subtitle: null, slides: [{ slide: "recommendation", headline: "Proceed only on the conditions", bullets: [], takeaway: "Ask for the data first." }] });
+    const plain = buildDeck(real);
+    const html = (deck: typeof plain) => renderToStaticMarkup(<DeckSlides deck={deck} kicker="k" />);
+    const asks = (markup: string) => (markup.slice(markup.indexOf("Ask before committing")).match(/<li>/g) ?? []).length;
+    expect(asks(html(plain))).toBe(4);
+    expect(asks(html(withTakeaway))).toBe(3);
+  });
+});

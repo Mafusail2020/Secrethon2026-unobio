@@ -32,7 +32,7 @@ export function Statements({ side, title, lines, empty }: { side: "for" | "again
             <li key={l.claimId} className="text-[17px] leading-snug">
               {l.text}
               <span className="mt-0.5 block text-[12px] text-muted">
-                <span className={`mr-1.5 rounded-full border px-1.5 py-px ${STANCE_STYLE.neutral}`}>{l.label}</span>
+                {l.label && <span className={`mr-1.5 rounded-full border px-1.5 py-px ${STANCE_STYLE.neutral}`}>{l.label}</span>}
                 {l.cites.length > 0 ? l.cites.slice(0, 2).join(", ") + (l.cites.length > 2 ? ` and ${l.cites.length - 2} more` : "") : "no source cited"}
               </span>
             </li>
@@ -40,5 +40,23 @@ export function Statements({ side, title, lines, empty }: { side: "for" | "again
         </ul>
       )}
     </div>
+  );
+}
+
+/** What the figures on a slide mean, in a few cited lines. */
+export function Reading({ lines }: { lines: DeckLine[] }) {
+  if (lines.length === 0) return null;
+  return (
+    <ul className="space-y-1.5 rounded-sm border border-line bg-surface/70 px-5 py-3" aria-label="What it means">
+      {lines.map((l) => (
+        <li key={`${l.claimId}-${l.text}`} className="flex gap-2 text-[17px] leading-snug">
+          <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true" />
+          <span>
+            {l.text}
+            {l.cites.length > 0 && <span className="ml-2 text-[12px] text-muted">{l.cites.slice(0, 2).join(", ")}</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
