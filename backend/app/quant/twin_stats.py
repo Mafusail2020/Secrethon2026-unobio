@@ -139,13 +139,14 @@ class TwinData:
     def close(self) -> None:
         self.con.close()
 
-    def disease(self, disease_id: str) -> tuple[str, list[str], list[str]] | None:
+    def disease(self, disease_id: str) -> tuple[str, list[str], list[str], list[str]] | None:
+        """Name, descendants, therapeutic areas and direct parents."""
         row = self.con.execute(
-            "SELECT name, coalesce(descendants, []), coalesce(therapeuticAreas, []) "
-            "FROM disease WHERE id = ?",
+            "SELECT name, coalesce(descendants, []), coalesce(therapeuticAreas, []), "
+            "coalesce(parents, []) FROM disease WHERE id = ?",
             [disease_id],
         ).fetchone()
-        return (row[0], list(row[1]), list(row[2])) if row else None
+        return (row[0], list(row[1]), list(row[2]), list(row[3])) if row else None
 
     def class_targets(self, target_id: str, level: str = "l5") -> tuple[str | None, list[str]]:
         row = self.con.execute(
@@ -272,7 +273,8 @@ def collapse_salts(programs: list[Program]) -> list[Program]:
 
 
 def beta_range(successes: float, failures: float, base_rate: float) -> Range:
-    """5th / 50th / 95th percentiles of Beta(s + k*b, f + k*(1-b)); seeded, so runs repeat."""
+    """Mean and 5th / 95th percentiles of Beta(s + k*b, f + k*(1-b)); seeded, so runs repeat.
+    The mean, not the median: rNPV is an expected value, and with few twins the Beta is skewed."""
     k = float(twin_param("pseudo_count")["value"])
     # an approved-stage program has a base rate of 1, which would zero a Beta parameter
     base_rate = min(max(base_rate, 0.01), 0.99)
@@ -284,7 +286,8 @@ def beta_range(successes: float, failures: float, base_rate: float) -> Range:
     def q(p: float) -> float:
         return round(draws[min(int(p * len(draws)), len(draws) - 1)], 4)
 
-    return Range(low=q(interval["low"]), base=q(0.5), high=q(interval["high"]), unit="probability")
+    mean = round(a / (a + b), 4)
+    return Range(low=q(interval["low"]), base=mean, high=q(interval["high"]), unit="probability")
 
 
 def _wilson(k: int, n: int, z: float = 1.645) -> tuple[float, float]:
@@ -359,8 +362,11 @@ def compute(
     today = today or date.today()
     notes: list[str] = []
     disease = data.disease(disease_id)
-    family = {disease_id, *(disease[1] if disease else [])}
-    areas = (set(disease[2]) if disease else set()) - GENERIC_AREAS
+    _, descendants, ta, parents = disease or ("", [], [], [])
+    # a drug approved for the parent term is this indication's precedent too (Open Targets files
+    # resmetirom's approval under fatty liver, not MASH); an area root is too broad to count
+    family = {disease_id, *descendants, *(set(parents) - set(ta) - GENERIC_AREAS)}
+    areas = set(ta) - GENERIC_AREAS
     floor = STAGE_FLOOR.get(stage or "", 0)
     min_decided = int(twin_param("min_decided")["value"])
 

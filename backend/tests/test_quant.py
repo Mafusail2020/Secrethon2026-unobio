@@ -157,9 +157,10 @@ def release(tmp_path: Path) -> Path:
     )  # fmt: skip
     _table(
         tmp_path, "disease",
-        "id VARCHAR, name VARCHAR, descendants VARCHAR[], therapeuticAreas VARCHAR[]",
-        [("D1", "disease one", ["D1a"], ["TA1"]), ("D1a", "subtype", [], ["TA1"]),
-         ("D2", "other", [], ["TA2"])],
+        "id VARCHAR, name VARCHAR, descendants VARCHAR[], therapeuticAreas VARCHAR[],"
+        " parents VARCHAR[]",
+        [("D1", "disease one", ["D1a"], ["TA1"], ["TA1"]),
+         ("D1a", "subtype", [], ["TA1"], ["D1"]), ("D2", "other", [], ["TA2"], ["TA2"])],
     )  # fmt: skip
     _table(
         tmp_path, "drug_molecule", "id VARCHAR, name VARCHAR, maximumClinicalStage VARCHAR",
@@ -214,6 +215,15 @@ def test_compute_matches_the_exact_indication_first_and_censors_running_programs
     assert dropped.match_level == "target_class"
     assert {p.drug for p in dropped.programs} == {"ALPHA", "BETA", "DELTA"}
     assert any("Aspartic protease" in n for n in dropped.notes)
+    data.close()
+
+
+def test_a_subtype_counts_its_parent_diseases_programs_as_exact_twins(release):
+    data = TwinData(release)
+    base = base_rates(["nervous system disorder"], "subtype")
+    result = compute(data, "T1", "D1a", None, base, _conf("ledger"), today=TODAY)
+    assert result.match_level == "exact_target_indication"  # D1a alone has one twin
+    assert {p.drug for p in result.decided} == {"ALPHA", "BETA", "GAMMA"}
     data.close()
 
 
@@ -371,6 +381,9 @@ def test_verdict_reads_a_reported_failure_in_a_correction_and_ignores_other_text
         "do_not_invest"
     )
     assert decide(_inputs(GOOD_POS, GOOD_RNPV, corrections=[chatter]), conf).decision == "invest"
+    for text in ("the phase 2 was not terminated", "no safety signal in phase 1"):
+        denial = failure.model_copy(update={"text": text})
+        assert decide(_inputs(GOOD_POS, GOOD_RNPV, corrections=[denial]), conf).decision == "invest"
 
 
 # --- regressions from the debug session ------------------------------------------------------
