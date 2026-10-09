@@ -250,8 +250,6 @@ export function ReportView({
               </div>
             </Collapse>
           </section>
-          {/* room to scroll the last card up to the header, so a chip always lands where it points */}
-          <div aria-hidden="true" className="h-[45vh]" data-print-hide />
         </div>
       </div>
       {seed && graph && (

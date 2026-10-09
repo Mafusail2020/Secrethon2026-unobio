@@ -9,8 +9,9 @@ function scrollParent(el: HTMLElement | null): HTMLElement | undefined {
 }
 
 /**
- * The listed element the reader is on: the last one whose top is above a line just under the sticky header.
- * `select` pins a choice (a clicked chip whose section cannot reach the line, like the last one) until the reader scrolls.
+ * The listed element the reader is on: the last one whose top is above a line just under the sticky header, or the
+ * last of all once the reader is at the bottom (the end of a page is too short to carry it up to the line).
+ * `select` pins a choice (a clicked chip whose section cannot reach the line) until the reader scrolls.
  */
 export function useScrollSpy(idsKey: string, header: RefObject<HTMLElement | null>) {
   const [active, setActive] = useState<string | undefined>();
@@ -26,6 +27,8 @@ export function useScrollSpy(idsKey: string, header: RefObject<HTMLElement | nul
       if (pinned.current) return setActive(pinned.current);
       const line = container.getBoundingClientRect().top + (header.current?.offsetHeight ?? 0) + 16;
       let current = ids[0];
+      const atBottom = container.scrollTop > 0 && container.scrollTop + container.clientHeight >= container.scrollHeight - 2;
+      if (atBottom) return setActive(ids.findLast((id) => document.getElementById(id)) ?? current);
       for (const id of ids) {
         const el = document.getElementById(id);
         if (!el) continue;
