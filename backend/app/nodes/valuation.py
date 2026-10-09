@@ -22,8 +22,10 @@ SPEC = NodeSpec(
     critical=False,
 )
 
-_SCALE = {"k": 1e3, "m": 1e6, "mm": 1e6, "b": 1e9, "bn": 1e9}
-_NUMBER = r"\$?\s*([\d.,]+)\s*(k|mm|m|bn|b)?\b"
+_SCALE = {"k": 1e3, "thousand": 1e3, "m": 1e6, "mm": 1e6, "mln": 1e6, "million": 1e6}
+_SCALE |= {"b": 1e9, "bn": 1e9, "billion": 1e9}
+# "500 million" once became $500: longest unit first, so "million" is not read as "m"
+_NUMBER = r"\$?\s*([\d.,]+)\s*(thousand|million|mln|billion|mm|bn|k|m|b)?\b"
 # correction phrases we can turn into an edited assumption: (pattern, config path, kind)
 _EDITS = [
     (rf"cost per patient\D{{0,20}}?{_NUMBER}", ("cost_per_patient_usd",), "usd"),

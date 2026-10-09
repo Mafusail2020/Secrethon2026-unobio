@@ -313,6 +313,13 @@ def test_valuation_ranges_are_ordered_and_preclinical_pays_for_ind_work():
     assert cited and all(a.citation for a in cited)
 
 
+def test_valuation_corrections_read_amounts_written_in_words():
+    conf = _conf("valuation")
+    apply_corrections(conf, ["peak sales of 500 million", "cost per patient 30 thousand"], "cns")
+    assert conf["peak_sales_usd"]["cns"]["base"] == 5e8
+    assert conf["cost_per_patient_usd"]["base"] == 30_000
+
+
 def test_valuation_corrections_edit_named_assumptions_only():
     conf = _conf("valuation")
     applied = apply_corrections(
@@ -352,6 +359,19 @@ def test_verdict_invests_only_when_every_rule_is_met():
     assert conditional.decision == "conditional" and conditional.conditions
     losing = Range(low=-300e6, base=-200e6, high=-10e6, unit="USD")
     assert decide(_inputs(GOOD_POS, losing), conf).decision == "do_not_invest"
+
+
+def test_verdict_never_invests_blind_on_efficacy_or_safety():
+    from app.contracts import AssessmentResult
+
+    blind = AssessmentResult(
+        cause="efficacy", rating="unknown", headline="h", produced_by="x"
+    )  # an approved-stage program with no target once got invest on the base rate alone
+    inputs = _inputs(GOOD_POS, GOOD_RNPV)
+    inputs.assessments = {"efficacy": blind}
+    verdict = decide(inputs, _conf("verdict"))
+    assert verdict.decision == "conditional"
+    assert any("usable efficacy evidence" in c for c in verdict.conditions)
 
 
 def test_verdict_kill_flag_from_same_indication_efficacy_failures():
@@ -462,3 +482,16 @@ async def test_twin_stats_without_a_target_uses_the_area_base_rate_not_the_fixtu
     assert stats.match_level == "area_base_rate" and stats.twins == []
     assert stats.failure_mix and stats.failure_mix.source == "literature"
     assert not any("FIXTURE" in n for n in stats.notes)
+
+
+def test_a_twin_is_dropped_only_when_the_drop_word_leads_to_it():
+    from types import SimpleNamespace
+
+    from app.nodes.twin_stats import _dropped_drugs
+
+    def dropped(text: str) -> set[str]:
+        ctx = SimpleNamespace(corrections_for=lambda: [SimpleNamespace(text=text)])
+        return _dropped_drugs(ctx, ["VERUBECESTAT", "ATABECESTAT"])  # type: ignore[arg-type]
+
+    assert dropped("exclude atabecestat and verubecestat") == {"ATABECESTAT", "VERUBECESTAT"}
+    assert dropped("verubecestat stopped without efficacy") == set()

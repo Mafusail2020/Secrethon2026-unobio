@@ -160,7 +160,12 @@ def decide(inputs: Inputs, conf: dict[str, Any]) -> Verdict:
             )
         )
 
-    red_flags = kill or [r for r in reasons if r.code.endswith("_CONCERNING")] or high_risks
+    # nothing usable on efficacy or safety is not a green light, whatever the base rate says
+    blind = [c for c, r in sorted(inputs.assessments.items()) if r.rating == "unknown"]
+    conditions += [f"Find usable {c.replace('_', ' ')} evidence: this run had none" for c in blind]
+    red_flags = (
+        kill or [r for r in reasons if r.code.endswith("_CONCERNING")] or high_risks or blind
+    )
     decision: Decision
     if kill or (rnpv is not None and rnpv.high < 0):
         decision = "do_not_invest"

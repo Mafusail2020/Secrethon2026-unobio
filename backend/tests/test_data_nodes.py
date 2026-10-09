@@ -202,3 +202,29 @@ async def test_ingest_user_input_turns_notes_into_evidence_and_refuses_private_l
     assert {s.type for s in ctx.sources_seen.values()} == {"user_provided"}
     assert out["scratch"]["ingest_user_input"]["links_unread"] == ["http://127.0.0.1/secret"]
     await web.aclose()
+
+
+@respx.mock
+async def test_search_retries_without_the_hyphen_open_targets_cannot_match():
+    seen: list[str] = []
+
+    def reply(request: httpx.Request) -> httpx.Response:
+        q = json.loads(request.content)["variables"]["q"]
+        seen.append(q)
+        hits = [] if "-" in q else [{"id": "ENSG00000186318", "name": "BACE1", "score": 5.0}]
+        return httpx.Response(200, json={"data": {"search": {"hits": hits}}})
+
+    respx.post(OT_URL).mock(side_effect=reply)
+    hits = await _ot().search("BACE-1", "target")
+    assert seen == ["BACE-1", "BACE1"] and hits[0]["name"] == "BACE1"
+
+
+def test_a_near_tie_between_matches_is_low_confidence():
+    from app.nodes.input_resolver import _confidence
+
+    def hits(*scores):
+        return [{"id": str(i), "name": str(i), "score": s} for i, s in enumerate(scores)]
+
+    assert _confidence(hits(573, 492)) == "low"  # anemia of CKD -> Fanconi anemia
+    assert _confidence(hits(900, 492)) == "medium"
+    assert _confidence(hits(5000, 500)) == "high"

@@ -1,4 +1,5 @@
 import base64
+import importlib.util
 import re
 
 import pytest
@@ -57,12 +58,19 @@ def scan_pdf(pages: list[str | None]) -> bytes:
     return out
 
 
+# pypdf needs Pillow to hand over page images; it comes with the `ocr` extra, not a plain sync
+needs_pil = pytest.mark.skipif(
+    importlib.util.find_spec("PIL") is None, reason="Pillow not installed (uv sync --extra ocr)"
+)
+
+
 @pytest.fixture(autouse=True)
 def _fresh_engine():
     yield
     documents._engine = None
 
 
+@needs_pil
 def test_a_scanned_page_is_read_with_ocr_and_marked_so_in_its_locator():
     use_ocr(lambda data: "Abeta42 fell 62 percent in mice.")
     text = read_document(scan_pdf([None]), "pdf")
@@ -72,6 +80,7 @@ def test_a_scanned_page_is_read_with_ocr_and_marked_so_in_its_locator():
     assert text.ocr_pages == 1 and text.ocr_skipped == 0
 
 
+@needs_pil
 def test_a_mixed_document_keeps_real_text_as_it_is_and_only_scans_the_pages_without_any():
     use_ocr(lambda data: "scanned words")
     text = read_document(scan_pdf(["typed words", None, "more typed words"]), "pdf")
@@ -96,6 +105,7 @@ def test_a_page_the_engine_finds_nothing_on_is_skipped_like_a_blank_one():
         read_document(scan_pdf([None]), "pdf")
 
 
+@needs_pil
 def test_a_long_scan_is_read_only_up_to_the_page_limit(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(documents, "OCR_MAX_PAGES", 2)
     use_ocr(lambda data: "page text")
@@ -103,6 +113,7 @@ def test_a_long_scan_is_read_only_up_to_the_page_limit(monkeypatch: pytest.Monke
     assert text.ocr_pages == 2 and text.ocr_skipped == 3 and len(text.pages) == 2
 
 
+@needs_pil
 def test_an_engine_that_fails_on_a_page_does_not_fail_the_document():
     calls = []
 
