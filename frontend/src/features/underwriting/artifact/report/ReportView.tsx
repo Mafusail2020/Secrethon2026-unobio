@@ -7,16 +7,14 @@ import { ClaimFilterBar } from "./ClaimFilterBar";
 import { emptyFilters, filterClaims, type ClaimFilters } from "./claimFilters";
 import { ExportBar } from "./ExportBar";
 import { DiligencePanel } from "./quant/DiligencePanel";
-import { LedgerWaterfall } from "./quant/LedgerWaterfall";
 import { RisksPanel } from "./quant/RisksPanel";
 import { TranslationStepper } from "./quant/TranslationStepper";
-import { TwinPanel } from "./quant/TwinPanel";
-import { ValuationPanel } from "./quant/ValuationPanel";
 import { ReportContext, type CorrectionSeed, type FocusClaim } from "./reportContext";
 import { buildReportTree, questionOfClaim, type QuestionId } from "./reportTree";
 import { RunDetails } from "./RunDetails";
 import { Chevron } from "./tree/Chevron";
 import { Collapse } from "./tree/Collapse";
+import { NumbersCard } from "./tree/NumbersCard";
 import { ReportTreeView } from "./tree/ReportTree";
 import { Section } from "./Section";
 import { useScrollSpy } from "./useScrollSpy";
@@ -64,6 +62,7 @@ export function ReportView({
   const tree = useMemo(() => buildReportTree(report), [report]);
   const [openQuestions, setOpenQuestions] = useState<ReadonlySet<QuestionId>>(() => new Set());
   const [fullOpen, setFullOpen] = useState(false);
+  const [numbersOpen, setNumbersOpen] = useState(false);
   const [rootInView, setRootInView] = useState(true);
   // a link to a claim opens the branch it sits in (or the full report, for a claim no question holds); done while rendering,
   // once per link, so the branch is open by the time the page scrolls to the claim
@@ -87,6 +86,7 @@ export function ReportView({
     // once the call has scrolled away this chip keeps it in sight; it only changes width, never the header's height
     { id: "summary", label: rootInView ? "Summary" : `${DECISION_LABEL[verdict.decision]} · ${pct(report.pos.base)}` },
     ...tree.questions.map((q) => ({ id: `q-${q.id}`, label: q.short })),
+    { id: "numbers", label: "Numbers" },
     { id: "full-report", label: "Full report" },
   ];
   const header = useRef<HTMLElement>(null);
@@ -192,6 +192,8 @@ export function ReportView({
             focus={focus}
           />
 
+          <NumbersCard report={report} open={numbersOpen} onToggle={() => setNumbersOpen((o) => !o)} />
+
           <section id="full-report" aria-labelledby="full-report-title" className="report-anchor rounded-sm border border-line bg-surface">
             <button
               type="button"
@@ -211,14 +213,6 @@ export function ReportView({
             </button>
             <Collapse open={fullOpen} id="full-report-body">
               <div className="space-y-4 border-t border-line p-4">
-                <section id="overview" className="report-anchor space-y-4" aria-label="Overview">
-                  <div className="grid gap-4 @3xl:grid-cols-2">
-                    {report.twin_stats ? <TwinPanel twin={report.twin_stats} report={report} /> : <Missing title="Similar programs" why="Historical twin statistics are not available for this run." />}
-                    {report.valuation ? <ValuationPanel valuation={report.valuation} /> : <Missing title="Funding to the next milestone" why="No valuation was produced for this run." />}
-                  </div>
-                  {report.ledger ? <LedgerWaterfall ledger={report.ledger} /> : <Missing title="Evidence ledger" why="No evidence ledger was produced, so the probability above rests on the twin prior alone." />}
-                </section>
-
                 {report.translation_chain.length > 0 && (
                   <div id="translation-chain" className="report-anchor">
                     <TranslationStepper chain={report.translation_chain} />
@@ -264,14 +258,5 @@ export function ReportView({
         <CorrectionDialog seed={seed} runId={runId} graph={graph} report={report} canCorrect={canCorrect} onClose={() => setSeed(undefined)} />
       )}
     </ReportContext.Provider>
-  );
-}
-
-function Missing({ title, why }: { title: string; why: string }) {
-  return (
-    <section className="rounded-sm border border-dashed border-line bg-surface/60 p-3">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <p className="text-xs text-muted">{why}</p>
-    </section>
   );
 }

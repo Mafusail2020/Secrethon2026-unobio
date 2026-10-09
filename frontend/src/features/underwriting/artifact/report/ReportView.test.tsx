@@ -30,7 +30,7 @@ describe("report on the BACE1 fixture", () => {
     expect(header.indexOf("Report sections")).toBeGreaterThan(-1);
     expect(header.indexOf("Copy the report as Markdown")).toBeGreaterThan(header.indexOf("Report sections"));
     expect(header.match(/<(nav|div) /g)!.length).toBeLessThanOrEqual(4);
-    for (const label of ["Summary", "Works", "Approval", "Uptake", "Funding", "Full report", "Clinical plan", "All claims (16)"]) expect(markup).toContain(label);
+    for (const label of ["Summary", "Works", "Approval", "Uptake", "Funding", "Numbers", "Full report", "Clinical plan", "All claims (16)"]) expect(markup).toContain(label);
   });
 
   it("opens with the call and the four questions, every branch closed", () => {
