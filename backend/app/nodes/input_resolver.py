@@ -58,6 +58,8 @@ FILLER = {
     *("molecule", "monoclonal", "humanized", "human", "fully", "recombinant", "bispecific"),
 }
 CONFIDENT_RATIO = 3.0
+# "anemia of CKD" -> Fanconi anemia 573 vs 492; "amyloid" -> TTR 683 vs APP 629: a coin toss
+CLOSE_RATIO = 1.25
 
 
 def plain(text: str) -> str:
@@ -92,7 +94,15 @@ def parse_mechanism(text: str) -> tuple[list[str], str | None]:
 def _confidence(hits: list[dict[str, Any]]) -> Confidence:
     if len(hits) == 1 or hits[0]["score"] >= CONFIDENT_RATIO * hits[1]["score"]:
         return "high"
-    return "medium"
+    return "low" if hits[0]["score"] < CLOSE_RATIO * hits[1]["score"] else "medium"
+
+
+def _warn_close(ctx: NodeContext, kind: str, text: str, hits: list[dict[str, Any]]) -> None:
+    ctx.log(
+        f"{kind} '{text}' -> {hits[0]['name']} is a close call with {hits[1]['name']} "
+        f"({hits[1]['id']}); if it is wrong, correct this step with the right id",
+        "warn",
+    )
 
 
 def _alternatives(hits: list[dict[str, Any]], chosen: str) -> str:
@@ -114,10 +124,12 @@ async def _disease(
         ]
         if not hits:
             return None
-        confidence = _confidence(hits)
         exact = [h for h in hits if _norm(h["name"]) == _norm(text)]
         preferred = [h for h in exact if h["id"].startswith(("MONDO_", "EFO_"))]
         hit = (preferred or exact or hits)[0]
+        confidence = "high" if exact else _confidence(hits)
+        if confidence == "low":
+            _warn_close(ctx, "disease", text, hits)
         if not hit["id"].startswith(("MONDO_", "EFO_")):
             ctx.log(f"best disease match {hit['id']} is not a MONDO/EFO term", "warn")
         others = _alternatives(hits[:4], hit["id"])
@@ -151,12 +163,14 @@ async def _target(
             hits = await ot.search(candidate, "target", 5, force_refresh=fr)
             if hits:
                 exact = [h for h in hits if h["name"].lower() == candidate.lower()]
+                confidence = "high" if exact else _confidence(hits)
                 hits = exact + [h for h in hits if h not in exact]
                 ctx.log(f"target '{candidate}' -> {hits[0]['name']} ({hits[0]['id']})")
+                if confidence == "low":
+                    _warn_close(ctx, "target", candidate, hits)
                 break
         if not hits:
             return None
-        confidence = _confidence(hits)
     details = await ot.target(hits[0]["id"], force_refresh=fr)
     if details is None:
         return None

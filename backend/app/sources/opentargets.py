@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from app.sources.base import HttpSource, SourceError
@@ -91,10 +92,17 @@ class OpenTargetsClient(HttpSource):
     async def search(
         self, text: str, entity: str, size: int = 5, *, force_refresh: bool = False
     ) -> list[dict[str, Any]]:
-        data = await self.query(
-            _SEARCH, {"q": text, "entities": [entity], "size": size}, force_refresh=force_refresh
-        )
-        return data["search"]["hits"]
+        # OT search returns nothing for "HER2-positive" or "BACE-1" but finds the unhyphenated forms
+        variants = [text, re.sub(r"(?<=[A-Za-z])-(?=\d)", "", text), text.replace("-", " ")]
+        hits: list[dict[str, Any]] = []
+        for q in dict.fromkeys(variants):
+            data = await self.query(
+                _SEARCH, {"q": q, "entities": [entity], "size": size}, force_refresh=force_refresh
+            )
+            hits = data["search"]["hits"]
+            if hits:
+                break
+        return hits
 
     async def disease(self, efo_id: str, *, force_refresh: bool = False) -> dict[str, Any] | None:
         return (await self.query(_DISEASE, {"id": efo_id}, force_refresh=force_refresh))["disease"]
