@@ -498,6 +498,22 @@
             ],
             "title": "Add Notes"
           },
+          "document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "pattern": "^doc_[0-9a-f]{16}$",
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Ids"
+          },
           "exclude_evidence_ids": {
             "items": {
               "type": "string"
@@ -3158,6 +3174,84 @@
           }
         },
         "summary": "Post Document"
+      }
+    },
+    "/api/documents/{document_id}": {
+      "get": {
+        "operationId": "get_document_api_documents__document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Document"
+      }
+    },
+    "/api/documents/{document_id}/file": {
+      "get": {
+        "description": "The file as uploaded, so a reader can check a quote against it.",
+        "operationId": "get_document_file_api_documents__document_id__file_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Get Document File"
       }
     },
     "/api/evidence/{evidence_id}": {

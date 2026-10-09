@@ -4,7 +4,7 @@ from pydantic import Field, HttpUrl
 
 from app.contracts.common import Contract
 from app.contracts.evidence import Evidence, SourceRef
-from app.contracts.program import ProgramInput, RunOptions
+from app.contracts.program import DocumentId, ProgramInput, RunOptions
 
 
 class CreateRunRequest(Contract):
@@ -17,6 +17,8 @@ class CorrectionRequest(Contract):
     exclude_evidence_ids: list[str] = Field(default_factory=list)
     add_links: list[HttpUrl] = Field(default_factory=list, max_length=20)
     add_notes: str | None = Field(default=None, max_length=5000)
+    # the exact set of documents the re-run reads; only valid on ingest_user_input, which reads them
+    document_ids: list[DocumentId] | None = Field(default=None, max_length=5)
 
 
 class EvidenceDetail(Contract):
