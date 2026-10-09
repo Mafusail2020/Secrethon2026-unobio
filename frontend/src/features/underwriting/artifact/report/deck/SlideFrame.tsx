@@ -8,6 +8,8 @@ export const SYNTHETIC_WARNING = "Synthetic data: this deck is built from placeh
 interface FrameProps {
   title: string;
   kicker: string;
+  /** the so-what of the slide, set apart under the content */
+  takeaway?: string;
   index: number;
   total: number;
   sources: string[];
@@ -16,7 +18,7 @@ interface FrameProps {
 }
 
 /** One landscape page: a fixed 1280 by 720 box, so what is on screen is what prints. */
-export function SlideFrame({ title, kicker, index, total, sources, synthetic, children }: FrameProps) {
+export function SlideFrame({ title, kicker, takeaway, index, total, sources, synthetic, children }: FrameProps) {
   return (
     <section
       aria-label={`Slide ${index} of ${total}: ${title}`}
@@ -25,8 +27,11 @@ export function SlideFrame({ title, kicker, index, total, sources, synthetic, ch
     >
       <span className="absolute inset-y-0 left-0 w-2 bg-brand" aria-hidden="true" />
       <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-muted">{kicker}</p>
-      <h2 className="mt-1 text-[40px] font-semibold leading-[1.1] tracking-tight">{title}</h2>
-      <div className="min-h-0 flex-1 pt-6">{children}</div>
+      <h2 className={`mt-1 font-semibold tracking-tight ${title.length > 52 ? "text-[32px] leading-[1.15]" : "text-[40px] leading-[1.1]"}`}>{title}</h2>
+      <div className="min-h-0 flex-1 pt-5">{children}</div>
+      {takeaway && (
+        <p className="mb-3 mt-2 rounded-sm border-l-4 border-brand bg-slate-50 px-4 py-2 text-[17px] font-medium leading-snug">{takeaway}</p>
+      )}
       <footer className="flex items-end justify-between gap-8 border-t border-line pt-2 text-[11px] leading-snug text-muted">
         <p className="min-w-0 flex-1">
           {sources.length > 0 && (

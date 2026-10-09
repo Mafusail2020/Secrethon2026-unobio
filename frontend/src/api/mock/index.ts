@@ -3,10 +3,12 @@ import graphSpecJson from "../../../../contracts/fixtures/graph_spec.json";
 import reportJson from "../../../../contracts/fixtures/report_bace1_alzheimers.json";
 import { affectedSet, runnableNodes } from "../../features/underwriting/graphUtils";
 import { ApiError, type Api, type StreamState } from "../client";
+import { mockDeckScript } from "./deckScript";
 import type {
   ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
+  DeckScript,
   DocumentInfo,
   GraphSpec,
   LLMCall,
@@ -271,6 +273,12 @@ export const mockApi: Api = {
     documents.set(info.id, info);
     return wait(info);
   },
+  postDeck: (id) => {
+    const run = need(id);
+    if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
+    const script: DeckScript = mockDeckScript(run.report);
+    return wait(script);
+  },
   getDocument: (id) => {
     const info = documents.get(id);
     if (!info) throw new ApiError(404, "document_not_found", `no document ${id}`);
@@ -343,8 +351,8 @@ export const mockApi: Api = {
     const run = need(runId);
     if (!run.report) throw new ApiError(409, "run_not_completed", "the run has no report yet");
     if (!run.readout) {
-      const { text, cited } = briefing(run.report);
-      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited, cited_evidence_ids: [] };
+      const { text, cited, passages } = briefing(run.report);
+      run.readout = { role: "assistant", run_id: runId, content: text, cited_claim_ids: cited, cited_evidence_ids: passages };
     }
     return wait({ ...run.readout });
   },

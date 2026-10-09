@@ -1,6 +1,6 @@
 import { DECISION_STYLE, months, pct, usd, usdRange } from "../../../../../lib/format";
 import { STANDING_STYLE } from "../tree/treeStyles";
-import { Figure, Pill, Statements } from "./DeckBits";
+import { Figure, Pill, Reading, Statements } from "./DeckBits";
 import type { CallSlide, QuestionSlide, RecommendationSlide, TitleSlide } from "./deckModel";
 import { SLIDE_H, SLIDE_W, SYNTHETIC_WARNING } from "./SlideFrame";
 
@@ -15,7 +15,8 @@ export function TitleSlideView({ slide, index, total, synthetic }: { slide: Titl
       <div>
         <p className="text-[18px] text-slate-300">Investment committee</p>
         <h1 className="mt-3 max-w-[980px] font-serif text-[68px] leading-[1.05] tracking-tight">{slide.program}</h1>
-        {slide.facts.length > 0 && <p className="mt-6 text-[22px] text-slate-200">{slide.facts.join(" · ")}</p>}
+        {slide.subtitle && <p className="mt-5 max-w-[960px] text-[26px] leading-snug text-slate-100">{slide.subtitle}</p>}
+        {slide.facts.length > 0 && <p className={`text-[22px] text-slate-200 ${slide.subtitle ? "mt-4" : "mt-6"}`}>{slide.facts.join(" · ")}</p>}
       </div>
       <div className="flex items-end justify-between gap-8 text-[15px] text-slate-300">
         <span>{slide.date}</span>
@@ -91,7 +92,7 @@ export function RecommendationBody({ slide }: { slide: RecommendationSlide }) {
         <p className="mt-auto text-[12px] text-muted">{slide.footnote}</p>
       </div>
       <div className="flex min-h-0 flex-col gap-5">
-        <p className="text-[24px] leading-snug">{slide.rationale}</p>
+        {slide.reading?.length ? <Reading lines={slide.reading} /> : <p className="text-[24px] leading-snug">{slide.rationale}</p>}
         {slide.conditions.length > 0 && (
           <div className="rounded-sm border border-line border-l-[6px] border-l-brand bg-surface/70 px-5 py-4">
             <h3 className="text-[18px] font-semibold">To proceed</h3>
@@ -106,7 +107,8 @@ export function RecommendationBody({ slide }: { slide: RecommendationSlide }) {
           <div>
             <h3 className="text-[18px] font-semibold">Ask before committing</h3>
             <ol className="mt-2 list-decimal space-y-2 pl-6 text-[17px] leading-snug">
-              {slide.questions.map((q) => (
+              {/* a takeaway bar takes the room of the last question */}
+              {(slide.takeaway ? slide.questions.slice(0, 3) : slide.questions).map((q) => (
                 <li key={q.question}>
                   {q.question}
                   <span className="block text-[13px] text-muted">{q.why}</span>

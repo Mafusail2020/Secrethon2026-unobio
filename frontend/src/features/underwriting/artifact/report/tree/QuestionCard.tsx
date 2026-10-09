@@ -101,7 +101,7 @@ export function QuestionCard({
       </button>
 
       {!open && (
-        <button type="button" onClick={onToggle} aria-label={`Open the case: ${node.title}`} className="block w-full px-4 pb-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
+        <button type="button" data-print-hide onClick={onToggle} aria-label={`Open the case: ${node.title}`} className="block w-full px-4 pb-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
           <div className="grid gap-3 @2xl:grid-cols-2">
             <SideBox side="for" title="For">
               <Preview {...forPeek} />

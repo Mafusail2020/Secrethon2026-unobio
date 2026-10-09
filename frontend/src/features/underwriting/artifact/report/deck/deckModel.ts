@@ -1,4 +1,4 @@
-import type { Claim, Decision, Range, Risk, UnderwritingReport } from "../../../../../api/types";
+import type { Claim, DeckBullet, DeckScript, Decision, Range, Risk, UnderwritingReport } from "../../../../../api/types";
 import { DECISION_LABEL, humanize } from "../../../../../lib/format";
 import { causeRows, groundedShare, labelMix, sourceMix, type CauseRow, type LabelSlice } from "../charts/chartData";
 import { buildReportTree, firstSentence, STANDING_LABEL, type QuestionId, type Standing } from "../reportTree";
@@ -8,14 +8,22 @@ import { isSyntheticReport } from "../synthetic";
 export interface DeckLine {
   claimId: string;
   text: string;
-  label: Claim["label"];
+  /** the label of the claim a model-written line leans on; none for a line that only restates numbers */
+  label?: Claim["label"];
   /** publishers of the sources behind it, most first; empty when the claim cites none */
   cites: string[];
 }
 
 interface Base {
   id: string;
+  /** what the slide is about, e.g. "Our call" */
   title: string;
+  /** when a model wrote the deck: what the slide proves, as a sentence; it becomes the slide's title */
+  actionTitle?: string;
+  /** when a model wrote the deck: the so-what of the slide */
+  takeaway?: string;
+  /** when a model wrote the deck: cited lines that say what the figures on the slide mean */
+  reading?: DeckLine[];
   /** every source the slide's lines lean on, for the footer */
   sources: string[];
 }
@@ -25,6 +33,7 @@ export interface TitleSlide extends Base {
   program: string;
   facts: string[];
   date: string;
+  subtitle?: string;
 }
 
 export interface CallSlide extends Base {
@@ -117,6 +126,8 @@ export type DeckSlide = TitleSlide | CallSlide | QuestionSlide | ProbabilitySlid
 
 export interface Deck {
   slides: DeckSlide[];
+  /** a model wrote the words (headlines, bullets, takeaways); the figures are still the report's */
+  scripted: boolean;
   /** the data behind it is placeholder content, so every slide has to say so */
   synthetic: boolean;
 }
@@ -165,11 +176,74 @@ function stepPoints(report: UnderwritingReport): ProbabilitySlide["steps"] {
   });
 }
 
+const SCRIPT_ID: Record<string, string> = {
+  call: "call",
+  "q-works": "works",
+  "q-approval": "approval",
+  "q-uptake": "uptake",
+  "q-funding": "funding",
+  probability: "probability",
+  twins: "twins",
+  funding: "money",
+  evidence: "evidence",
+  risks: "risks",
+  recommendation: "recommendation",
+};
+
+function bulletLine(report: UnderwritingReport, bullet: DeckBullet, fileNames: string[]): DeckLine {
+  const claim = report.claims[bullet.claim_ids[0] ?? ""];
+  const names = bullet.claim_ids.flatMap((id) => (report.claims[id]?.evidence_ids ?? []).flatMap((e) => sourceName(report, e) ?? []));
+  // a chunk of a file is not itself in the report, so the file stands for it
+  const files = bullet.evidence_ids.length ? fileNames : [];
+  return { claimId: bullet.claim_ids[0] ?? bullet.evidence_ids[0] ?? "", text: bullet.text, label: claim?.label, cites: [...new Set([...names, ...files])] };
+}
+
+/** The model's words over the report's own slides: headlines, bullets and takeaways replace the template's wording; the figures stay. */
+function applyScript(deck: Deck, report: UnderwritingReport, script: DeckScript): Deck {
+  const byId = new Map(script.slides.map((s) => [s.slide as string, s]));
+  const fileNames = Object.values(report.sources)
+    .filter((src) => src.identifiers?.document)
+    .map((src) => src.title.replace("User document: ", ""));
+  let changed = !!script.subtitle;
+  const slides = deck.slides.map((slide): DeckSlide => {
+    if (slide.kind === "title") return script.subtitle ? { ...slide, subtitle: script.subtitle } : slide;
+    const written = byId.get(SCRIPT_ID[slide.id] ?? "");
+    if (!written) return slide;
+    changed = true;
+    const lines = written.bullets.map((b) => ({ stance: b.stance, line: bulletLine(report, b, fileNames) }));
+    const side = (stance: string) => lines.filter((l) => l.stance === stance).map((l) => l.line);
+    const all = lines.map((l) => l.line);
+    const common = { actionTitle: written.headline, takeaway: written.takeaway ?? undefined };
+    const more = (own: string[], extra: DeckLine[]) => [...new Set([...own, ...footer(extra)])];
+    switch (slide.kind) {
+      case "call": {
+        const carries = side("for").length ? side("for") : slide.carries;
+        const holds = side("against").length ? side("against") : slide.holds;
+        return { ...slide, ...common, carries, holds, sources: footer([...carries, ...holds]) };
+      }
+      case "question": {
+        const pros = side("for").length ? side("for") : slide.pros;
+        const cons = side("against").length ? side("against") : slide.cons;
+        return { ...slide, ...common, pros, cons, sources: footer([...pros, ...cons]) };
+      }
+      default:
+        return { ...slide, ...common, reading: all, sources: more(slide.sources, all) };
+    }
+  });
+  return { ...deck, slides, scripted: changed };
+}
+
+/** The deck with a model's words when there are any, and the report's own wording where there are not. */
+export function buildDeck(report: UnderwritingReport, script?: DeckScript): Deck {
+  const deck = templateDeck(report);
+  return script && (script.slides.length > 0 || script.subtitle) ? applyScript(deck, report, script) : deck;
+}
+
 /**
- * The investment-committee deck, written from the report alone: every number, claim and range is one the report
+ * The investment-committee deck written from the report alone: every number, claim and range is one the report
  * already holds, nothing is generated and nothing is rounded into a different claim.
  */
-export function buildDeck(report: UnderwritingReport): Deck {
+function templateDeck(report: UnderwritingReport): Deck {
   const tree = buildReportTree(report);
   const { verdict, valuation, twin_stats: twins, ledger } = report;
   const synthetic = isSyntheticReport(report);
@@ -330,5 +404,5 @@ export function buildDeck(report: UnderwritingReport): Deck {
     footnote: `Run ${report.run_id}, ${dateOf(report.meta.created_at)}.`,
   });
 
-  return { slides, synthetic };
+  return { slides, synthetic, scripted: false };
 }

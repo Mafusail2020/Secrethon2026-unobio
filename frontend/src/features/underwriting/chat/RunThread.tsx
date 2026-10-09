@@ -11,7 +11,9 @@ import { runElapsed } from "../elapsed";
 import { currentStep, groupPhases, nowLabel } from "../phases";
 import type { RunStream } from "../reduceEvents";
 import { useNow } from "../useNow";
+import { citationOrder } from "./citations";
 import { MarkdownText } from "./MarkdownText";
+import { PassageEntry } from "./PassageEntry";
 import { PhaseBlock } from "./PhaseBlock";
 import { WorkTrace } from "./WorkTrace";
 
@@ -87,18 +89,27 @@ function SummaryBlock({
   }
   if (!summary.message) return null;
   const { content, cited_claim_ids: ids } = summary.message;
+  const passageIds = summary.message.cited_evidence_ids ?? [];
+  const order = citationOrder(content, ids, passageIds);
+  const files = new Set(passageIds);
   return (
     <div className="uw-stagger text-[0.95rem] leading-relaxed">
-      <MarkdownText text={content} ids={ids} report={report} onOpenClaim={onOpenClaim} />
-      {ids.length > 0 && (
+      <MarkdownText text={content} ids={ids} passageIds={passageIds} report={report} onOpenClaim={onOpenClaim} />
+      {order.length > 0 && (
         <details className="mt-4 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
-          <summary className="cursor-pointer select-none text-muted">Claims cited ({ids.length})</summary>
+          <summary className="cursor-pointer select-none text-muted">
+            {files.size ? "Sources cited" : "Claims cited"} ({order.length})
+          </summary>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
-            {ids.map((id) => (
+            {order.map((id) => (
               <li key={id}>
-                <button type="button" onClick={() => onOpenClaim(id)} className="text-left text-brand hover:underline">
-                  {report?.claims[id]?.text ?? id}
-                </button>
+                {files.has(id) ? (
+                  <PassageEntry id={id} />
+                ) : (
+                  <button type="button" onClick={() => onOpenClaim(id)} className="text-left text-brand hover:underline">
+                    {report?.claims[id]?.text ?? id}
+                  </button>
+                )}
               </li>
             ))}
           </ol>

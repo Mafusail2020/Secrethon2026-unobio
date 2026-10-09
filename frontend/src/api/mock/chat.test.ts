@@ -41,4 +41,37 @@ describe("mock follow-up chat", () => {
       ["assistant", "Mock reply t"],
     ]);
   });
+
+  it("writes a briefing that cites the passages of an uploaded file, and chat can cite them too", async () => {
+    const file = new File(["Abeta42 fell 62 percent."], "study.txt", { type: "text/plain" });
+    const uploaded = mockApi.uploadDocument(file);
+    await vi.advanceTimersByTimeAsync(50);
+    const info = await uploaded;
+    const created = mockApi.createRun({ program: { ...program, document_ids: [info.id] } });
+    await vi.advanceTimersByTimeAsync(60);
+    const id = (await created).id;
+    await vi.advanceTimersByTimeAsync(60_000);
+    const written = mockApi.postSummary(id);
+    await vi.advanceTimersByTimeAsync(50);
+    const briefing = await written;
+    expect(briefing.content).toContain("## Your documents");
+    expect(briefing.cited_evidence_ids.length).toBeGreaterThan(0);
+    for (const passage of briefing.cited_evidence_ids) expect(briefing.content).toContain(`[[${passage}]]`);
+    const detail = mockApi.getEvidence(briefing.cited_evidence_ids[0]!);
+    await vi.advanceTimersByTimeAsync(50);
+    expect((await detail).source.identifiers.document).toBe(info.id);
+    const asked = ask(id, "what does my file say?");
+    await vi.advanceTimersByTimeAsync(50);
+    expect((await asked).cited_evidence_ids).toEqual(briefing.cited_evidence_ids.slice(0, 2));
+  });
+
+  it("writes no document section for a run that read no files", async () => {
+    const id = await startRun();
+    await vi.advanceTimersByTimeAsync(60_000);
+    const written = mockApi.postSummary(id);
+    await vi.advanceTimersByTimeAsync(50);
+    const briefing = await written;
+    expect(briefing.content).not.toContain("## Your documents");
+    expect(briefing.cited_evidence_ids).toEqual([]);
+  });
 });

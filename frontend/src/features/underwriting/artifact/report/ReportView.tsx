@@ -93,6 +93,20 @@ export function ReportView({
   const wrapper = useRef<HTMLDivElement>(null);
   const { active, select } = useScrollSpy(nav.map((n) => n.id).join("|"), header);
 
+  // the print rules in styles/print.css apply only while a report is on screen; without this flag a printed
+  // page is the dock's layout, clipped to a blank sheet
+  useEffect(() => {
+    document.body.dataset.print = "report";
+    // sheet margins for this report only; the deck sets its own page rule while it is open
+    const page = document.createElement("style");
+    page.textContent = "@page { size: A4; margin: 14mm 12mm; }";
+    document.head.append(page);
+    return () => {
+      delete document.body.dataset.print;
+      page.remove();
+    };
+  }, []);
+
   // anchors scroll to just under the sticky header, whatever height its rows wrap to
   useLayoutEffect(() => {
     const bar = header.current;
@@ -144,8 +158,13 @@ export function ReportView({
   // print rules in styles/print.css apply only while a report is on screen
   useEffect(() => {
     document.body.dataset.print = "report";
+    // sheet margins for this report only; the deck sets its own page rule while it is open
+    const page = document.createElement("style");
+    page.textContent = "@page { size: A4; margin: 14mm 12mm; }";
+    document.head.append(page);
     return () => {
       delete document.body.dataset.print;
+      page.remove();
     };
   }, []);
 

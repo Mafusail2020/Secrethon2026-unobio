@@ -1,5 +1,6 @@
 import { months, pct, pctRange, usdRange } from "../../../../../lib/format";
 import { LABEL_HELP } from "../labels";
+import { Reading } from "./DeckBits";
 import type { EvidenceSlide, FundingSlide, ProbabilitySlide, RisksSlide, TwinsSlide } from "./deckModel";
 
 const SLICE: Record<string, string> = {
@@ -245,7 +246,11 @@ export function RisksBody({ slide }: { slide: RisksSlide }) {
     <div className="grid h-full grid-cols-[1.3fr_1fr] gap-10">
       <div>
         <h3 className="text-[18px] font-semibold">Key risks</h3>
-        {slide.risks.length === 0 ? (
+        {slide.reading?.length ? (
+          <div className="mt-3">
+            <Reading lines={slide.reading} />
+          </div>
+        ) : slide.risks.length === 0 ? (
           <p className="mt-2 text-[16px] italic text-muted">The report names none.</p>
         ) : (
           <ul className="mt-3 space-y-4">

@@ -1,7 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
+
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 import graphSpecJson from "../../../../../../contracts/fixtures/graph_spec.json";
 import reportJson from "../../../../../../contracts/fixtures/report_bace1_alzheimers.json";
 import type { GraphSpec, UnderwritingReport } from "../../../../api/types";
@@ -147,5 +151,26 @@ describe("report on messy data", () => {
     const markup = render({ ...clean, claims });
     expect(markup).toContain("All claims (200)");
     expect(markup).toContain("claim number 199");
+  });
+});
+
+describe("printing", () => {
+  it("marks the page as a report to print while the report is on screen, and only then", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    expect(document.body.dataset.print).toBeUndefined();
+    act(() =>
+      root.render(
+        <QueryClientProvider client={new QueryClient()}>
+          <MemoryRouter>
+            <ReportView report={clean} runId="r1" graph={spec} canCorrect />
+          </MemoryRouter>
+        </QueryClientProvider>,
+      ),
+    );
+    expect(document.body.dataset.print).toBe("report");
+    act(() => root.unmount());
+    expect(document.body.dataset.print).toBeUndefined();
   });
 });

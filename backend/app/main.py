@@ -1,9 +1,10 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
-from app.api import chat, documents, evidence, graph, health, models, runs
+from app.api import chat, deck, documents, evidence, graph, health, models, runs
 from app.contracts import ErrorResponse
 from app.core.errors import install_error_handlers
 from app.core.services import build_services
@@ -15,6 +16,11 @@ from app.graph.lifecycle import recover_interrupted
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     services = await build_services(get_settings())
     await recover_interrupted(services)
+    removed = services.documents.prune(
+        await services.runs.document_ids_in_use(), services.settings.document_ttl_days * 86_400
+    )
+    if removed:
+        logging.getLogger(__name__).info("removed %d unused uploaded file(s)", len(removed))
     app.state.services = services
     try:
         yield
@@ -31,7 +37,7 @@ def create_app() -> FastAPI:
     )
     install_error_handlers(app)
     api = APIRouter(prefix="/api")
-    for module in (health, models, graph, runs, chat, evidence, documents):
+    for module in (health, models, graph, runs, chat, evidence, documents, deck):
         api.include_router(module.router)
     app.include_router(api)
     return app

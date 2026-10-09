@@ -1,4 +1,5 @@
 import type { Deck, DeckSlide } from "./deckModel";
+import { Reading } from "./DeckBits";
 import { EvidenceBody, FundingBody, ProbabilityBody, RisksBody, TwinsBody } from "./NumberSlides";
 import { CallBody, QuestionBody, RecommendationBody, TitleSlideView } from "./ProgramSlides";
 import { SlideFrame, SLIDE_H, SLIDE_W } from "./SlideFrame";
@@ -37,6 +38,21 @@ function Scaled({ scale, children }: { scale: number; children: React.ReactNode 
   );
 }
 
+const READING_BELOW = new Set(["probability", "twins", "funding", "evidence"]);
+
+/** The slide's own figures, and under them what they mean when a model wrote that. Risks and the recommendation place theirs themselves. */
+function WithReading({ slide }: { slide: DeckSlide }) {
+  if (!slide.reading?.length || !READING_BELOW.has(slide.kind)) return <Body slide={slide} />;
+  return (
+    <div className="flex h-full flex-col gap-3">
+      <div className="min-h-0 flex-1">
+        <Body slide={slide} />
+      </div>
+      <Reading lines={slide.reading} />
+    </div>
+  );
+}
+
 export function DeckSlides({ deck, kicker, scale = 1 }: { deck: Deck; kicker: string; scale?: number }) {
   const total = deck.slides.length;
   return (
@@ -46,8 +62,16 @@ export function DeckSlides({ deck, kicker, scale = 1 }: { deck: Deck; kicker: st
           {slide.kind === "title" ? (
             <TitleSlideView slide={slide} index={i + 1} total={total} synthetic={deck.synthetic} />
           ) : (
-            <SlideFrame title={slide.title} kicker={kicker} index={i + 1} total={total} sources={slide.sources} synthetic={deck.synthetic}>
-              <Body slide={slide} />
+            <SlideFrame
+              title={slide.actionTitle ?? slide.title}
+              kicker={slide.actionTitle ? slide.title : kicker}
+              takeaway={slide.takeaway}
+              index={i + 1}
+              total={total}
+              sources={slide.sources}
+              synthetic={deck.synthetic}
+            >
+              <WithReading slide={slide} />
             </SlideFrame>
           )}
         </Scaled>

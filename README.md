@@ -17,8 +17,10 @@ a mock run has few or no claims; `LLM_MODE=live` spends credits, so it is off un
 
 The report opens on the call, then the four questions an investor asks (will it work in people, will it get through trials
 and regulators, will it be used, is funding it worth it), with the claims for and against under each. **Generate report**
-makes a landscape investment-committee deck (12 slides, written from the report only, saved as a PDF), prints the full
-report, or copies it as Markdown.
+makes a landscape investment-committee deck (12 slides, saved as a PDF), prints the full report, or copies it as Markdown.
+In live mode the model writes the deck's words (an action headline, cited bullets and a so-what per slide, two calls, written
+once per run and kept); the figures, charts and tables are the report's own, and a gate drops any bullet that cites no real claim
+or passage and any sentence with a number the report does not hold. Without a model the deck uses the report's own wording.
 
 Panel mode (several models analysing independently, then one comparison) has been run live once: LRRK2 with 2 analysts took
 9 minutes and about 174k tokens, roughly three times a normal run. The comparison prompt has to fit the gateway's input
@@ -47,6 +49,7 @@ make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
 | `MAX_RUN_COST_USD`, `MAX_RUN_TOKENS` | Per-run budget guards |
 | `MAX_PANEL_SIZE` | Upper bound for panel mode |
 | `MAX_CHAT_QUESTIONS` | Follow-up questions allowed per run (default 20) |
+| `DOCUMENT_TTL_DAYS` | An uploaded file that no run names is deleted this many days after it was last written (default 7), when the server starts |
 | `CACHE_TTL_DAYS` | Source cache TTL |
 | `SEC_USER_AGENT` | Descriptive User-Agent with contact email for SEC requests |
 | `DATA_DIR` | SQLite and vector files (git-ignored) |

@@ -40,7 +40,7 @@ the conversation; below 768 px the history is a drawer.
 6. When it completes, a structured briefing appears in the thread (a smaller version of the report: Verdict, Why this
    call, What the report found, Funding, Risks and unknowns, What to do next). The small numbers are citations: a number
    opens the report at that claim, and **Claims cited** at the end lists them. Under it, the verdict card: click **Open
-   report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run.
+   report** (or **Report** in the top bar). Reload: the same text is there, it is written once per run. If the run read files, the briefing has a **Your documents** section: its grey numbers open the quote from the file (file and page), and the list at the end reads **Sources cited**.
 
 ## 2. Drill-down (recommendation → claims → evidence → sources)
 
@@ -95,11 +95,14 @@ the conversation; below 768 px the history is a drawer.
 
 **Generate report** (report header, right of the chips) opens a menu:
 
-1. **Investment committee deck**: opens a page of 12 landscape slides (title, our call, the four questions, how the chance of
-   success was built, similar programs, funding, how solid the evidence is, key risks, our recommendation). Every line is a
-   claim, number or range of the report; each slide's footer lists the sources behind it. **Save as PDF** opens the print
-   window: pick "Save as PDF" and turn on background graphics. The file has one 16:9 page per slide. On a synthetic report
-   every slide carries a red synthetic-data line. **Back to the report** returns.
+1. **Investment committee deck**: opens a page of 12 landscape slides: title, our call, the four questions, how the chance of
+   success was built, similar programs, funding, how solid the evidence is, key risks, our recommendation. With a live model it first
+   writes the words (up to a minute the first time, kept after that); each slide then has an action headline, short bullets and a
+   so-what line. **Rewrite** asks for new words, and the header says whether the words are the model's or the report's own. The
+   figures and charts are always the report's. Every bullet cites a claim or a passage of your files, or restates the report's
+   numbers, and each slide's footer lists the sources behind it. **Save as PDF** opens the print window: pick "Save as PDF" and
+   turn on background graphics. The file has one 16:9 page per slide. On a synthetic report every slide carries a red
+   synthetic-data line. **Back to the report** returns.
 2. **Full report (PDF)**: prints the report page with every branch open.
 3. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
 4. **Download the trace** (live only).

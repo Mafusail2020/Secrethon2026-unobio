@@ -81,6 +81,20 @@ describe("follow-up chat", () => {
     expect(onOpenClaim).toHaveBeenCalledWith(claimId);
   });
 
+  it("draws an answer's Markdown instead of showing its symbols", async () => {
+    api.getMessages.mockResolvedValue([
+      { role: "user", content: "Why?", run_id: "r1", cited_claim_ids: [], cited_evidence_ids: [] },
+      { role: "assistant", content: "It is **conditional**:\n\n- trials stopped\n- safety liability", run_id: "r1", cited_claim_ids: [], cited_evidence_ids: [] },
+    ]);
+    await mount();
+    expect(host.querySelector("strong")?.textContent).toBe("conditional");
+    const items = [...host.querySelectorAll("li")].map((li) => li.textContent);
+    expect(items).toContain("trials stopped");
+    expect(items).toContain("safety liability");
+    expect(host.textContent).not.toContain("**");
+    expect(host.textContent).not.toContain("- trials");
+  });
+
   it("sends a question and appends the reply to the thread", async () => {
     api.postMessage.mockResolvedValue({ role: "assistant", content: "Grounded answer.", run_id: "r1", cited_claim_ids: [claimId], cited_evidence_ids: [] });
     await mount();

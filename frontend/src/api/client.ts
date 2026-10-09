@@ -2,6 +2,7 @@ import type {
   ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
+  DeckScript,
   DocumentInfo,
   EvidenceDetail,
   GraphSpec,
@@ -27,6 +28,8 @@ export interface Api {
   /** Keeps a file for the next run; the run names it by the returned id. */
   uploadDocument(file: File): Promise<DocumentInfo>;
   getDocument(documentId: string): Promise<DocumentInfo>;
+  /** The words of the committee deck for a finished run, written once. Empty `slides`: use the report's own wording. */
+  postDeck(runId: string, rewrite?: boolean): Promise<DeckScript>;
   getRun(runId: string): Promise<RunDetail>;
   getReport(runId: string): Promise<UnderwritingReport>;
   getNode(runId: string, nodeId: string): Promise<NodeExecution>;
@@ -90,6 +93,7 @@ export const liveApi: Api = {
   listRuns: () => request("/runs?limit=100"),
   createRun: (body) => post("/runs", body),
   getDocument: (id) => request(`/documents/${id}`),
+  postDeck: (id, rewrite) => post(`/runs/${id}/deck${rewrite ? "?rewrite=true" : ""}`, {}),
   // the raw file is the body; its name travels in a header so no multipart parser is needed
   uploadDocument: (file) =>
     request("/documents", {

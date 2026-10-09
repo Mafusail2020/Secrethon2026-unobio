@@ -70,8 +70,19 @@
     display: block !important;
     -webkit-line-clamp: unset !important;
   }
-  body[data-print="report"] [class*="rounded-lg"] {
+  /* a leaf box (one claim, one chart, one row of numbers) stays on one sheet; a box that holds other boxes
+     (a question, the numbers, a column of claims) flows across sheets instead of leaving a gap */
+  body[data-print="report"] [class*="rounded-lg"],
+  body[data-print="report"] [class*="rounded-sm"] {
     break-inside: avoid;
+  }
+  body[data-print="report"] [class*="rounded-lg"]:has([class*="rounded-sm"], [class*="rounded-lg"]),
+  body[data-print="report"] [class*="rounded-sm"]:has([class*="rounded-sm"], [class*="rounded-lg"]) {
+    break-inside: auto;
+  }
+  body[data-print="report"] h2,
+  body[data-print="report"] h3 {
+    break-after: avoid;
   }
 }
 

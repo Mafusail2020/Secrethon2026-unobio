@@ -42,4 +42,57 @@ describe("MarkdownText", () => {
     expect(opened).toEqual(["c1"]);
     act(() => root.unmount());
   });
+
+  it("draws a chat reply as Markdown: bold, lists, code, a table and a task list, with raw HTML shown as text", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    const text = [
+      "It is **conditional** because of *two* things:",
+      "",
+      "1. the trials stopped",
+      "2. the target has a liability",
+      "",
+      "- [x] checked the report",
+      "- [ ] not checked the file",
+      "",
+      "Use `LRRK2` here.",
+      "",
+      "```",
+      "plain block",
+      "```",
+      "",
+      "| Case | PoS |",
+      "|---|---|",
+      "| BACE1 | 4% |",
+      "",
+      "<b>not html</b>",
+    ].join("\n");
+    act(() => root.render(<MarkdownText text={text} ids={[]} variant="answer" report={undefined} onOpenClaim={() => {}} />));
+    expect(host.querySelector("strong")?.textContent).toBe("conditional");
+    expect(host.querySelector("em")?.textContent).toBe("two");
+    expect(host.querySelectorAll("ol li")).toHaveLength(2);
+    expect(host.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);
+    expect((host.querySelector('input[type="checkbox"]') as HTMLInputElement).checked).toBe(true);
+    expect(host.querySelector("p code")?.textContent).toBe("LRRK2");
+    expect(host.querySelector("pre")?.textContent).toContain("plain block");
+    expect(host.querySelector("table th")?.textContent).toBe("Case");
+    expect(host.querySelector("table td")?.textContent).toBe("BACE1");
+    expect(host.querySelector("b")).toBeNull();
+    expect(host.textContent).toContain("<b>not html</b>");
+    act(() => root.unmount());
+  });
+
+  it("gives a briefing section a bar and a reply a plain small heading", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    const draw = (variant: "briefing" | "answer") =>
+      act(() => root.render(<MarkdownText text={"## Verdict\n\nText"} ids={[]} variant={variant} report={undefined} onOpenClaim={() => {}} />));
+    draw("briefing");
+    expect(host.querySelector("h2")?.className).toContain("border-l-4");
+    draw("answer");
+    expect(host.querySelector("h2")?.className).not.toContain("border-l-4");
+    act(() => root.unmount());
+  });
 });

@@ -36,7 +36,7 @@ function mount(ids: string[]) {
   return { host, unmount: () => act(() => root.unmount()) };
 }
 
-const settle = () => act(async () => void (await new Promise((r) => setTimeout(r, 10))));
+const settle = (until: () => boolean) => act(async () => void (await vi.waitFor(() => expect(until()).toBe(true), { timeout: 2000 })));
 
 describe("PassageChips", () => {
   it("names each passage by its file and page, and shows the quote when the chip is opened", async () => {
@@ -48,14 +48,14 @@ describe("PassageChips", () => {
       }),
     );
     const { host, unmount } = mount(["ev_a", "ev_b"]);
-    await settle();
+    await settle(() => [...host.querySelectorAll("button")].every((b) => !b.textContent?.includes("Loading")));
     const chips = [...host.querySelectorAll("button")];
     expect(chips.map((c) => c.textContent)).toEqual(["BACE1 mouse study.pdf · p. 3", "BACE1 mouse study.pdf · p. 7"]);
     expect(host.querySelector("blockquote")).toBeNull();
     act(() => chips[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(host.querySelector("blockquote")?.textContent).toContain("Quote from ev_b.");
     expect(chips[1]!.getAttribute("aria-expanded")).toBe("true");
-    expect(host.querySelector("blockquote a")?.getAttribute("href")).toBe("/api/documents/doc_0123456789abcdef/file");
+    expect(host.querySelector("blockquote a")?.getAttribute("href")).toBe("/api/documents/doc_0123456789abcdef/file#page=7");
     act(() => chips[1]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(host.querySelector("blockquote")).toBeNull();
     unmount();
@@ -65,7 +65,7 @@ describe("PassageChips", () => {
     expect(mount([]).host.textContent).toBe("");
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code: "evidence_not_found", message: "no", details: [] } }), { status: 404 })));
     const { host, unmount } = mount(["ev_gone"]);
-    await settle();
+    await settle(() => host.querySelector("button")?.textContent === "Passage");
     const chip = host.querySelector("button")!;
     expect(chip.textContent).toBe("Passage");
     expect(chip.hasAttribute("disabled")).toBe(true);

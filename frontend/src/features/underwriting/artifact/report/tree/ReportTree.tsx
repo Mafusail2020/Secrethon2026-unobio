@@ -28,10 +28,11 @@ export function ReportTreeView({
   return (
     <div className="space-y-4">
       <RootSummary report={report} tree={tree} scale={scale * 3} onJump={onJump} />
-      <div className="flex items-center justify-between" data-print-hide>
+      <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold tracking-tight">The case, question by question</h2>
         <button
           type="button"
+          data-print-hide
           onClick={() => onSetAll(!allOpen)}
           className="rounded-full border border-line bg-surface px-2.5 py-1 text-xs hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
         >

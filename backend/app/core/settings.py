@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     data_dir: Path = Path("backend/data")
     max_concurrent_runs: int = 2
     max_chat_questions: int = 20
+    # an uploaded file that no run names is deleted this many days after it was last written
+    document_ttl_days: int = 7
     # scales the sleeps in stub nodes; tests set 0
     stub_delay_scale: float = 1.0
 

@@ -1,6 +1,7 @@
 """Passages of the user's uploaded files that bear on one follow-up question."""
 
 import asyncio
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.contracts import Evidence, UnderwritingReport
@@ -21,6 +22,14 @@ class Passage:
     @property
     def label(self) -> str:
         return f"{self.name}, {self.evidence.locator}" if self.evidence.locator else self.name
+
+
+def documents_block(passages: Sequence[Passage]) -> str:
+    """The passages as the model sees them, each under the id it must cite."""
+    if not passages:
+        return ""
+    lines = [f'[{p.evidence.id}] {p.label}: "{p.evidence.excerpt}"' for p in passages]
+    return "<documents>\n" + "\n".join(lines) + "\n</documents>\n"
 
 
 def document_ids(report: UnderwritingReport) -> list[str]:

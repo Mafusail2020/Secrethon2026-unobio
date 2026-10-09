@@ -219,6 +219,22 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | POST | `/documents` | `DocumentInfo` (201). The raw file is the body, its name percent-encoded in `X-File-Name`. PDF, TXT or MD up to 10 MB; 413 `document_too_large`, 415 `unsupported_document`, 422 `invalid_document`. Kept under `DATA_DIR/documents` by content hash (`doc_` + 16 hex), so the same bytes are one document. A run names up to five in `program.document_ids`; `POST /runs` answers 422 `unknown_document` for an id that was never uploaded. Reading them is the ingest node's job (`DocumentStore.get(id).read()`) |
 | GET | `/documents/{id}`, `/documents/{id}/file` | `DocumentInfo`; the file as uploaded (inline, `nosniff`, `sandbox`), so a reader can check a quote against it |
 
+### Committee deck script
+
+`deck/script.py` lets the model write the words of the committee deck; `POST /runs/{id}/deck` (api/deck.py) returns a `DeckScript`
+(a subtitle and, per slide, an action headline, up to six bullets with a stance, `claim_ids` and `evidence_ids`, and a takeaway). The
+figures, charts and tables of the deck stay the report's. Two calls run in parallel over disjoint slides (call, the four questions;
+then probability, twins, money, evidence, risks, recommendation), because a reasoning model spends most of a reply cap thinking and
+one call for eleven slides does not fit under the gateway's 4,000 tokens. Each prompt is the report context (trimmed to what is left of
+`llm/limits.GATEWAY_PROMPT_CHARS`), a NUMBERS block with every figure pre-formatted as the deck writes it, and the passages of the
+user's files that match the program. The model answers into a lenient draft schema, so a wrong slide id or a long sentence costs that
+item at the gate and not the whole reply. The gate keeps a bullet only if it cites a real claim or a shown passage (slides that only
+restate numbers may cite nothing), drops any headline, bullet, takeaway or subtitle with a number that is not in NUMBERS, the report
+text or the passages (small counts up to 12 are free), and drops a claim slide with no surviving bullet. The result is kept in
+`run_decks`; `rewrite=true` writes it again. In mock mode, or when both calls fail or nothing survives, the script is empty and the
+frontend builds the deck from the report's own wording, which is also what any slide the model left out gets. The deck page waits for
+the script before showing slides so nothing jumps, and has a Rewrite button. Cost is logged under node id `deck`.
+
 ### Uploaded documents
 
 `POST /documents` only keeps the file. `ingest_user_input` reads it (`sources/documents.py`): a PDF page by page with `pypdf`
@@ -264,6 +280,15 @@ the rest by first use (`cited_claim_ids` is that order), and a briefing that cit
 `template_summary`, which composes the same structure from the report's own verdict, sections, valuation, risks and
 diligence questions with no model call. One model call per run, logged under node id `summary`. The frontend asks for it when
 the run completes; the endpoint is idempotent, so a reload shows the stored text.
+
+When the run read uploaded files, the briefing uses them too. The endpoint picks the passages that match the program (its indication,
+mechanism and drug name, ranked by the FTS index, up to 6 chunks and 3000 characters) and the prompt gets them in a `<documents>` block
+after the report, with a `## Your documents` section in the structure; the report text is trimmed to what is left of the gateway's
+~14k characters. A statement from a file cites the passage as `[[ev_...]]`. `gate_summary` strikes marks for ids that were not shown to
+the model, and the template briefing (mock mode, or a draft that cites nothing real) quotes the top three passages word for word with
+Markdown and citation marks escaped. Passage ids are stored with the briefing in the same JSON column as claim ids (the `ev_` prefix tells
+them apart). In the UI claims and passages share one numbering by first use; a passage's number opens its quote, and the list under the
+briefing reads "Sources cited".
 
 ## 7. Effort and panel [1b]
 

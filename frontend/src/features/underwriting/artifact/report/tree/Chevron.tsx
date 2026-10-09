@@ -4,6 +4,7 @@ export function Chevron({ open, size = "lg" }: { open: boolean; size?: "md" | "l
   return (
     <span
       aria-hidden="true"
+      data-print-hide
       className={`inline-flex shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink shadow-sm ${big ? "h-9 w-9" : "h-7 w-7"} ${open ? "bg-canvas" : ""}`}
     >
       <svg

@@ -4,6 +4,9 @@ type S = components["schemas"];
 
 export type ProgramInput = S["ProgramInput"];
 export type DocumentInfo = S["DocumentInfo"];
+export type DeckScript = S["DeckScript"];
+export type SlideScript = S["SlideScript"];
+export type DeckBullet = S["DeckBullet"];
 export type RunOptions = S["RunOptions"];
 export type CreateRunRequest = S["CreateRunRequest"];
 export type CorrectionRequest = S["CorrectionRequest"];

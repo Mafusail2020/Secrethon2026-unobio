@@ -36,6 +36,24 @@ export const useReportOf = (runId: string | null | undefined) =>
     staleTime: 60_000,
   });
 
+export const useEvidenceDetail = (evidenceId: string, enabled = true) =>
+  useQuery({
+    queryKey: ["evidence", evidenceId],
+    queryFn: async () => (await getApi()).getEvidence(evidenceId),
+    enabled,
+    staleTime: Infinity,
+    retry: false,
+  });
+
+export const useDeckScript = (runId: string | undefined, enabled: boolean) =>
+  useQuery({
+    queryKey: ["deck", runId],
+    queryFn: async () => (await getApi()).postDeck(runId!),
+    enabled: enabled && !!runId,
+    staleTime: Infinity,
+    retry: false,
+  });
+
 export const useNode = (runId: string, nodeId: string | undefined, version: string) =>
   useQuery({
     queryKey: ["node", runId, nodeId, version],
