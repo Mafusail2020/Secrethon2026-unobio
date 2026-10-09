@@ -5,6 +5,7 @@ import { documentFileUrl, getApi } from "../../../../api/client";
 import { useRuns } from "../../../../api/hooks";
 import type { RunSummary, UnderwritingReport } from "../../../../api/types";
 import { ErrorBox } from "../../../../components/ui/ErrorBox";
+import { ReportIcon } from "../../../../components/ui/icons";
 import { Spinner } from "../../../../components/ui/Spinner";
 import { DropArea } from "../../chat/DocumentDrop";
 import { MAX_DOCUMENTS, formatSize } from "../../chat/documents";
@@ -68,18 +69,24 @@ function Panel({ run, report, canRerun }: Props) {
   });
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="border-b border-line bg-surface/60 p-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-        <h2 id={`${uid}-title`} className="text-base font-semibold">
-          Your documents
-        </h2>
-        <p className="text-xs text-muted">Tick the files the analysis should read.</p>
+    <section aria-labelledby={`${uid}-title`} className="rounded-sm border border-brand/30 border-l-[6px] border-l-brand bg-brand/[0.06] p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <ReportIcon width={20} height={20} className="shrink-0 text-brand" aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 id={`${uid}-title`} className="text-base font-semibold">
+              Your documents
+            </h2>
+            <span className="rounded-full border border-brand/40 bg-brand/10 px-2 py-px text-[0.7rem] font-medium text-royal">You added</span>
+          </div>
+          <p className="mt-0.5 text-sm text-muted">Tick the files the analysis should read.</p>
+        </div>
       </div>
 
       {rows.length === 0 ? (
-        <p className="mt-2 text-sm text-muted">This run read no documents of yours. Add a PDF, text or markdown file to give the analysis your own data.</p>
+        <p className="mt-3 text-sm text-muted">This run read no documents of yours. Add a PDF, text or markdown file to give the analysis your own data.</p>
       ) : (
-        <ul className="mt-2 divide-y divide-line/70 rounded-md border border-line bg-surface" aria-label="Documents">
+        <ul className="mt-3 divide-y divide-line/70 rounded-sm border border-line bg-surface" aria-label="Documents">
           {rows.map((row) => {
             const name = row.info?.name ?? "Loading the name";
             const url = documentFileUrl(row.id);

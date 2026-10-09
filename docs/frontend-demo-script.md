@@ -55,7 +55,9 @@ the conversation; below 768 px the history is a drawer.
 3. Hover the **extracted** chip: the tooltip explains the six labels.
 4. A question with nothing to weigh says **Not enough evidence**, with what could not be established.
 5. **All claims** → filter by stance *against* and search "terminated"; **Clear** resets.
-6. Sources view: sort by **Cited by**, filter **trial**, click "1 claim" and open it in the report.
+6. Sources view: two cards. **Your documents** (blue edge, "You added") holds your files; **Found by the analysis** (grey edge,
+   "Public sources") is closed and says how many sources there are and who from. Press **Show**: sort by **Cited by**, filter
+   **trial**, click "1 claim" and open it in the report. Your uploaded files are not repeated in that table.
 7. Logs view: filter by step, search, **Group by step**, **Copy**.
 
 8. Back in the conversation, ask **Why is this conditional and not a no?** in the box at the bottom (it opens once the
@@ -81,7 +83,7 @@ the conversation; below 768 px the history is a drawer.
 
 1. In the new-chat card press **Add details**, then drop a PDF, TXT or MD file on the **Documents** area (up to five, 10 MB
    each). A file the server refuses shows why under the list; **×** removes one. Start the run.
-2. Open **Sources** in the top bar. **Your documents** sits above the sources table: one row per file with a tick box, its
+2. Open **Sources** in the top bar. **Your documents** is the first card, above the closed **Found by the analysis**: one row per file with a tick box, its
    size, and what the run took from it (evidence items and the claims citing them; "Nothing from it reached the evidence" until
    the ingest step reads files). **Open** shows the file itself.
 3. Untick a file, or drop another one on the strip below the list: a bar says how many are selected. **Re-run with these**
