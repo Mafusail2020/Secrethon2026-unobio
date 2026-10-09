@@ -18,6 +18,7 @@ from app.contracts.common import Confidence
 from app.contracts.ids import claim_id
 from app.graph.provenance import EVIDENCE_REQUIRED, gate_claims
 from app.graph.state import GraphState
+from app.llm.limits import GATEWAY_MAX_OUTPUT_TOKENS
 from app.llm.types import LLMBudgetError, LLMParseError, LLMResult, LLMTask
 from app.nodes._fixture import excluded_ids
 from app.nodes.base import NodeContext
@@ -30,7 +31,7 @@ DIGEST_CHARS = 7500
 # reply caps per call; the model reasons inside the same budget, and a cap hit means an empty or
 # cut reply plus a paid repair call (seen live at 2000 for sections). Billing is per token used.
 # The gateway refuses caps above ~4k ("outside the supported range" at 5000).
-MAX_OUT_TOKENS = 4000
+MAX_OUT_TOKENS = GATEWAY_MAX_OUTPUT_TOKENS
 OUT_TOKENS = {
     "questions": 3000,
     "queries": 1500,

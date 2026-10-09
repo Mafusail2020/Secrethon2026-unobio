@@ -85,7 +85,7 @@ export function TwinPanel({ twin, report }: { twin: TwinStats; report: Underwrit
             </thead>
             <tbody>
               {twin.twins.map((t) => (
-                <tr key={t.drug_id} className="border-t border-line align-top">
+                <tr key={`${t.drug_id}:${t.disease}`} className="border-t border-line align-top">
                   <td className="py-1 pr-2 font-medium">{t.drug}</td>
                   <td className="pr-2">{t.disease}</td>
                   <td className="pr-2">{t.max_stage}</td>

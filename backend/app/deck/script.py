@@ -26,9 +26,13 @@ log = logging.getLogger(__name__)
 NUMERIC = {"probability", "twins", "money", "evidence", "recommendation"}
 # two calls over disjoint slides: a reasoning model spends most of a reply cap thinking, and
 # one call for eleven slides does not fit under the gateway's cap
+# five or six slides in one reply ran out of output budget live (the model reasons inside it
+# and came back empty), so the calls are smaller and run in parallel
 GROUPS: tuple[tuple[str, ...], ...] = (
-    ("call", "works", "approval", "uptake", "funding"),
-    ("probability", "twins", "money", "evidence", "risks", "recommendation"),
+    ("call", "works", "approval"),
+    ("uptake", "funding", "probability"),
+    ("twins", "money", "evidence"),
+    ("risks", "recommendation"),
 )
 MAX_BULLETS = 6
 MIN_CONTEXT_CHARS = 3_000

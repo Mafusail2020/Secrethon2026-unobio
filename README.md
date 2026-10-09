@@ -82,8 +82,23 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
    header, which opens the chat page, and the header logo, which returns here.
 2. Enter an indication and a mechanism (for example Alzheimer's disease and BACE1 inhibition), then press the arrow button (Underwrite). The conversation streams the steps; the **Graph** and **Logs** buttons in the top bar open those views live.
 3. When it completes, the **Report** button opens the verdict. Expand a claim to see its evidence and the source link.
-4. **Graph**, click `verdict` (or any node), write a correction containing "terminated", and re-run. Only the affected
-   nodes recompute, the rest show as reused, and the version bar shows the decision change.
+4. **Graph**, click `verdict`, write a correction that reports a failure, and re-run. On the LRRK2 case, "Our Phase 2
+   interim analysis was stopped for futility: no slowing of progression at 12 months." turns Conditional into Do not
+   invest in about two seconds with no model call: only `verdict` and `report_assembler` recompute, the rest show as
+   reused, and the version bar shows the change. A denial ("the trial was not terminated") does not count as a failure.
+
+### Demo on a clean data dir
+
+The working database collects every test run. For the demo, copy only the demo runs, with the LLM and source caches,
+into `backend/data/demo` (git-ignored) and start from there:
+
+```sh
+cd backend && uv run python -m scripts.demo_db <run ids>   # the working app.db is only read
+DATA_DIR=backend/data/demo make dev
+```
+
+The LLM cache is keyed by the prompt, so build the demo dir from runs made on the code you will demo; a replay of the
+same case is then served from the cache in seconds and spends nothing.
 
 ### Demo cases (live, `gpt-6-luna`, medium effort)
 
@@ -93,11 +108,22 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 | Hypercholesterolemia × anti-PCSK9 antibody, phase 2, with a monkey LDL-C note | Conditional (medium) | 46.8% (20.1–73.7%) | -$578M to $3,469M |
 | Parkinson's disease × LRRK2 kinase inhibition, phase 2, oral small molecule (open question) | Conditional (low) | 14.8% (1.0–48.9%) | -$133M to $2,304M |
 
-A cold run makes 16 model calls, about 33k tokens in and 23k out, and takes 2 to 4 minutes; at the team's measured rate
-that is about $0.18. Running the same case again on the same code is served from the LLM and source caches: the BACE1
+A cold run makes 16 model calls, about 33k tokens in and 23k out, and takes 2 to 4 minutes (13 when the gateway was
+busy); at the team's measured rate that is about $0.18. Running the same case again on the same code is served from the LLM and source caches: the BACE1
 replay took 9 seconds and spent nothing, so a demo can replay the cases live. A correction recomputes only what depends
 on it: adding phase 1 target-engagement data to LRRK2 moved the target-engagement step to supported and dropped the
 unproven-translation penalty from the ledger.
+
+### When does it say Invest?
+
+Invest is the call to fund without conditions, so every rule must hold (`config/verdict.yaml`): PoS at the pessimistic
+end of its range is at least 10%; rNPV is positive even in the pessimistic scenario (lowest PoS, highest cost and
+discount rate, lowest peak sales together); no kill flag; no efficacy or safety assessment rated concerning or unknown;
+and no high-severity key risk. A failed same-target program in the same indication, or a user-reported failure, is a
+kill flag and gives Do not invest; so does an rNPV that is negative even optimistically. Everything in between is
+Conditional, with the conditions to clear listed. The bar is deliberately high: none of the three demo cases clears it,
+and for a phase 2 asset it usually takes an approved same-target precedent, human target engagement and a market that
+pays back even the pessimistic trial plan.
 
 No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flow from fixtures. In mock mode, add
 `?scenario=sparse|large|failed|slow|broken` to `/underwriting` before starting a run to see messy data. The full
