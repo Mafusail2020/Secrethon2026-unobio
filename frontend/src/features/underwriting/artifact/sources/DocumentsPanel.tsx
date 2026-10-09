@@ -69,7 +69,7 @@ function Panel({ run, report, canRerun }: Props) {
   });
 
   return (
-    <section aria-labelledby={`${uid}-title`} className="rounded-sm border border-brand/30 border-l-[6px] border-l-brand bg-brand/[0.06] p-4 shadow-sm">
+    <section aria-labelledby={`${uid}-title`} className="px-1">
       <div className="flex items-center gap-3">
         <ReportIcon width={20} height={20} className="shrink-0 text-brand" aria-hidden="true" />
         <div className="min-w-0 flex-1">
