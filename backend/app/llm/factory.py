@@ -7,7 +7,7 @@ from app.core.settings import Settings
 from app.llm.backend import Backend
 from app.llm.effort import EffortPolicy
 from app.llm.mock import MockBackend
-from app.llm.panel import MockPanelRunner, PanelRunner, UnavailablePanelRunner
+from app.llm.panel import LivePanelRunner, MockPanelRunner, PanelRunner
 from app.llm.registry import ModelRegistry
 from app.llm.service import LLMService
 from app.store.llm_repo import LLMRepo
@@ -41,7 +41,7 @@ async def build_llm_stack(settings: Settings, repo: LLMRepo) -> LLMStack:
         panel: PanelRunner = MockPanelRunner()
     else:
         backend, client = build_live_backend(settings)
-        panel = UnavailablePanelRunner()
+        panel = LivePanelRunner()
         try:
             page = await client.models.list()
             registry.apply_gateway_models({m.id for m in page.data})
