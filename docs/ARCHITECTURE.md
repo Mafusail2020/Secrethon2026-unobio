@@ -7,7 +7,7 @@ drug program, never the company.
 
 Status legend: **[1a]** contracts and skeleton, **[1b]** walking skeleton (both shipped), **[later]** planned. The fetch,
 analysis, quant and verdict nodes are real. The fixture helpers in `nodes/_fixture.py` remain for mock mode and as the contract
-example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode is not implemented yet.
+example; a run that still carries `FIXTURE:` text is marked `meta.synthetic`. Live panel mode is implemented (`llm/panel.py`) and tested with a faked gateway; it has not been run live.
 
 ## 1. Principles
 
@@ -237,7 +237,9 @@ the run completes; the endpoint is idempotent, so a reload shows the stored text
 `config/effort.yaml` maps `low | medium | high | panel` to a model tier plus knobs. The model defaults to the cheapest
 available. In panel mode, analysis nodes run N completions in parallel (different models if `panel_models`, else one
 model with varied temperature), then one comparator call merges them into a parsed output plus a `PanelResult`.
-Panel never applies to data, processing or quant nodes. In 1b panel is an interface plus a mock; real logic is later.
+Panel never applies to data, processing or quant nodes. A failed analyst is dropped; with one survivor the answer is used
+as is; when the comparison cannot be parsed the first answer is kept and the panel says agreement is unknown. Cost is
+N+1 calls per analysis step, so the run budget guard downgrades to a single call when it would not fit.
 
 ## 8. Caching [1b]
 

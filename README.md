@@ -20,7 +20,8 @@ and regulators, will it be used, is funding it worth it), with the claims for an
 makes a landscape investment-committee deck (12 slides, written from the report only, saved as a PDF), prints the full
 report, or copies it as Markdown.
 
-Not done yet: panel mode in live (several models analysing independently) falls back to a single call with a warning.
+Panel mode (several models analysing independently, then one comparison) is implemented and tested against a faked gateway, but has
+not been run live; try it only with a budget in mind, since one analysis step costs N+1 calls.
 
 ## Quick start
 
