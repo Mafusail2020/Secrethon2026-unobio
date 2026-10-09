@@ -3,6 +3,7 @@ import type { components } from "./types.gen";
 type S = components["schemas"];
 
 export type ProgramInput = S["ProgramInput"];
+export type DocumentInfo = S["DocumentInfo"];
 export type RunOptions = S["RunOptions"];
 export type CreateRunRequest = S["CreateRunRequest"];
 export type CorrectionRequest = S["CorrectionRequest"];

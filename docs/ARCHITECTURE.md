@@ -213,6 +213,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | POST | `/runs/{id}/summary` | the plain-language read-out of a completed run (`ChatMessage` with cited claim ids). Written once and stored in `run_summaries`; asking again returns the same text. 409 until the run completed |
 | GET | `/runs/{id}/messages` | chat history of the run, oldest first |
 | POST | `/runs/{id}/messages` | follow-up question (`role: user`, 1–2000 chars); returns the assistant `ChatMessage`. 409 until the run completed, 422 on a bad message, 429 after `MAX_CHAT_QUESTIONS`, 502 `chat_failed` if the model reply is unreadable |
+| POST | `/documents` | `DocumentInfo` (201). The raw file is the body, its name percent-encoded in `X-File-Name`. PDF, TXT or MD up to 10 MB; 413 `document_too_large`, 415 `unsupported_document`, 422 `invalid_document`. Kept under `DATA_DIR/documents` by content hash (`doc_` + 16 hex), so the same bytes are one document. A run names up to five in `program.document_ids`; `POST /runs` answers 422 `unknown_document` for an id that was never uploaded. Reading them is the ingest node's job (`DocumentStore.get(id).read()`) |
 
 ### Follow-up chat
 

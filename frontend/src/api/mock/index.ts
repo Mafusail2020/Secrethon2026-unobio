@@ -7,6 +7,7 @@ import type {
   ChatMessage,
   CorrectionRequest,
   CreateRunRequest,
+  DocumentInfo,
   GraphSpec,
   LLMCall,
   NodeExecution,
@@ -235,6 +236,14 @@ export const mockApi: Api = {
         .sort((a, b) => b.created_at.localeCompare(a.created_at)),
     ),
   createRun: (body) => wait({ ...create(body).summary }),
+  uploadDocument: async (file) => {
+    const kind = /\.pdf$/i.test(file.name) ? "pdf" : /\.(txt|md)$/i.test(file.name) ? "text" : undefined;
+    if (!kind) throw new ApiError(415, "unsupported_document", "only PDF, TXT and MD files are accepted");
+    if (file.size > 10_000_000) throw new ApiError(413, "document_too_large", `${file.name} is over 10 MB`);
+    const seed = [...`${file.name}:${file.size}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const info: DocumentInfo = { id: `doc_${seed.toString(16).padStart(16, "0")}`, name: file.name, kind, size_bytes: file.size };
+    return wait(info);
+  },
   getRun: (id) => {
     const run = need(id);
     const nodes = runnableNodes(spec).flatMap((n) => {

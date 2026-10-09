@@ -606,7 +606,7 @@
             "type": "string"
           },
           "size_bytes": {
-            "minimum": 0,
+            "minimum": 0.0,
             "title": "Size Bytes",
             "type": "integer"
           }
@@ -3120,6 +3120,46 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/documents": {
+      "post": {
+        "description": "The raw file as the request body, its name percent-encoded in X-File-Name.",
+        "operationId": "post_document_api_documents_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-file-name",
+            "required": true,
+            "schema": {
+              "title": "X-File-Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentInfo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Post Document"
+      }
+    },
     "/api/evidence/{evidence_id}": {
       "get": {
         "operationId": "get_evidence_api_evidence__evidence_id__get",

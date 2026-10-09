@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Document
+         * @description The raw file as the request body, its name percent-encoded in X-File-Name.
+         */
+        post: operations["post_document_api_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/evidence/{evidence_id}": {
         parameters: {
             query?: never;
@@ -1314,6 +1334,37 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    post_document_api_documents_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-file-name": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentInfo"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_evidence_api_evidence__evidence_id__get: {
         parameters: {
             query?: never;

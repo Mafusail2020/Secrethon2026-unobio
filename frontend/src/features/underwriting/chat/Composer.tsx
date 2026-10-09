@@ -8,7 +8,9 @@ import { ErrorBox } from "../../../components/ui/ErrorBox";
 import { ArrowUpIcon, PlusIcon } from "../../../components/ui/icons";
 import { Spinner } from "../../../components/ui/Spinner";
 import { readPref, writePref } from "../../../lib/storage";
+import { DocumentDrop } from "./DocumentDrop";
 import { fieldErrors } from "./fieldErrors";
+import { useDocuments } from "./useDocuments";
 
 const MODALITIES = [
   "small_molecule",
@@ -90,7 +92,7 @@ function initialState(): FormState {
 
 const blankToUndefined = (value: string) => value.trim() || undefined;
 
-function toRequest(form: FormState): CreateRunRequest {
+function toRequest(form: FormState, documentIds: string[]): CreateRunRequest {
   const program: ProgramInput = {
     indication: form.indication.trim(),
     mechanism: form.mechanism.trim(),
@@ -105,6 +107,7 @@ function toRequest(form: FormState): CreateRunRequest {
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean),
+    document_ids: documentIds,
   };
   const options: RunOptions = {
     effort: form.effort,
@@ -195,6 +198,7 @@ export function Composer() {
   const uid = useId();
   const [form, setForm] = useState<FormState>(initialState);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const docs = useDocuments();
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
@@ -215,7 +219,7 @@ export function Composer() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    create.mutate(toRequest({ ...form, model: modelValue }));
+    create.mutate(toRequest({ ...form, model: modelValue }, docs.documents.map((d) => d.id)));
   };
   const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -319,6 +323,9 @@ export function Composer() {
               {(p) => <textarea {...p} rows={2} className={input} value={form.links} onChange={(e) => set("links", e.target.value)} />}
             </Field>
           </div>
+          <div className="col-span-2">
+            <DocumentDrop documents={docs.documents} uploading={docs.uploading} problems={docs.problems} onAdd={(files) => void docs.add(files)} onRemove={docs.remove} />
+          </div>
         </div>
         </div>
       </div>
@@ -379,7 +386,7 @@ export function Composer() {
             type="submit"
             aria-label="Underwrite"
             title="Underwrite (⌘ Enter)"
-            disabled={create.isPending}
+            disabled={create.isPending || docs.uploading.length > 0}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-royal text-white transition hover:opacity-90 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
           >
             {create.isPending ? <Spinner className="h-4 w-4" /> : <ArrowUpIcon />}
