@@ -47,6 +47,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 "app/nodes/*.py" = ["E501"]  # one-line UI descriptions
 "app/chat/answer.py" = ["E501"]  # prompt text
 "app/chat/summary.py" = ["E501"]  # prompt text
+"app/deck/script.py" = ["E501"]  # prompt text
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

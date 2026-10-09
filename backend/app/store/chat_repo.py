@@ -1,8 +1,8 @@
 from sqlalchemy import func, select
 
-from app.contracts import ChatMessage, utcnow
+from app.contracts import ChatMessage, DeckScript, utcnow
 from app.store.db import Database
-from app.store.tables import ChatMessageRow, RunSummaryRow
+from app.store.tables import ChatMessageRow, RunDeckRow, RunSummaryRow
 
 EVIDENCE_PREFIX = "ev_"
 
@@ -85,4 +85,15 @@ class ChatRepo:
                     cited_claim_ids=[*message.cited_claim_ids, *message.cited_evidence_ids],
                     ts=utcnow(),
                 )
+            )
+
+    async def get_deck(self, run_id: str) -> DeckScript | None:
+        async with self.db.session() as s:
+            row = await s.get(RunDeckRow, run_id)
+            return DeckScript.model_validate(row.script) if row else None
+
+    async def put_deck(self, run_id: str, script: DeckScript) -> None:
+        async with self.db.session() as s, s.begin():
+            await s.merge(
+                RunDeckRow(run_id=run_id, script=script.model_dump(mode="json"), ts=utcnow())
             )

@@ -95,6 +95,14 @@ class ChatMessageRow(Base):
     ts: Mapped[datetime] = mapped_column(UTCDateTime)
 
 
+class RunDeckRow(Base):
+    __tablename__ = "run_decks"
+
+    run_id: Mapped[str] = mapped_column(String, primary_key=True)
+    script: Mapped[dict[str, Any]] = mapped_column(JSON)
+    ts: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
 class RunSummaryRow(Base):
     __tablename__ = "run_summaries"
 
