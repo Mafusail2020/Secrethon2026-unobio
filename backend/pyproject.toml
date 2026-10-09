@@ -18,6 +18,7 @@ dependencies = [
     "tenacity>=9.0",
     "duckdb>=1.5.6",
     "pypdf>=6.20.0",
+    "reportlab>=5.0.1",
 ]
 
 [project.optional-dependencies]
@@ -48,6 +49,7 @@ select = ["E", "F", "I", "UP", "B", "ASYNC"]
 "app/chat/answer.py" = ["E501"]  # prompt text
 "app/chat/summary.py" = ["E501"]  # prompt text
 "app/deck/script.py" = ["E501"]  # prompt text
+"app/report_pdf/build.py" = ["E501"]  # one-line table and style definitions
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

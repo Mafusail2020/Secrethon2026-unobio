@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { traceUrl } from "../../../../api/client";
+import { reportPdfUrl, traceUrl } from "../../../../api/client";
 import type { UnderwritingReport } from "../../../../api/types";
 import { toMarkdown } from "./markdown";
 
@@ -24,6 +24,7 @@ export function ExportBar({ report }: { report: UnderwritingReport }) {
   const trigger = useRef<HTMLButtonElement>(null);
   const menuId = useId();
   const download = traceUrl(report.run_id);
+  const pdf = reportPdfUrl(report.run_id);
 
   useEffect(() => {
     if (!open) return;
@@ -75,17 +76,24 @@ export function ExportBar({ report }: { report: UnderwritingReport }) {
           <Link role="menuitem" to={`/underwriting/runs/${report.run_id}/deck`} className={item} onClick={() => setOpen(false)} autoFocus>
             <Entry title="Investment committee deck" note="Landscape slides to present, saved as a PDF" />
           </Link>
-          <button
-            type="button"
-            role="menuitem"
-            className={item}
-            onClick={() => {
-              setOpen(false);
-              window.print();
-            }}
-          >
-            <Entry title="Full report (PDF)" note="Every claim and source, as it prints" />
-          </button>
+          {pdf ? (
+            // a real file from the backend: nothing depends on the browser's print dialog
+            <a role="menuitem" href={pdf} download className={item} onClick={() => setOpen(false)}>
+              <Entry title="Full report (PDF)" note="Downloads the report with every claim, quote and source" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              role="menuitem"
+              className={item}
+              onClick={() => {
+                setOpen(false);
+                window.print();
+              }}
+            >
+              <Entry title="Full report (PDF)" note="Every claim and source, as it prints" />
+            </button>
+          )}
           <button type="button" role="menuitem" className={item} onClick={copy}>
             <Entry title="Copy as Markdown" note="To paste into a document or an email" />
           </button>

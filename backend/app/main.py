@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
-from app.api import chat, deck, documents, evidence, graph, health, models, runs
+from app.api import chat, deck, documents, evidence, graph, health, models, report_pdf, runs
 from app.contracts import ErrorResponse
 from app.core.errors import install_error_handlers
 from app.core.services import build_services
@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
     )
     install_error_handlers(app)
     api = APIRouter(prefix="/api")
-    for module in (health, models, graph, runs, chat, evidence, documents, deck):
+    for module in (health, models, graph, runs, chat, evidence, documents, deck, report_pdf):
         api.include_router(module.router)
     app.include_router(api)
     return app
