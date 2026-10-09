@@ -267,6 +267,13 @@
             "title": "Cited Claim Ids",
             "type": "array"
           },
+          "cited_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cited Evidence Ids",
+            "type": "array"
+          },
           "content": {
             "title": "Content",
             "type": "string"
@@ -293,6 +300,7 @@
         },
         "required": [
           "cited_claim_ids",
+          "cited_evidence_ids",
           "content",
           "role",
           "run_id"

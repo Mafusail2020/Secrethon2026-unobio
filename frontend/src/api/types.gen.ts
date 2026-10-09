@@ -417,6 +417,8 @@ export interface components {
         ChatMessage: {
             /** Cited Claim Ids */
             cited_claim_ids: string[];
+            /** Cited Evidence Ids */
+            cited_evidence_ids: string[];
             /** Content */
             content: string;
             /**
