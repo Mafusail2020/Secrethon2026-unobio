@@ -36,7 +36,7 @@ function mount() {
   return { host, unmount: () => act(() => root.unmount()) };
 }
 
-const settle = () => act(async () => void (await new Promise((r) => setTimeout(r, 10))));
+const settle = (until: () => boolean) => act(async () => void (await vi.waitFor(() => expect(until()).toBe(true), { timeout: 2000 })));
 
 describe("a citation of a passage in the user's file", () => {
   it("is a numbered mark that opens the quote, with the file and the page, and closes on Escape", async () => {
@@ -48,7 +48,7 @@ describe("a citation of a passage in the user's file", () => {
     expect(host.querySelector('[role="dialog"]')).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled(); // nothing is fetched until the mark is opened
     act(() => mark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    await settle();
+    await settle(() => !!host.querySelector('[role="dialog"]')?.textContent?.includes("Brain Abeta42"));
     const card = host.querySelector('[role="dialog"]')!;
     expect(card.textContent).toContain("BACE1 mouse study.pdf · p. 3");
     expect(card.textContent).toContain("Brain Abeta42 fell 62 percent in mice.");
@@ -62,7 +62,7 @@ describe("a citation of a passage in the user's file", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code: "evidence_not_found", message: "no", details: [] } }), { status: 404 })));
     const { host, unmount } = mount();
     act(() => host.querySelector("sup button")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    await settle();
+    await settle(() => !!host.querySelector('[role="dialog"]')?.textContent?.includes("could not be loaded"));
     expect(host.querySelector('[role="dialog"]')?.textContent).toContain("could not be loaded");
     act(() => document.body.dispatchEvent(new Event("pointerdown", { bubbles: true })));
     expect(host.querySelector('[role="dialog"]')).toBeNull();
