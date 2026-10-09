@@ -456,6 +456,14 @@ def test_safety_score_boxed_warning_versus_clean_label():
     assert result.rating == "moderate"
 
 
+def test_a_first_in_class_target_has_no_label_gap_to_resolve():
+    _, result = score_safety(SafetyInputs(), CONF, "safety_score")
+    assert result.gaps == []
+    assert "no approved same-target drug" in result.headline
+    _, result = score_safety(SafetyInputs(same_target_approved=["drugx"]), CONF, "safety_score")
+    assert len(result.gaps) == 2
+
+
 def test_settle_chain_drops_steps_whose_claims_did_not_survive():
     ok = Claim(
         id="c1",

@@ -404,6 +404,9 @@ def score_safety(
                 )
             )
             told.append(f"same-target drug approved without boxed warning ({labelled[0]})")
+    elif x.fetched and not x.same_target_approved:
+        # first in class: there is no label to find, so nothing for the company to resolve
+        told.append("no approved same-target drug, so no label or adverse-event history")
     elif x.fetched:
         gaps.append("no FDA label for this drug or an approved same-target drug")
 
@@ -422,7 +425,7 @@ def score_safety(
         )
         if stopped_safety:
             told.append(f"{stopped_safety} precedent stop(s) for safety")
-    if not x.faers:
+    if not x.faers and (x.same_target_approved or x.labels_checked):
         gaps.append("no adverse-event report counts")
 
     rated = rating(adjustments, conf, bool(metrics or x.claim_ids))
