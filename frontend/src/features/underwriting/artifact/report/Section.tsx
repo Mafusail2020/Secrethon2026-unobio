@@ -34,8 +34,8 @@ export function Section({ result }: { result: SectionResult }) {
       {result.panel && <PanelResultView panel={result.panel} />}
       {result.key_points.length > 0 && (
         <ul className="mt-2 space-y-3">
-          {result.key_points.map((kp) => (
-            <li key={kp.text}>
+          {result.key_points.map((kp, i) => (
+            <li key={`${i}-${kp.text}`}>
               <div className="text-sm font-medium">{kp.text}</div>
               <ul className="mt-1 space-y-1.5">
                 {kp.claim_ids.map((id) => {
@@ -53,8 +53,8 @@ export function Section({ result }: { result: SectionResult }) {
         <div className={`mt-2 text-xs ${insufficient ? "rounded-sm bg-canvas p-2" : "text-muted"}`}>
           <span className="font-medium">What we could not establish:</span>
           <ul className="list-disc pl-4">
-            {result.unknowns.map((u) => (
-              <li key={u}>{u}</li>
+            {result.unknowns.map((u, i) => (
+              <li key={`${i}-${u}`}>{u}</li>
             ))}
           </ul>
         </div>

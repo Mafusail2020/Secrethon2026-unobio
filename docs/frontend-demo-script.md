@@ -101,12 +101,13 @@ the conversation; below 768 px the history is a drawer.
    so-what line. **Rewrite** asks for new words, and the header says whether the words are the model's or the report's own. The
    figures and charts are always the report's. Every bullet cites a claim or a passage of your files, or restates the report's
    numbers, and each slide's footer lists the sources behind it. **Download PDF** draws each slide in the browser and saves a
-   file with one 16:9 page per slide ("Creating the PDF… n of 12" while it works, a few seconds); no print window. On a
+   file with one 16:9 page per slide ("Creating the PDF… n of 12" while it works, a few seconds, about 1.3 MB); no print window. The
+   text is searchable and can be copied (Ctrl+F in the PDF viewer). On a
    synthetic report every slide carries a red synthetic-data line. **Back to the report** returns.
 2. **Full report (PDF)**: downloads an A4 file the backend builds (`GET /api/runs/{id}/report.pdf`): the call and figures, the four
    questions with claims for and against, the numbers behind it (chart, tables), every claim by section with its quotes and
    rejection reasons, risks, numbered sources with links, and the run details. Selectable text, about 80 KB. In the mock there is
-   no backend, so this item prints the report page instead.
+   no backend, so this item saves a plain-text PDF made in the browser from the same text as **Copy as Markdown**.
 3. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
 4. **Download the trace** (live only).
 
@@ -149,3 +150,30 @@ Add `?scenario=` to `/underwriting` before starting a run:
 
 `make check` runs lint, backend tests, `tsc`, `eslint`, `vitest` (pure logic and render tests, including sparse,
 degraded, panel and 200-claim reports) and the generated-types check.
+
+## 8. Before you present
+
+Five minutes, on the machine and browser that will be on screen. Everything here is free except the first deck on a run
+(two model calls).
+
+1. **Servers.** `curl localhost:8000/api/health` answers `"status":"ok"`; on the demo machine `llm_mode` is `live` and
+   `has_api_key` is `true`. `make spend` shows what is left of the budget. Open `/`, press **Gravity**.
+2. **Clean browser state.** Clear this site's data (or use a fresh window), so no layout, collapsed group or typed draft from
+   rehearsal shows up. Window at 1440 px wide; check 1024 px once.
+3. **Each demo run** (BACE1, PCSK9, LRRK2: the ids Person B's final runs came with, which live in the `app.db` that holds them):
+   - the history row opens it, the briefing is there, **Report** opens on the call with four question cards;
+   - open a claim, then **Evidence**: the quote and a source link that opens;
+   - **Generate report → Full report (PDF)** downloads; open the file: the call and figures on page 1, a footer with the run id on
+     every page, numbered sources at the end, no page nearly empty;
+   - **Generate report → Investment committee deck** shows 12 slides (give it up to a minute the first time on a live model, then
+     it is kept); **Download PDF** saves 12 landscape pages; the title slide is dark with white text; Ctrl+F finds a word from a slide.
+4. **Do not on stage:** press **Rewrite** on the deck (a paid call each time), start panel-effort runs, or run the same input
+   twice for the sake of it.
+5. **The correction** you will show: do it once beforehand and note the run it creates, so the **What changed** banner is the
+   second time you see it, not the first.
+6. If a download does nothing, check the browser did not block it (the address bar shows it) and that the backend is up: the
+   report PDF comes from `GET /api/runs/{id}/report.pdf`, so open that URL directly to see the error.
+
+A scripted walk of sections 1 to 4 and 6 (home, a new run, briefing, report, claim and evidence, the four exports, deck,
+sources, logs, graph, follow-up, correction, documents, 1024 and 760 px) ran against the dev server with the mock model and
+passed in full on 9 Oct 2026.

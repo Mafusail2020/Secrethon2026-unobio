@@ -4,7 +4,12 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import reportJson from "../../../../../../contracts/fixtures/report_bace1_alzheimers.json";
 import type { UnderwritingReport } from "../../../../api/types";
+import { saveFile } from "./deck/deckPdf";
 import { ExportBar } from "./ExportBar";
+import { createReportPdf } from "./reportPdf";
+
+vi.mock("./reportPdf", () => ({ createReportPdf: vi.fn(async () => new Blob(["%PDF"])) }));
+vi.mock("./deck/deckPdf", () => ({ saveFile: vi.fn() }));
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -26,7 +31,11 @@ function openMenu() {
   return { entry, unmount: () => act(() => root.unmount()) };
 }
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.mocked(createReportPdf).mockClear();
+  vi.mocked(saveFile).mockClear();
+});
 
 describe("the full report export", () => {
   it("is a download of the PDF the backend builds, not the browser's print dialog", () => {
@@ -44,12 +53,26 @@ describe("the full report export", () => {
     print.mockRestore();
   });
 
-  it("falls back to printing in the mock, which has no backend to build the file", () => {
+  it("makes a plain PDF in the browser in the mock, which has no backend to build the formatted file", async () => {
     vi.stubEnv("VITE_API_MODE", "mock");
     const print = vi.spyOn(window, "print").mockImplementation(() => {});
     const { entry, unmount } = openMenu();
     expect(entry.tagName).toBe("BUTTON");
-    act(() => (entry as HTMLElement).click());
+    await act(async () => (entry as HTMLElement).click());
+    expect(createReportPdf).toHaveBeenCalledWith(report);
+    expect(saveFile).toHaveBeenCalledWith(expect.any(Blob), `Unobio underwriting - ${report.program.mechanism} in ${report.program.indication}.pdf`);
+    expect(print).not.toHaveBeenCalled();
+    unmount();
+    print.mockRestore();
+  });
+
+  it("prints instead when the browser cannot make even the plain file", async () => {
+    vi.stubEnv("VITE_API_MODE", "mock");
+    vi.mocked(createReportPdf).mockRejectedValueOnce(new Error("no"));
+    const print = vi.spyOn(window, "print").mockImplementation(() => {});
+    const { entry, unmount } = openMenu();
+    await act(async () => (entry as HTMLElement).click());
+    expect(saveFile).not.toHaveBeenCalled();
     expect(print).toHaveBeenCalledOnce();
     unmount();
     print.mockRestore();

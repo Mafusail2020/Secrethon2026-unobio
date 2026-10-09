@@ -13,15 +13,15 @@ export function DiligencePanel({ unknowns, questions }: { unknowns: string[]; qu
       </h3>
       {unknowns.length > 0 && (
         <ul className="mt-2 list-disc pl-4 text-sm">
-          {unknowns.map((u) => (
-            <li key={u}>{u}</li>
+          {unknowns.map((u, i) => (
+            <li key={`${i}-${u}`}>{u}</li>
           ))}
         </ul>
       )}
       {sorted.length > 0 && (
         <ol className="mt-3 space-y-2.5">
-          {sorted.map((q) => (
-            <li key={q.question} className="text-sm">
+          {sorted.map((q, i) => (
+            <li key={`${i}-${q.question}`} className="text-sm">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-navy text-[11px] text-white" aria-label={`Priority ${q.priority}`}>
                   {q.priority}

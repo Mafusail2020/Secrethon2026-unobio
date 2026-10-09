@@ -159,8 +159,8 @@ export function QuestionCard({
             <div className="text-xs text-muted">
               <span className="font-medium">What we could not establish:</span>
               <ul className="list-disc pl-4">
-                {node.unknowns.map((u) => (
-                  <li key={u}>{u}</li>
+                {node.unknowns.map((u, i) => (
+                  <li key={`${i}-${u}`}>{u}</li>
                 ))}
               </ul>
             </div>

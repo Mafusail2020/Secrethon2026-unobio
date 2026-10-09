@@ -1,4 +1,5 @@
 import io
+import json
 import re
 import time
 from urllib.parse import unquote
@@ -138,3 +139,103 @@ def test_the_endpoint_needs_a_finished_run_and_a_real_one(client):
     run_id = client.post("/api/runs", json=BODY).json()["id"]
     refused = client.get(f"/api/runs/{run_id}/report.pdf")
     assert refused.status_code == 409 and refused.json()["error"]["code"] == "run_not_completed"
+
+
+LONG = (
+    "the pharmacological inhibition of beta-secretase cleavage of the amyloid precursor protein "
+    "reduced cerebrospinal fluid Aβ42 by about 80 % in mild-to-moderate patients yet did not slow "
+    "cognitive decline over 24 months, which points to timing rather than target engagement as the "
+    "limiting factor"
+)
+STANCES = ("pro", "con", "neutral")
+LABELS = ("extracted", "inferred", "derived", "hypothesis", "modeled")
+CONFIDENCES = ("high", "medium", "low")
+
+
+def _source(i: int) -> tuple[dict, dict]:
+    sid, eid = f"src_{i:016x}", f"ev_{i:016x}"
+    url = f"https://clinicaltrials.gov/api/v2/studies/NCT{i:08d}?fields=" + "a" * 200
+    source = {
+        "id": sid,
+        "type": "trial",
+        "title": f"Real: study {i} of {LONG[:90]}",
+        "url": url,
+        "publisher": "ClinicalTrials.gov",
+        "published_at": None,
+        "retrieved_at": "2026-10-05T12:00:00Z",
+        "identifiers": {},
+    }
+    evidence = {
+        "id": eid,
+        "source_id": sid,
+        "excerpt": LONG * 3,
+        "locator": f"protocolSection.module.WithAVeryLongLocatorThatDoesNotBreak[{i}]",
+        "entity_ids": [],
+        "kind": "text",
+        "data": None,
+    }
+    return source, evidence
+
+
+def _claim(k: int, section: str, sources: int) -> dict:
+    rejected = k % 11 == 5
+    return {
+        "id": f"clm_{k:016x}",
+        "text": f"Real: {LONG[: 120 + (k * 37) % 180]}",
+        "section": section,
+        "stance": STANCES[k % 3],
+        "label": LABELS[k % 5],
+        "evidence_ids": [f"ev_{(k + d) % sources:016x}" for d in range(1 + k % 3)],
+        "confidence": CONFIDENCES[k % 3],
+        "produced_by": "section_analysts",
+        "status": "rejected" if rejected else "accepted",
+        "rejection_reason": "cited evidence does not support the claim" if rejected else None,
+    }
+
+
+def crowded(per_section: int, sources: int = 40) -> UnderwritingReport:
+    """A report shaped like a big real one: many claims of every stance, long quotes and URLs."""
+    raw = json.loads(RAW.replace("FIXTURE:", "Real:"))
+    raw["meta"]["synthetic"] = False
+    pairs = [_source(i) for i in range(sources)]
+    raw["sources"] = {s["id"]: s for s, _ in pairs}
+    raw["evidence"] = {e["id"]: e for _, e in pairs}
+    claims = (
+        _claim(i * per_section + j, section, sources)
+        for i, section in enumerate(raw["sections"])
+        for j in range(per_section)
+    )
+    raw["claims"] = {c["id"]: c for c in claims}
+    return UnderwritingReport.model_validate(raw)
+
+
+@pytest.mark.parametrize("per_section", [7, 40])
+def test_a_big_report_still_builds_and_stays_readable(per_section):
+    # a table cell cannot split across pages: a long For or Against list used to raise LayoutError
+    report = crowded(per_section)
+    pdf, text = read(report)
+    pages = [(page.extract_text() or "") for page in pdf.pages]
+    assert len(pdf.pages) > 10
+    assert all("Unobio underwriting" in p and "Page " in p for p in pages)
+    assert all(len(p) > 400 for p in pages[:-1]), "a page that is nearly empty"
+    listed = {int(n) for n in re.findall(r"^\[(\d+)\] ", text, re.M)}
+    cited = {int(n) for n in re.findall(r"(?<![\w\]])\[(\d+)\]", text)}
+    assert listed == set(range(1, 41)) and cited <= listed
+    assert "more, listed in the sections below" in text
+
+
+def test_every_claim_is_in_the_sections_even_when_the_case_boxes_show_only_the_heaviest():
+    report = crowded(7)
+    _, text = read(report)
+    flat = " ".join(text.split())
+    assert sum(flat.count(c.text[:60]) for c in report.claims.values()) >= len(report.claims)
+    assert flat.count("Rejected by the evidence gate") == sum(
+        c.status == "rejected" for c in report.claims.values()
+    )
+
+
+def test_the_numbers_after_a_claim_read_in_order():
+    _, text = read(crowded(7))
+    for group in re.findall(r"((?:\[\d+\] ?){2,})", text):
+        numbers = [int(n) for n in re.findall(r"\d+", group)]
+        assert numbers == sorted(numbers)

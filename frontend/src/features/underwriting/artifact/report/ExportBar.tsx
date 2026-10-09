@@ -2,7 +2,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { reportPdfUrl, traceUrl } from "../../../../api/client";
 import type { UnderwritingReport } from "../../../../api/types";
+import { saveFile } from "./deck/deckPdf";
 import { toMarkdown } from "./markdown";
+import { createReportPdf } from "./reportPdf";
 
 const item =
   "block w-full rounded-sm px-3 py-2 text-left hover:bg-canvas focus-visible:bg-canvas focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand";
@@ -55,6 +57,16 @@ export function ExportBar({ report }: { report: UnderwritingReport }) {
     setTimeout(() => setCopied("idle"), 2000);
   };
 
+  // the mock has no backend to build the formatted file; if the browser cannot make even this one, it prints
+  const plainPdf = async () => {
+    setOpen(false);
+    try {
+      saveFile(await createReportPdf(report), `Unobio underwriting - ${report.program.mechanism} in ${report.program.indication}.pdf`);
+    } catch {
+      window.print();
+    }
+  };
+
   return (
     <div ref={root} className="relative shrink-0" data-print-hide>
       <button
@@ -82,16 +94,8 @@ export function ExportBar({ report }: { report: UnderwritingReport }) {
               <Entry title="Full report (PDF)" note="Downloads the report with every claim, quote and source" />
             </a>
           ) : (
-            <button
-              type="button"
-              role="menuitem"
-              className={item}
-              onClick={() => {
-                setOpen(false);
-                window.print();
-              }}
-            >
-              <Entry title="Full report (PDF)" note="Every claim and source, as it prints" />
+            <button type="button" role="menuitem" className={item} onClick={() => void plainPdf()}>
+              <Entry title="Full report (PDF)" note="A plain-text file; the formatted one needs the backend" />
             </button>
           )}
           <button type="button" role="menuitem" className={item} onClick={copy}>

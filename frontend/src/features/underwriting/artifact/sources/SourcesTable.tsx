@@ -3,12 +3,15 @@ import type { UnderwritingReport } from "../../../../api/types";
 import { Badge } from "../../../../components/ui/Badge";
 import { buildSourceRows, filterSourceRows, sortRows, type SortDir, type SortKey } from "./sourcesView";
 
-const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
+// the dates and identifiers drop out when the panel is narrow, so the Cited by column is never pushed out of view
+const WIDE = "hidden @min-[780px]:table-cell";
+
+const COLUMNS: { key: SortKey; label: string; right?: boolean; wide?: boolean }[] = [
   { key: "title", label: "Source" },
   { key: "type", label: "Type" },
   { key: "publisher", label: "Publisher" },
-  { key: "published", label: "Published" },
-  { key: "retrieved", label: "Retrieved" },
+  { key: "published", label: "Published", wide: true },
+  { key: "retrieved", label: "Retrieved", wide: true },
   { key: "claims", label: "Cited by", right: true },
 ];
 
@@ -50,20 +53,20 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
           {shown.length} of {rows.length} sources
         </span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left text-sm">
+      <div className="@container overflow-x-auto">
+        <table className="w-full min-w-[460px] text-left text-sm">
           <caption className="sr-only">Sources used in this report</caption>
           <thead className="text-xs uppercase text-muted">
             <tr>
               {COLUMNS.map((c) => (
-                <th key={c.key} scope="col" aria-sort={sort.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className={`py-2 ${c.right ? "text-right" : ""}`}>
+                <th key={c.key} scope="col" aria-sort={sort.key === c.key ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className={`py-2 pr-3 ${c.right ? "pr-0 text-right" : ""} ${c.wide ? WIDE : ""}`}>
                   <button type="button" onClick={() => toggle(c.key)} className="uppercase hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand">
                     {c.label}
                     {sort.key === c.key ? (sort.dir === "asc" ? " ▲" : " ▼") : ""}
                   </button>
                 </th>
               ))}
-              <th scope="col" className="py-2">Identifiers</th>
+              <th scope="col" className={`py-2 ${WIDE}`}>Identifiers</th>
             </tr>
           </thead>
           <tbody>
@@ -77,7 +80,7 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
             {shown.map(({ source: s, claimIds, evidenceCount }) => (
               <Fragment key={s.id}>
                 <tr className="border-t border-line align-top">
-                  <td className="py-2 pr-2">
+                  <td className="py-2 pr-3">
                     {s.url ? (
                       <a className="font-medium text-brand hover:underline" href={s.url} target="_blank" rel="noreferrer">
                         {s.title}
@@ -88,13 +91,13 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
                     {s.type === "user_provided" && <Badge className="ml-2 border-brand/30 bg-brand/10 text-royal">you provided</Badge>}
                     <div className="text-xs text-muted">{evidenceCount} evidence item{evidenceCount === 1 ? "" : "s"}</div>
                   </td>
-                  <td>
-                    <Badge className="border-slate-300 text-slate-700">{s.type.replace(/_/g, " ")}</Badge>
+                  <td className="py-2 pr-3">
+                    <Badge className="whitespace-nowrap border-slate-300 text-slate-700">{s.type.replace(/_/g, " ")}</Badge>
                   </td>
-                  <td>{s.publisher}</td>
-                  <td className="text-xs text-muted">{date(s.published_at)}</td>
-                  <td className="text-xs text-muted">{date(s.retrieved_at)}</td>
-                  <td className="text-right">
+                  <td className="py-2 pr-3">{s.publisher}</td>
+                  <td className={`py-2 pr-3 text-xs text-muted ${WIDE}`}>{date(s.published_at)}</td>
+                  <td className={`py-2 pr-3 text-xs text-muted ${WIDE}`}>{date(s.retrieved_at)}</td>
+                  <td className="py-2 text-right">
                     {claimIds.length === 0 ? (
                       <span className="text-muted">0</span>
                     ) : (
@@ -103,7 +106,7 @@ export function SourcesTable({ report, onOpenClaim }: { report: UnderwritingRepo
                       </button>
                     )}
                   </td>
-                  <td className="text-xs text-muted">
+                  <td className={`py-2 text-xs text-muted ${WIDE}`}>
                     {Object.entries(s.identifiers).map(([k, v]) => (
                       <div key={k}>
                         {k}: {v}

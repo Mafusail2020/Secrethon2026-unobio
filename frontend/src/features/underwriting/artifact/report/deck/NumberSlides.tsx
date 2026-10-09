@@ -272,8 +272,8 @@ export function RisksBody({ slide }: { slide: RisksSlide }) {
           <p className="mt-2 text-[16px] italic text-muted">The report names none.</p>
         ) : (
           <ul className="mt-3 list-disc space-y-3 pl-6 text-[19px] leading-snug">
-            {slide.unknowns.map((u) => (
-              <li key={u}>{u}</li>
+            {slide.unknowns.map((u, i) => (
+              <li key={`${i}-${u}`}>{u}</li>
             ))}
           </ul>
         )}
