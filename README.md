@@ -85,14 +85,15 @@ cases, cost per run and any numbers quoted here come from `live` runs on real da
 
 | Case | Call | PoS (range) | rNPV range |
 |---|---|---|---|
-| Alzheimer's disease × BACE1 inhibition, phase 2 | Do not invest (high), kill flag on failed same-target programs | 4.3% (1.0–25.2%) | -$133M to $1,171M |
-| Hypercholesterolemia × anti-PCSK9 antibody, phase 2, with a monkey LDL-C note | Conditional (medium) | 46.3% (20.1–73.7%) | -$578M to $3,469M |
-| Parkinson's disease × LRRK2 kinase inhibition, phase 2, oral small molecule (open question) | Conditional (low) | 10.1% (1.0–48.9%) | -$133M to $2,304M |
+| Alzheimer's disease × BACE1 inhibition, phase 2 | Do not invest (high), kill flag on failed same-target programs | 6.3% (1.0–23.7%) | -$133M to $1,095M |
+| Hypercholesterolemia × anti-PCSK9 antibody, phase 2, with a monkey LDL-C note | Conditional (medium) | 46.8% (20.1–73.7%) | -$578M to $3,469M |
+| Parkinson's disease × LRRK2 kinase inhibition, phase 2, oral small molecule (open question) | Conditional (low) | 14.8% (1.0–48.9%) | -$133M to $2,304M |
 
 A cold run makes 16 model calls, about 33k tokens in and 23k out, and takes 2 to 4 minutes; at the team's measured rate
 that is about $0.18. Running the same case again on the same code is served from the LLM and source caches: the BACE1
 replay took 9 seconds and spent nothing, so a demo can replay the cases live. A correction recomputes only what depends
-on it: adding phase 1 target-engagement data to LRRK2 moved the target-engagement step to supported and PoS to 11.2%.
+on it: adding phase 1 target-engagement data to LRRK2 moved the target-engagement step to supported and dropped the
+unproven-translation penalty from the ledger.
 
 No backend? `VITE_API_MODE=mock npm run dev` in `frontend/` replays the same flow from fixtures. In mock mode, add
 `?scenario=sparse|large|failed|slow|broken` to `/underwriting` before starting a run to see messy data. The full
