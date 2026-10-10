@@ -207,6 +207,7 @@ All under `/api`. Errors share one shape, `{"error": {"code", "message", "detail
 | GET | `/health`, `/models`, `/graph` | status and mode flags; `ModelInfo[]`; `GraphSpec` |
 | POST | `/runs` | `RunSummary` (202) |
 | GET | `/runs?limit=`, `/runs/{id}` | `RunSummary[]`; `RunDetail` (node list without logs and LLM calls) |
+| DELETE | `/runs/{id}` | 204. Removes the run and every version made from it by a correction, with their events, steps, corrections, chat, briefing and deck. Evidence, sources and the caches are shared by content, so they stay; `llm_calls` stays too, as the record of what was spent (`make spend`). 404 `run_not_found`; 409 `run_active` while the run or any of its versions is queued or running |
 | GET | `/runs/{id}/events` | SSE of `RunEvent`; `id:` is the seq |
 | GET | `/runs/{id}/report`, `/runs/{id}/nodes/{node}` | `UnderwritingReport`; full `NodeExecution` |
 | POST | `/runs/{id}/nodes/{node}/corrections` | child `RunSummary` (202); 409 unless the parent completed, 422 if not correctable. `document_ids` (only on `ingest_user_input`, 422 `documents_need_ingest` otherwise) replaces the set of documents the new version reads; an empty list means none, absent keeps the parent's |

@@ -135,6 +135,15 @@ Add `?scenario=` to `/underwriting` before starting a run:
   history rows and the finished call rise in once. With "reduce motion" on, all of it (and the spinners) stops; the home
   page is unaffected.
 
+## 6a. Delete an underwriting
+
+1. Move the pointer over the right edge of a history row: a trash can fades in (and out when you leave; Tab reaches it too). A row
+   whose run is still working has none.
+2. Click it: the row asks "Delete this underwriting and its N corrected versions?" with **Cancel** focused (Enter or Esc cancels).
+   **Delete** removes the run, its corrected versions, chat, briefing and deck for good, and leaves the page if it was showing one of
+   them. Evidence and sources are shared by content and stay; what was spent stays in `make spend`.
+3. There is no undo: do not delete the demo runs.
+
 ## 6b. Arrange the views
 
 1. Open **Report** and **Graph**: they sit in one panel as two tabs.
