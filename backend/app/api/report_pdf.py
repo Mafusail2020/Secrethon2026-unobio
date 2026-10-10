@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Annotated
 from urllib.parse import quote
@@ -27,7 +28,14 @@ async def get_report_pdf(run_id: str, services: Svc) -> Response:
     report = await services.runs.get_report(run_id)
     if report is None:
         raise ApiError(409, "run_not_completed", "the PDF is built once the run has completed")
-    data = build_report_pdf(report)
+    try:
+        # reportlab is CPU-bound; off the event loop, streams and other requests keep going
+        data = await asyncio.to_thread(build_report_pdf, report)
+    except Exception as exc:
+        log.exception("report PDF failed for %s", run_id)
+        raise ApiError(
+            500, "pdf_failed", "the PDF could not be built; the report is still on screen"
+        ) from exc
     program = f"{report.program.mechanism} in {report.program.indication}"
     name = f"Unobio underwriting - {program}.pdf"
     return Response(
