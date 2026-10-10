@@ -381,7 +381,9 @@ lineage (one entry with v1, v2 … links). The middle column is the conversation
 `Composer`) or a run, shown as pipeline phases (`phases.ts` groups the 32 steps into nine collapsible
 blocks), folded into one line by default: while the run goes it names the step in progress (`currentStep`, e.g. "Gather public
 evidence: openFDA, Europe PMC"), and "Show steps" opens the list (`WorkTrace`). When the run completes, the briefing
-(`SummaryBlock`: Markdown through `react-markdown`, raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
+(`SummaryBlock`: Markdown through `react-markdown`, drawn like Obsidian's reading view by `MarkdownText`: bold headings that step down
+from 2 to 1.6, 1.37 and 1.25 times the text (a chat reply uses the same steps compressed to 1.5, 1.3, 1.15, 1.05), a bar on the left of a
+quote, a border round every table cell, no section bars or tiny labels; raw HTML never rendered, `[[id]]` marks drawn as numbered buttons that
 open the claim, and a "Claims cited" list) and a compact verdict card follow, then the follow-up thread (`FollowUpMessages`) with its reply box
 (`FollowUpInput`) docked at the bottom; both read `useFollowUp`, which is backed by the chat endpoints (history is loaded
 per run; a 429 locks the box with a note). `TopBar` has toggle buttons for the four views. Each view is a panel of a dock (`dock/`, on `dockview-react`): the reader can

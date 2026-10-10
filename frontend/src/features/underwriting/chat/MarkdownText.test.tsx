@@ -83,16 +83,36 @@ describe("MarkdownText", () => {
     act(() => root.unmount());
   });
 
-  it("gives a briefing section a bar and a reply a plain small heading", () => {
+  it("draws headings the way Obsidian does: every level a step smaller than the one above, with no bar and no tiny label", () => {
     const host = document.createElement("div");
     document.body.append(host);
     const root = createRoot(host);
-    const draw = (variant: "briefing" | "answer") =>
-      act(() => root.render(<MarkdownText text={"## Verdict\n\nText"} ids={[]} variant={variant} report={undefined} onOpenClaim={() => {}} />));
-    draw("briefing");
-    expect(host.querySelector("h2")?.className).toContain("border-l-4");
-    draw("answer");
-    expect(host.querySelector("h2")?.className).not.toContain("border-l-4");
+    const text = ["# One", "## Two", "### Three", "#### Four", "##### Five", "###### Six"].join("\n\n");
+    const sizes = (variant: "briefing" | "answer") => {
+      act(() => root.render(<MarkdownText text={text} ids={[]} variant={variant} report={undefined} onOpenClaim={() => {}} />));
+      return [...host.querySelectorAll("h2,h3,h4,h5,h6")].map((h) => {
+        expect(h.className).not.toMatch(/border-l|uppercase|tracking-wider/);
+        return Number(/text-\[([\d.]+)em\]/.exec(h.className)?.[1] ?? 1);
+      });
+    };
+    const doc = sizes("briefing");
+    expect(doc).toEqual([2, 1.6, 1.37, 1.25, 1.12, 1]);
+    const reply = sizes("answer");
+    expect(reply.slice(0, 4)).toEqual([1.5, 1.3, 1.15, 1.05]);
+    for (const steps of [doc, reply]) for (let i = 1; i < steps.length; i++) expect(steps[i]).toBeLessThanOrEqual(steps[i - 1]!);
+    act(() => root.unmount());
+  });
+
+  it("draws a quote with a bar and a table with a border round every cell", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() => root.render(<MarkdownText text={"> quoted\n\n| A | B |\n|---|--:|\n| 1 | 2 |"} ids={[]} report={undefined} onOpenClaim={() => {}} />));
+    expect(host.querySelector("blockquote")?.className).toContain("border-l-[3px]");
+    expect(host.querySelector("blockquote")?.className).not.toContain("bg-");
+    expect(host.querySelector("th")?.className).toContain("border");
+    expect(host.querySelector("td")?.className).toContain("border");
+    expect((host.querySelectorAll("td")[1] as HTMLElement).style.textAlign).toBe("right");
     act(() => root.unmount());
   });
 });

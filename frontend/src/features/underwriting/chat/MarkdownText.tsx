@@ -43,16 +43,22 @@ function Anchor({ href, children }: ComponentPropsWithoutRef<"a">) {
 // Two sets of components for the whole app, never rebuilt: react-markdown draws elements with whatever components it is
 // given, and a new function for `p` or `h2` on every render makes React throw the old text away and mount it again, which
 // replays its entrance animation. Dragging the dock re-renders the thread dozens of times a second, so the text vanished.
-// `briefing` is a document (headings, a bar on each section, room to breathe); `answer` is a chat reply (tight, no bars).
+// Drawn the way Obsidian's reading view draws a note: each heading level a step smaller than the one above, in bold body type with
+// no bars or labels. `briefing` is a document, so it keeps Obsidian's own steps (2, 1.6, 1.37, 1.25, 1.12 times the text);
+// `answer` is a chat reply, so the same steps are compressed and its text stays tight.
 function build(kind: "briefing" | "answer"): Components {
   const doc = kind === "briefing";
+  const heading = HEADINGS[kind];
   return {
-    h1: ({ children }) => <h2 className={doc ? H2 : H2_ANSWER}>{children}</h2>,
-    h2: ({ children }) => <h2 className={doc ? H2 : H2_ANSWER}>{children}</h2>,
-    h3: ({ children }) => <h3 className={doc ? H3 : H3_ANSWER}>{children}</h3>,
-    h4: ({ children }) => <h4 className={H3_ANSWER}>{children}</h4>,
+    // a markdown h1 is the biggest heading but still a level-2 heading of the page, which already has its own h1
+    h1: ({ children }) => <h2 className={heading[0]}>{children}</h2>,
+    h2: ({ children }) => <h2 className={heading[1]}>{children}</h2>,
+    h3: ({ children }) => <h3 className={heading[2]}>{children}</h3>,
+    h4: ({ children }) => <h4 className={heading[3]}>{children}</h4>,
+    h5: ({ children }) => <h5 className={heading[4]}>{children}</h5>,
+    h6: ({ children }) => <h6 className={heading[5]}>{children}</h6>,
     p: ({ children }) => <p className={doc ? "my-2.5" : "my-1.5"}>{children}</p>,
-    ul: ({ children }) => <ul className={`${doc ? "my-2.5 space-y-1.5" : "my-1.5 space-y-1"} list-disc pl-5 marker:text-brand/60`}>{children}</ul>,
+    ul: ({ children }) => <ul className={`${doc ? "my-2.5 space-y-1.5" : "my-1.5 space-y-1"} list-disc pl-5 marker:text-muted`}>{children}</ul>,
     ol: ({ children }) => <ol className={`${doc ? "my-2.5 space-y-1.5" : "my-1.5 space-y-1"} list-decimal pl-5 marker:font-medium marker:text-muted`}>{children}</ol>,
     li: ({ children, className }) => (
       // a task-list item keeps its checkbox and drops the bullet
@@ -65,29 +71,48 @@ function build(kind: "briefing" | "answer"): Components {
     del: ({ children }) => <del className="text-muted">{children}</del>,
     code: ({ children }) => <code className="rounded-sm bg-slate-100 px-1 py-px font-mono text-[0.85em] text-slate-800">{children}</code>,
     pre: ({ children }) => (
-      <pre className="my-3 overflow-x-auto rounded-sm bg-slate-900 p-3 text-xs leading-relaxed text-slate-100 [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit">{children}</pre>
+      <pre className="my-3 overflow-x-auto rounded-md bg-slate-100 p-3 text-[0.85em] leading-relaxed text-slate-800 [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit">{children}</pre>
     ),
-    blockquote: ({ children }) => (
-      <blockquote className="my-3 rounded-sm border-l-4 border-brand/40 bg-slate-50 px-3 py-1 text-muted [&>p]:my-1">{children}</blockquote>
-    ),
-    hr: () => <hr className="my-5 border-line" />,
+    // a bar on the left and nothing else
+    blockquote: ({ children }) => <blockquote className="my-3 border-l-[3px] border-brand/60 pl-4 [&>p]:my-1">{children}</blockquote>,
+    hr: () => <hr className="my-6 border-line" />,
     table: ({ children }) => (
-      <div className="my-3 overflow-x-auto rounded-sm border border-line">
-        <table className="w-full border-collapse text-sm">{children}</table>
+      <div className="my-3 overflow-x-auto">
+        <table className="w-full border-collapse text-[0.92em]">{children}</table>
       </div>
     ),
-    thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-    th: ({ children }) => <th className="border-b border-line px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-muted">{children}</th>,
-    td: ({ children }) => <td className="border-b border-line/60 px-3 py-1.5 align-top">{children}</td>,
-    tr: ({ children }) => <tr className="even:bg-slate-50/60">{children}</tr>,
+    th: ({ children, style }) => (
+      <th style={style} className="border border-line bg-slate-50 px-3 py-1.5 text-left font-semibold">
+        {children}
+      </th>
+    ),
+    td: ({ children, style }) => (
+      <td style={style} className="border border-line px-3 py-1.5 align-top">
+        {children}
+      </td>
+    ),
     a: Anchor,
   };
 }
 
-const H2 = "mb-2 mt-7 border-l-4 border-brand pl-2.5 text-[1.05rem] font-semibold leading-snug tracking-tight text-ink first:mt-0";
-const H3 = "mb-1 mt-4 text-[0.72rem] font-semibold uppercase tracking-wider text-muted";
-const H2_ANSWER = "mb-1 mt-3 text-sm font-semibold text-ink first:mt-0";
-const H3_ANSWER = "mb-0.5 mt-2 text-sm font-medium text-ink first:mt-0";
+const HEADINGS: Record<"briefing" | "answer", string[]> = {
+  briefing: [
+    "mb-3 mt-8 text-[2em] font-bold leading-tight tracking-tight text-ink first:mt-0",
+    "mb-2 mt-7 text-[1.6em] font-bold leading-tight tracking-tight text-ink first:mt-0",
+    "mb-1.5 mt-5 text-[1.37em] font-semibold leading-snug text-ink first:mt-0",
+    "mb-1 mt-4 text-[1.25em] font-semibold leading-snug text-ink first:mt-0",
+    "mb-1 mt-3 text-[1.12em] font-semibold text-ink first:mt-0",
+    "mb-1 mt-3 font-semibold text-muted first:mt-0",
+  ],
+  answer: [
+    "mb-1.5 mt-4 text-[1.5em] font-bold leading-tight tracking-tight text-ink first:mt-0",
+    "mb-1 mt-3.5 text-[1.3em] font-bold leading-tight tracking-tight text-ink first:mt-0",
+    "mb-1 mt-3 text-[1.15em] font-semibold leading-snug text-ink first:mt-0",
+    "mb-0.5 mt-2.5 text-[1.05em] font-semibold text-ink first:mt-0",
+    "mb-0.5 mt-2 font-semibold text-ink first:mt-0",
+    "mb-0.5 mt-2 font-semibold text-muted first:mt-0",
+  ],
+};
 
 const BRIEFING = build("briefing");
 const ANSWER = build("answer");
