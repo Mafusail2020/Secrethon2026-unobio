@@ -19,9 +19,11 @@ from app.contracts.common import Confidence, Decision
 
 LATE = {"PHASE_2_3", "PHASE_3", "PREAPPROVAL", "APPROVAL", "PHASE_4"}
 MAX_REASONS = 5
-# "not terminated", "no safety signal", "wasn't discontinued": a few words before, same clause
+# "not terminated", "no safety signal", "did not show toxicity": the negation sits right before
+# the failure word, at most two words apart, with no comma or "and" between. "Not effective,
+# terminated" and "no responders and development discontinued" still report a failure.
 NEGATED = re.compile(
-    r"\b(?:not|no|never|without|\w+n't)\b[^\w.:;!?]+(?:\w+[^\w.:;!?]+){0,3}$", re.I
+    r"\b(?:not|no|never|without|\w+n't)(?:\s+(?!(?:and|but|or|then|so)\b)\w+){0,2}\s+$", re.I
 )
 
 

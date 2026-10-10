@@ -130,9 +130,9 @@ async def run_summary(run_id: str, services: Svc) -> ChatMessage:
                     passages,
                 )
             except Exception as exc:  # the template briefing beats an empty thread
-                if not isinstance(exc, LLMParseError):
-                    log.warning("briefing call failed on %s: %s", run_id, exc)
-                message = template_summary(report, run_id, passages)
+                log.warning("briefing call failed on %s: %s", run_id, exc)
+                # shown but not kept: a gateway hiccup must not fix the template for good
+                return template_summary(report, run_id, passages)
             else:
                 await services.llm_repo.add_call(
                     run_id,

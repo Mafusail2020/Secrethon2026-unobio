@@ -40,12 +40,13 @@ class LLMService:
         self.repo = repo
         self.cache_enabled = cache_enabled
 
-    async def complete(self, task: LLMTask, model: str) -> LLMResult:
+    async def complete(self, task: LLMTask, model: str, *, fresh: bool = False) -> LLMResult:
+        """`fresh` skips reading the cache (a "write it again") but still stores the reply."""
         started = time.monotonic()
         use_cache = self.cache_enabled and self.repo is not None and self.backend.cacheable
         key = cache_key(task, model)
 
-        if use_cache and (hit := await self.repo.cache_get(key)) is not None:  # type: ignore[union-attr]
+        if use_cache and not fresh and (hit := await self.repo.cache_get(key)) is not None:  # type: ignore[union-attr]
             parsed = None
             try:
                 if task.schema is not None:

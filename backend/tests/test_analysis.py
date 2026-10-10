@@ -916,3 +916,9 @@ def test_the_prior_centre_is_the_beta_mean_so_rnpv_is_an_expected_value():
     bare = beta_range(0, 0, 0.142)
     assert bare.base == 0.142 and bare.low < bare.base < bare.high
     assert beta_range(3, 2, 0.5).base == round((3 + 2.5) / (5 + 5), 4)
+
+
+def test_a_quote_of_scattered_short_words_is_not_verbatim():
+    excerpt = "overall survival was longer with placebo in patients"
+    assert not quote_found("overall survival; placebo; patients", [excerpt])
+    assert not quote_found("survival … placebo", [excerpt])

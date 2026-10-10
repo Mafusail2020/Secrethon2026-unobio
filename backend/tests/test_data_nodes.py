@@ -228,3 +228,23 @@ def test_a_near_tie_between_matches_is_low_confidence():
     assert _confidence(hits(573, 492)) == "low"  # anemia of CKD -> Fanconi anemia
     assert _confidence(hits(900, 492)) == "medium"
     assert _confidence(hits(5000, 500)) == "high"
+
+
+@respx.mock
+async def test_a_public_link_cannot_redirect_the_server_to_a_private_address(monkeypatch):
+    from app.sources import web as web_module
+    from app.sources.base import SourceError
+
+    async def public(url: str) -> bool:  # no DNS in tests: only the metadata address is private
+        return "169.254.169.254" not in url
+
+    monkeypatch.setattr(web_module, "_public_host", public)
+    respx.get("https://public.example/r").mock(
+        return_value=httpx.Response(302, headers={"location": "http://169.254.169.254/latest/"})
+    )
+    metadata = respx.get("http://169.254.169.254/latest/").mock(return_value=httpx.Response(200))
+    web = WebClient("", InMemorySourceCache(), min_interval_s=0)
+    with pytest.raises(SourceError, match="refusing"):
+        await web.fetch_text("https://public.example/r")
+    assert not metadata.called
+    await web.aclose()

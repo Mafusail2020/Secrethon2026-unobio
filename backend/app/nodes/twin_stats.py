@@ -36,7 +36,8 @@ SPEC = NodeSpec(
     critical=False,
 )
 
-DROP_WORDS = re.compile(r"\b(exclude|ignore|remove|drop|without)\b", re.I)
+# "without" is left out: "stopped without efficacy, like verubecestat" cites a precedent
+DROP_WORDS = re.compile(r"\b(exclude|ignore|remove|drop)\b", re.I)
 SHOWN_ORDER = {"stopped": 0, "approved": 1, "active": 2, "unknown": 3}
 
 

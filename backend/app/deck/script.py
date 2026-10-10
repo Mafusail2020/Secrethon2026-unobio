@@ -165,9 +165,11 @@ async def write_script(
     model: str,
     report: UnderwritingReport,
     passages: Sequence[Passage] = (),
+    *,
+    fresh: bool = False,
 ) -> tuple[DeckScript, list[LLMResult]]:
-    """Both halves of the deck, in parallel. A half that fails is left out and the deck covers
-    it from the report."""
+    """The deck's slide groups, in parallel. A group that fails is left out and the deck covers
+    it from the report. `fresh` asks the model again instead of reusing a cached reply."""
     shown = documents_block(passages)
     claims = {c.id for c in usable_claims(report)}
 
@@ -181,7 +183,7 @@ async def write_script(
             max_tokens=GATEWAY_MAX_OUTPUT_TOKENS,
             temperature=0.4,
         )
-        result = await llm.complete(task, model)
+        result = await llm.complete(task, model, fresh=fresh)
         assert isinstance(result.parsed, DeckDraft)
         return result
 

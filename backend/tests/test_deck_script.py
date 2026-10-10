@@ -22,7 +22,7 @@ from app.llm.backend import RawCompletion
 from app.llm.limits import GATEWAY_PROMPT_CHARS
 from app.llm.registry import ModelRegistry
 from app.llm.service import LLMService
-from app.llm.types import LLMTask
+from app.llm.types import LLMResult, LLMTask
 from app.main import create_app
 from tests.test_fixtures import FIXTURES
 
@@ -332,15 +332,14 @@ def test_the_deck_waits_for_the_report_and_needs_a_run(client):
 
 def test_live_the_script_is_written_once_kept_and_its_cost_is_logged(client, monkeypatch):
     from app.api import deck as deck_api
-    from app.llm.types import LLMResult
 
     run_id = _finished(client)
     services = client.app.state.services
     services.settings.llm_mode = "live"
     calls: list[int] = []
 
-    async def fake(llm, model, report, passages):
-        calls.append(1)
+    async def fake(llm, model, report, passages, fresh=False):
+        calls.append(fresh)
         script = DeckScript(
             subtitle="Tagline",
             slides=[
@@ -352,18 +351,18 @@ def test_live_the_script_is_written_once_kept_and_its_cost_is_logged(client, mon
             ],
         )
         result = LLMResult("gw", "", script, 900, 700, 0.0042, False, 500)
-        return script, [result, result]
+        return script, [result] * len(GROUPS)
 
     monkeypatch.setattr(deck_api, "write_script", fake)
     first = client.post(f"/api/runs/{run_id}/deck").json()
     second = client.post(f"/api/runs/{run_id}/deck").json()
     assert first == second and first["slides"][0]["slide"] == "works" and len(calls) == 1
     rewritten = client.post(f"/api/runs/{run_id}/deck?rewrite=true").json()
-    assert rewritten["subtitle"] == "Tagline" and len(calls) == 2
+    assert rewritten["subtitle"] == "Tagline" and calls == [False, True]  # rewrite skips the cache
     logged = [
         c for c in asyncio.run(services.llm_repo.calls_for_run(run_id)) if c.node_id == "deck"
     ]
-    assert len(logged) == 4 and {c.purpose for c in logged} == {"deck.script"}
+    assert len(logged) == 2 * len(GROUPS) and {c.purpose for c in logged} == {"deck.script"}
     assert logged[0].tokens_in == 900 and logged[0].cost_usd == pytest.approx(0.0042)
 
 
@@ -374,7 +373,7 @@ def test_live_a_failed_or_empty_script_is_not_kept_so_it_can_be_tried_again(clie
     services = client.app.state.services
     services.settings.llm_mode = "live"
 
-    async def boom(llm, model, report, passages):
+    async def boom(llm, model, report, passages, fresh=False):
         raise RuntimeError("gateway down")
 
     monkeypatch.setattr(deck_api, "write_script", boom)
@@ -386,3 +385,23 @@ def test_live_a_failed_or_empty_script_is_not_kept_so_it_can_be_tried_again(clie
     monkeypatch.setattr(deck_api, "write_script", nothing_held_up)
     assert client.post(f"/api/runs/{run_id}/deck").json()["slides"] == []
     assert asyncio.run(services.chat.get_deck(run_id)) is None
+
+
+def test_live_a_rewrite_that_fails_keeps_the_deck_there_was(client, monkeypatch):
+    from app.api import deck as deck_api
+
+    run_id = _finished(client)
+    client.app.state.services.settings.llm_mode = "live"
+    good = DeckScript(
+        slides=[SlideScript(slide="works", headline="A clear point about the program", bullets=[])]
+    )
+
+    async def once(llm, model, report, passages, fresh=False):
+        if fresh:
+            raise RuntimeError("gateway down")
+        return good, [LLMResult("gw", "", good, 1, 1, 0.0, False, 1)] * len(GROUPS)
+
+    monkeypatch.setattr(deck_api, "write_script", once)
+    first = client.post(f"/api/runs/{run_id}/deck").json()
+    rewritten = client.post(f"/api/runs/{run_id}/deck?rewrite=true").json()
+    assert first == rewritten and rewritten["slides"][0]["headline"].startswith("A clear")

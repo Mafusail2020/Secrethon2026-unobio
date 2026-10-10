@@ -495,3 +495,22 @@ def test_a_twin_is_dropped_only_when_the_drop_word_leads_to_it():
 
     assert dropped("exclude atabecestat and verubecestat") == {"ATABECESTAT", "VERUBECESTAT"}
     assert dropped("verubecestat stopped without efficacy") == set()
+
+
+@pytest.mark.parametrize(
+    ("text", "failure"),
+    [
+        ("not effective, terminated", True),
+        ("No efficacy signal, program discontinued", True),
+        ("no responders and development discontinued", True),
+        ("the drug did not show toxicity", False),
+        ("never put on clinical hold", False),
+    ],
+)
+def test_a_negation_only_cancels_the_failure_word_right_after_it(text, failure):
+    import re
+
+    from app.quant.verdict import reports_failure
+
+    words = re.compile(rf"\b({_conf('verdict')['corrections']['failure_words']})\b", re.I)
+    assert reports_failure(text, words) is failure

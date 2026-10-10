@@ -205,3 +205,26 @@ def test_the_server_clears_stale_unused_uploads_when_it_starts(tmp_path, monkeyp
     with TestClient(create_app()) as client:
         assert client.get(f"/api/documents/{stale}").status_code == 404
         assert client.get(f"/api/documents/{fresh}").status_code == 200
+
+
+def test_an_id_that_is_not_a_document_id_never_becomes_a_path(tmp_path):
+    root = tmp_path / "store" / "docs"
+    (tmp_path / "x.json").write_text(
+        DocumentInfo(
+            id="doc_0000000000000000", name="x.txt", kind="text", size_bytes=1
+        ).model_dump_json()
+    )
+    (tmp_path / "x.bin").write_bytes(b"x")
+    store = DocumentStore(root)
+    assert store.get(r"..\..\x") is None and store.get("../../x") is None
+
+
+def test_a_pdf_pypdf_trips_over_is_unreadable_not_a_crash(monkeypatch):
+    from app.sources import documents
+
+    def broken(_):
+        raise IndexError("list index out of range")
+
+    monkeypatch.setattr(documents, "PdfReader", broken)
+    with pytest.raises(documents.DocumentUnreadable):
+        documents.read_document(b"%PDF-1.4 broken", "pdf")
