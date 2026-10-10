@@ -48,6 +48,8 @@ the conversation; below 768 px the history is a drawer.
    question cards, each with a standing and a for/against scale. The header is one row: the chips jump between the questions and
    highlight where you are, and once you scroll past the call the first chip shows the decision and probability; the
    **Generate report** button sits at its right. **Expand all** opens every branch.
+   Every line under **What carries it** and **What holds it back** is a link: one backed by claims opens the claim and its evidence; one worked out
+   from numbers (similar programs, probability of success, risk-adjusted value) opens **The numbers behind it** at the panel that computed it.
 2. Open **Will it get through trials and regulators?**, then a claim from **Against**, then **▸ Evidence (2)** on the
    "TERMINATED" claim: the verbatim quote (`overallStatus: TERMINATED`), where it sits, the source type, and a working
    ClinicalTrials.gov link. **The numbers behind it** (closed) holds the evidence ledger, where the risk comes from, what the

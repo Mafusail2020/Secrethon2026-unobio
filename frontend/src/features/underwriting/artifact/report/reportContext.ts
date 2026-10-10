@@ -14,6 +14,9 @@ export interface CorrectionSeed {
   exclude: string[];
 }
 
+/** The panels under "The numbers behind it" that a reason computed from numbers can point to. */
+export type NumbersPanel = "ledger" | "twins" | "valuation";
+
 export interface ReportContextValue {
   report: UnderwritingReport;
   runId: string;
@@ -21,6 +24,8 @@ export interface ReportContextValue {
   canCorrect: boolean;
   focus: FocusClaim | undefined;
   jumpToClaim: (id: string) => void;
+  /** Opens "The numbers behind it" and scrolls to the panel that produced a figure. */
+  jumpToNumbers: (panel: NumbersPanel) => void;
   openCorrection: (seed: CorrectionSeed) => void;
 }
 

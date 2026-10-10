@@ -25,7 +25,7 @@ export function TwinPanel({ twin, report }: { twin: TwinStats; report: Underwrit
   const stops = groupStopReasons(twin.stop_reasons, twin.stop_reason_categories);
   const guessed = hasGuessedGroups(twin.stop_reasons, twin.stop_reason_categories);
   return (
-    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="twin-h">
+    <section className="report-anchor rounded-sm border border-line bg-surface p-3" aria-labelledby="twin-h">
       <div className="flex flex-wrap items-center gap-2">
         <h3 id="twin-h" className="text-sm font-semibold">
           Similar programs

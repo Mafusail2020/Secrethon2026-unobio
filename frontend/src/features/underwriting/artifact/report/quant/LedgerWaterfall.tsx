@@ -54,7 +54,7 @@ export function LedgerWaterfall({ ledger }: { ledger: EvidenceLedger }) {
   );
 
   return (
-    <section className="rounded-sm border border-line bg-surface p-3" aria-labelledby="ledger-h">
+    <section className="report-anchor rounded-sm border border-line bg-surface p-3" aria-labelledby="ledger-h">
       <h3 id="ledger-h" className="text-sm font-semibold">
         Evidence ledger
       </h3>

@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 import graphSpecJson from "../../../../../../contracts/fixtures/graph_spec.json";
@@ -172,5 +172,64 @@ describe("printing", () => {
     expect(document.body.dataset.print).toBe("report");
     act(() => root.unmount());
     expect(document.body.dataset.print).toBeUndefined();
+  });
+});
+
+describe("the reasons worked out from numbers", () => {
+  const computed = (code: string, text: string, direction: "positive" | "negative") => ({ code, text, direction, cause: "commercial", claim_ids: [] }) as unknown as UnderwritingReport["verdict"]["reason_codes"][number];
+  const withReasons: UnderwritingReport = {
+    ...clean,
+    verdict: {
+      ...clean.verdict,
+      reason_codes: [
+        computed("TWIN_TRACK_RECORD", "0 of 15 comparable programs reached approval", "negative"),
+        computed("POSTERIOR_POS", "probability of success 10.6%", "negative"),
+        computed("RNPV", "risk-adjusted NPV $9M", "positive"),
+        computed("USER_REPORTED_FAILURE", "user correction reports a failure", "negative"),
+      ],
+    },
+  };
+
+  it("are links to the panel that computed them, and a reason with no panel stays text", () => {
+    const markup = render(withReasons);
+    for (const text of ["0 of 15 comparable programs reached approval", "probability of success 10.6%", "risk-adjusted NPV $9M"]) {
+      expect(markup).toContain(`title="Show the numbers behind this"`);
+      expect(markup).toMatch(new RegExp(`<button[^>]*title="Show the numbers behind this"[^>]*>${text.replace("$", "\\$")}</button>`));
+    }
+    expect(markup).not.toMatch(/<button[^>]*>user correction reports a failure<\/button>/);
+    expect(markup).toContain("user correction reports a failure");
+  });
+
+  describe("when clicked", () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("open the numbers and scroll to the panel behind the figure", async () => {
+      const scrolled: string[] = [];
+      Element.prototype.scrollIntoView = function (this: Element) {
+        scrolled.push(this.getAttribute("aria-labelledby") ?? this.id);
+      };
+      vi.stubGlobal("matchMedia", () => ({ matches: true }));
+      const host = document.createElement("div");
+      document.body.append(host);
+      const root = createRoot(host);
+      act(() =>
+        root.render(
+          <QueryClientProvider client={new QueryClient()}>
+            <MemoryRouter>
+              <ReportView report={withReasons} runId="r1" graph={spec} canCorrect />
+            </MemoryRouter>
+          </QueryClientProvider>,
+        ),
+      );
+      expect(host.querySelector("#numbers-body")?.getAttribute("data-open")).toBe("false");
+      const reason = [...host.querySelectorAll("button")].find((b) => b.textContent === "risk-adjusted NPV $9M")!;
+      await act(async () => reason.click());
+      await act(async () => void (await vi.waitFor(() => expect(scrolled).toEqual(["val-h"]))));
+      expect(host.querySelector("#numbers-body")?.getAttribute("data-open")).toBe("true");
+      const twins = [...host.querySelectorAll("button")].find((b) => b.textContent === "0 of 15 comparable programs reached approval")!;
+      await act(async () => twins.click());
+      await act(async () => void (await vi.waitFor(() => expect(scrolled).toEqual(["val-h", "twin-h"]))));
+      act(() => root.unmount());
+    });
   });
 });

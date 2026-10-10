@@ -1,7 +1,7 @@
 import type { UnderwritingReport } from "../../../../../api/types";
 import { Badge } from "../../../../../components/ui/Badge";
 import { DECISION_LABEL, DECISION_STYLE, months, pct, usd } from "../../../../../lib/format";
-import { useReportContext } from "../reportContext";
+import { useReportContext, type NumbersPanel } from "../reportContext";
 import { STANDING_LABEL, type QuestionId, type ReportTree } from "../reportTree";
 import { BalanceBar } from "./BalanceBar";
 import { SideBox, type Side } from "./SideBox";
@@ -26,8 +26,13 @@ function Ruler({ range }: { range: UnderwritingReport["pos"] }) {
   );
 }
 
+// a reason worked out from numbers has no claim behind it; it points to the panel that computed it
+const PANEL_OF: Record<string, NumbersPanel> = { TWIN_TRACK_RECORD: "twins", TWIN_EFFICACY_FAILURES: "twins", POSTERIOR_POS: "ledger", RNPV: "valuation" };
+
+const LINK = "-mx-1.5 block w-[calc(100%+0.75rem)] cursor-pointer rounded-sm px-1.5 py-1 text-left decoration-dotted underline-offset-4 hover:bg-white/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand";
+
 function Reasons({ side, title, items }: { side: Side; title: string; items: ReportTree["reasons"]["positive"] }) {
-  const { jumpToClaim } = useReportContext();
+  const { jumpToClaim, jumpToNumbers } = useReportContext();
   return (
     <SideBox side={side} title={title}>
       {items.length === 0 ? (
@@ -36,16 +41,16 @@ function Reasons({ side, title, items }: { side: Side; title: string; items: Rep
         <ul className="space-y-0.5">
           {items.map((rc) => {
             const claim = rc.claim_ids[0];
+            const panel = PANEL_OF[rc.code];
             return (
               <li key={rc.code} className="text-sm">
                 {claim ? (
                   // the reason is its own link: clicking it opens the claim behind it, with its evidence
-                  <button
-                    type="button"
-                    onClick={() => jumpToClaim(claim)}
-                    title="Show the claim behind this"
-                    className="-mx-1.5 block w-[calc(100%+0.75rem)] cursor-pointer rounded-sm px-1.5 py-1 text-left decoration-dotted underline-offset-4 hover:bg-white/70 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-                  >
+                  <button type="button" onClick={() => jumpToClaim(claim)} title="Show the claim behind this" className={LINK}>
+                    {rc.text}
+                  </button>
+                ) : panel ? (
+                  <button type="button" onClick={() => jumpToNumbers(panel)} title="Show the numbers behind this" className={LINK}>
                     {rc.text}
                   </button>
                 ) : (

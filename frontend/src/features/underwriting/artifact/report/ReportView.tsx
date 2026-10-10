@@ -9,7 +9,7 @@ import { ExportBar } from "./ExportBar";
 import { DiligencePanel } from "./quant/DiligencePanel";
 import { RisksPanel } from "./quant/RisksPanel";
 import { TranslationStepper } from "./quant/TranslationStepper";
-import { ReportContext, type CorrectionSeed, type FocusClaim } from "./reportContext";
+import { ReportContext, type CorrectionSeed, type FocusClaim, type NumbersPanel } from "./reportContext";
 import { buildReportTree, questionOfClaim, type QuestionId } from "./reportTree";
 import { RunDetails } from "./RunDetails";
 import { Chevron } from "./tree/Chevron";
@@ -31,6 +31,9 @@ const SECTION_ORDER: SectionId[] = [
   "capital",
   "risks",
 ];
+
+// the heading each panel of "The numbers behind it" is labelled by
+const NUMBERS_PANEL: Record<NumbersPanel, string> = { ledger: "ledger-h", twins: "twin-h", valuation: "val-h" };
 
 const prefersCalm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -119,6 +122,18 @@ export function ReportView({
     return () => observer.disconnect();
   }, []);
 
+  const jumpToNumbers = (panel: NumbersPanel) => {
+    setNumbersOpen(true);
+    // the section has to finish opening before the panel is where it will stay
+    window.setTimeout(
+      () => {
+        const target = document.getElementById(NUMBERS_PANEL[panel])?.closest("section") ?? document.getElementById("numbers");
+        target?.scrollIntoView({ block: "start", behavior: prefersCalm() ? "auto" : "smooth" });
+      },
+      prefersCalm() ? 0 : 420,
+    );
+  };
+
   const jumpToClaim = (id: string) => {
     setFilters(emptyFilters);
     setLocal((prev) => ({ id, nonce: Math.max(prev?.nonce ?? 0, focusClaim?.nonce ?? 0) + 1 }));
@@ -169,7 +184,7 @@ export function ReportView({
   }, []);
 
   return (
-    <ReportContext.Provider value={{ report, runId, graph, canCorrect, focus, jumpToClaim, openCorrection: setSeed }}>
+    <ReportContext.Provider value={{ report, runId, graph, canCorrect, focus, jumpToClaim, jumpToNumbers, openCorrection: setSeed }}>
       <div ref={wrapper} className="@container pb-6">
         <header ref={header} className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur" data-print-header>
           <div className="flex items-center gap-3 px-4 py-2">
