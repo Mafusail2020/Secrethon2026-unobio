@@ -75,7 +75,9 @@ async def read_documents(state: GraphState, ctx: NodeContext) -> DocumentsRead:
             # OCR of a long scan takes seconds a page; keep the event loop free meanwhile
             text = await asyncio.to_thread(read_document, stored.read(), stored.info.kind)
         except (DocumentUnreadable, OSError) as exc:
-            ctx.log(f"{name}: {exc}; not used as evidence", "warn")
+            # an OSError names the server's own path; the run log is shown to the user
+            reason = exc if isinstance(exc, DocumentUnreadable) else "the file could not be opened"
+            ctx.log(f"{name}: {reason}; not used as evidence", "warn")
             out.unread.append(name)
             continue
         source, items = document_records(stored.info, text, ids)

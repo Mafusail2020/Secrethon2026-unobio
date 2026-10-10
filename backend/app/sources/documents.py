@@ -2,6 +2,7 @@
 an evidence item whose locator names the page, so a quote can be checked against that page."""
 
 import io
+import logging
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -11,6 +12,8 @@ from pypdf import PdfReader
 from app.contracts import DocumentInfo, Evidence, ProgramInput, SourceRef, utcnow
 from app.contracts.ids import evidence_id, source_id
 from app.sources.records import chunk_text
+
+log = logging.getLogger(__name__)
 
 MAX_PAGES = 300
 OCR_MAX_PAGES = 30
@@ -95,6 +98,8 @@ def _read_pdf(data: bytes) -> DocumentText:
     try:
         ocr = _ocr()
     except Exception:  # an OCR engine that fails to load leaves typed PDFs readable
+        log.exception("OCR engine failed to load; scans will be unreadable")
+        use_ocr(None)  # once, not on every PDF
         ocr = None
     try:
         reader = PdfReader(io.BytesIO(data))
@@ -123,6 +128,7 @@ def _read_pdf(data: bytes) -> DocumentText:
     # pypdf also raises IndexError, AttributeError, ZeroDivisionError... on broken files; one bad
     # upload must not take the user's notes and other files down with it
     except Exception as exc:
+        log.warning("PDF could not be read", exc_info=True)
         raise DocumentUnreadable("the PDF could not be read") from exc
     if not pages:
         raise DocumentUnreadable(
