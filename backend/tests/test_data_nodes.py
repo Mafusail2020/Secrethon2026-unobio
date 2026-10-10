@@ -248,3 +248,47 @@ async def test_a_public_link_cannot_redirect_the_server_to_a_private_address(mon
         await web.fetch_text("https://public.example/r")
     assert not metadata.called
     await web.aclose()
+
+
+@respx.mock
+async def test_a_redirect_to_another_public_page_is_followed(monkeypatch):
+    from app.sources import web as web_module
+
+    async def public(url: str) -> bool:
+        return True
+
+    monkeypatch.setattr(web_module, "_public_host", public)
+    respx.get("https://public.example/old").mock(
+        return_value=httpx.Response(301, headers={"location": "/new"})
+    )
+    respx.get("https://public.example/new").mock(
+        return_value=httpx.Response(200, text="moved here", headers={"content-type": "text/plain"})
+    )
+    web = WebClient("", InMemorySourceCache(), min_interval_s=0)
+    page = await web.fetch_text("https://public.example/old")
+    assert page is not None and page["text"] == "moved here"
+    assert page["url"] == "https://public.example/new"
+    await web.aclose()
+
+
+@respx.mock
+async def test_a_redirect_loop_or_a_broken_location_is_an_error_not_a_crash(monkeypatch):
+    from app.sources import web as web_module
+    from app.sources.base import SourceError
+
+    async def public(url: str) -> bool:
+        return True
+
+    monkeypatch.setattr(web_module, "_public_host", public)
+    respx.get("https://public.example/loop").mock(
+        return_value=httpx.Response(302, headers={"location": "/loop"})
+    )
+    respx.get("https://public.example/bad").mock(
+        return_value=httpx.Response(302, headers={"location": "http://[bad/"})
+    )
+    web = WebClient("", InMemorySourceCache(), min_interval_s=0)
+    with pytest.raises(SourceError, match="too many redirects"):
+        await web.fetch_text("https://public.example/loop")
+    with pytest.raises(SourceError):
+        await web.fetch_text("https://public.example/bad")
+    await web.aclose()
