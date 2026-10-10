@@ -1,11 +1,20 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 
 from app.contracts import ProgramInput, RunOptions, RunSummary, UnderwritingReport
 from app.core.legacy_report import upgrade_report
 from app.store.db import Database
-from app.store.tables import RunRow
+from app.store.tables import (
+    ChatMessageRow,
+    CorrectionRow,
+    NodeExecutionRow,
+    RunDeckRow,
+    RunEventRow,
+    RunRow,
+    RunSummaryRow,
+)
 
 
 @dataclass(frozen=True)
@@ -118,3 +127,40 @@ class RunsRepo:
                     .values(status="failed", error="server restarted before the run finished")
                 )
             return ids
+
+    async def with_versions(self, run_id: str) -> list[str]:
+        """The run and every run made from it by a correction, however deep."""
+        found, queue = [run_id], [run_id]
+        async with self.db.session() as s:
+            while queue:
+                children = await s.scalars(select(RunRow.id).where(RunRow.parent_run_id.in_(queue)))
+                queue = [c for c in children if c not in found]
+                found += queue
+        return found
+
+    async def any_active(self, run_ids: Sequence[str]) -> bool:
+        async with self.db.session() as s:
+            active = await s.scalar(
+                select(RunRow.id)
+                .where(RunRow.id.in_(run_ids), RunRow.status.in_(["queued", "running"]))
+                .limit(1)
+            )
+            return active is not None
+
+    async def delete_many(self, run_ids: Sequence[str]) -> None:
+        """Removes the runs and what only they own. Evidence, sources and the caches are shared by
+        content, and `llm_calls` is the record of what was spent, so those stay."""
+        async with self.db.session() as s, s.begin():
+            made_by = await s.scalars(
+                select(RunRow.correction_id).where(
+                    RunRow.id.in_(run_ids), RunRow.correction_id.is_not(None)
+                )
+            )
+            await s.execute(
+                delete(CorrectionRow).where(
+                    CorrectionRow.run_id.in_(run_ids) | CorrectionRow.id.in_(list(made_by))
+                )
+            )
+            for table in (RunEventRow, NodeExecutionRow, ChatMessageRow, RunDeckRow, RunSummaryRow):
+                await s.execute(delete(table).where(table.run_id.in_(run_ids)))
+            await s.execute(delete(RunRow).where(RunRow.id.in_(run_ids)))

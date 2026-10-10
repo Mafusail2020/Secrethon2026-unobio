@@ -2,7 +2,7 @@ import json
 from collections.abc import AsyncIterator
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, Depends, Header, Query, Response
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
@@ -48,6 +48,21 @@ async def post_run(body: CreateRunRequest, services: Svc) -> RunSummary:
 @router.get("/runs", response_model=list[RunSummary])
 async def list_runs(services: Svc, limit: Annotated[int, Query(ge=1, le=200)] = 50):
     return await services.runs.recent(limit)
+
+
+@router.delete(
+    "/runs/{run_id}",
+    status_code=204,
+    responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
+)
+async def delete_run(run_id: str, services: Svc) -> Response:
+    """Removes the run and the versions made from it, with their chat, briefing and deck."""
+    await _require_run(services, run_id)
+    ids = await services.runs.with_versions(run_id)
+    if await services.runs.any_active(ids):
+        raise ApiError(409, "run_active", "a run that is still working cannot be deleted")
+    await services.runs.delete_many(ids)
+    return Response(status_code=204)
 
 
 @router.get("/runs/{run_id}", response_model=RunDetail)

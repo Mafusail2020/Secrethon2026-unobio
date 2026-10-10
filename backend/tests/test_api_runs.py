@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 
@@ -170,3 +171,66 @@ def test_trace_is_a_complete_download(client: TestClient):
 def test_models_are_listed_with_one_default(client: TestClient):
     models = [ModelInfo.model_validate(m) for m in client.get("/api/models").json()]
     assert [m.default for m in models] == [True] and models[0].available
+
+
+def corrected(client: TestClient) -> tuple[str, str]:
+    parent = start(client)
+    wait(client, parent)
+    response = client.post(
+        f"/api/runs/{parent}/nodes/verdict/corrections",
+        json={"text": "the earlier trials were terminated"},
+    )
+    child = RunSummary.model_validate(response.json()).id
+    wait(client, child)
+    return parent, child
+
+
+def test_deleting_a_run_removes_it_with_its_versions_and_what_only_they_own(client: TestClient):
+    from app.contracts import LLMCallRecord
+
+    services = client.app.state.services
+    parent, child = corrected(client)
+    keep = start(client)
+    wait(client, keep)
+    for run_id in (parent, keep):
+        assert client.post(f"/api/runs/{run_id}/summary").status_code == 200
+    spend = LLMCallRecord(
+        model="m", purpose="x", tokens_in=1, tokens_out=1, cost_usd=0.01, cached=False, latency_ms=1
+    )
+    asyncio.run(services.llm_repo.add_call(parent, "summary", spend))
+    spent_before = len(asyncio.run(services.llm_repo.calls_for_run(parent)))
+    assert spent_before > 0
+
+    assert client.delete(f"/api/runs/{parent}").status_code == 204
+    for run_id in (parent, child):
+        assert client.get(f"/api/runs/{run_id}").status_code == 404
+        assert client.get(f"/api/runs/{run_id}/messages").status_code == 404
+        assert asyncio.run(services.chat.get_summary(run_id)) is None
+        assert asyncio.run(services.nodes.for_run(run_id)) == []
+    assert [r.id for r in asyncio.run(services.runs.recent())] == [keep]
+    assert client.get(f"/api/runs/{keep}/report").status_code == 200
+    assert asyncio.run(services.chat.get_summary(keep)) is not None
+    # what was spent stays on the books
+    assert len(asyncio.run(services.llm_repo.calls_for_run(parent))) == spent_before
+    assert client.delete(f"/api/runs/{parent}").status_code == 404
+
+
+def test_deleting_a_corrected_version_leaves_the_run_it_came_from(client: TestClient):
+    parent, child = corrected(client)
+    assert client.delete(f"/api/runs/{child}").status_code == 204
+    assert client.get(f"/api/runs/{child}").status_code == 404
+    assert client.get(f"/api/runs/{parent}/report").status_code == 200
+    # a correction made on the run no longer has a version to show
+    corrections = client.get(f"/api/runs/{parent}/trace").json()["corrections"]
+    assert corrections == []
+
+
+def test_a_run_that_is_still_working_cannot_be_deleted(client: TestClient):
+    services = client.app.state.services
+    parent, child = corrected(client)
+    asyncio.run(services.runs.set_status(child, "running"))
+    refused = client.delete(f"/api/runs/{parent}")
+    assert refused.status_code == 409 and refused.json()["error"]["code"] == "run_active"
+    assert client.get(f"/api/runs/{parent}").status_code == 200
+    asyncio.run(services.runs.set_status(child, "failed"))
+    assert client.delete(f"/api/runs/{parent}").status_code == 204
