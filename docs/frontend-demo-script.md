@@ -110,13 +110,8 @@ the conversation; below 768 px the history is a drawer.
    questions with claims for and against, the numbers behind it (chart, tables), every claim by section with its quotes and
    rejection reasons, risks, numbered sources with links, and the run details. Selectable text, about 80 KB. In the mock there is
    no backend, so this item saves a plain-text PDF made in the browser from the same text as **Copy as Markdown**.
-3. **Open as a note**: the report as one page in the style of an Obsidian note (`/underwriting/runs/<id>/note`): a Properties box
-   (decision, probability, value, run, tags), a title, a heading for the verdict, each of the four questions, the numbers and the risks (and
-   smaller headings inside them: For, Against, the sections), every claim with its verbatim quote under it, tables for the ledger and the
-   similar programs, and numbered sources at the end. An Outline on the right jumps between the big headings; a small raised number after a
-   claim jumps to its source. **Copy Markdown** copies the note's text. **Back to the report** returns.
-4. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
-5. **Download the trace** (live only).
+3. **Copy as Markdown**: paste somewhere: verdict, sections, claims with source links, run details.
+4. **Download the trace** (live only).
 
 ## 5. Messy data (mock only)
 

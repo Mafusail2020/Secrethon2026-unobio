@@ -237,13 +237,6 @@ text or the passages (small counts up to 12 are free), and drops a claim slide w
 frontend builds the deck from the report's own wording, which is also what any slide the model left out gets. The deck page waits for
 the script before showing slides so nothing jumps, and has a Rewrite button. Cost is logged under node id `deck`.
 
-**Note view.** `artifact/report/note/` draws the report as an Obsidian-style note on its own page (`/underwriting/runs/:id/note`, opened from
-the Generate report menu, like the deck). `buildNote(report)` is pure: it writes Markdown (title, verdict, one `##` per question with `###` For /
-Against / Context / Rejected and `####` per section, the quotes as blockquotes under each claim, ledger and twin tables, risks, questions), the
-Properties and tags, the outline, and the sources numbered by first citation; text from claims is escaped so it cannot become a heading or a
-link. `NoteBody` draws it with react-markdown and heading sizes of 2, 1.6, 1.37 and 1.25 times the body; a citation `[n](#src-n)` becomes a small
-raised link that scrolls to the source. Nothing here is written by a model.
-
 **PDF files.** Neither export uses the browser's print dialog (Chrome's preview of the report page came out blank on some machines).
 The report PDF is built by the backend (above), straight from the stored `UnderwritingReport`: the verdict and figures, the four
 questions, a ledger chart and tables, every claim with quotes and rejection reasons, risks, and numbered sources. The deck PDF is

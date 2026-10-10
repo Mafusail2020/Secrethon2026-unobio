@@ -77,21 +77,4 @@ describe("the full report export", () => {
     unmount();
     print.mockRestore();
   });
-
-  it("offers the report as a note, a page of its own like the deck", () => {
-    const host = document.createElement("div");
-    document.body.append(host);
-    const root = createRoot(host);
-    act(() =>
-      root.render(
-        <MemoryRouter>
-          <ExportBar report={report} />
-        </MemoryRouter>,
-      ),
-    );
-    act(() => host.querySelector("button")!.click());
-    const note = [...host.querySelectorAll('[role="menuitem"]')].find((e) => e.textContent?.includes("Open as a note"))!;
-    expect(note.getAttribute("href")).toBe(`/underwriting/runs/${report.run_id}/note`);
-    act(() => root.unmount());
-  });
 });
