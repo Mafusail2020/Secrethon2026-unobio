@@ -262,8 +262,10 @@ def quote_found(quote: str, excerpts: Iterable[str]) -> bool:
     if len(whole) >= MIN_QUOTE_CHARS and any(whole in t for t in texts):
         return True
     parts = [p.strip(" .,;:") for p in re.split(r"…|\.\.\.|;", _norm(quote))]
-    parts = [p for p in parts if len(p) >= 4]
-    if sum(len(p) for p in parts) < MIN_QUOTE_CHARS:
+    parts = [p for p in parts if p]
+    # every fragment must be long enough to be a quote on its own: "survival; placebo; patients"
+    # would otherwise pass on words that occur anywhere
+    if len(parts) < 2 or any(len(p) < MIN_QUOTE_CHARS for p in parts):
         return False
     return all(any(p in t for t in texts) for p in parts)
 
