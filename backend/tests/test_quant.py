@@ -495,6 +495,7 @@ def test_a_twin_is_dropped_only_when_the_drop_word_leads_to_it():
 
     assert dropped("exclude atabecestat and verubecestat") == {"ATABECESTAT", "VERUBECESTAT"}
     assert dropped("verubecestat stopped without efficacy") == set()
+    assert dropped("stopped without efficacy, like verubecestat") == set()
 
 
 @pytest.mark.parametrize(
@@ -505,6 +506,8 @@ def test_a_twin_is_dropped_only_when_the_drop_word_leads_to_it():
         ("no responders and development discontinued", True),
         ("the drug did not show toxicity", False),
         ("never put on clinical hold", False),
+        ("no dose-limiting toxicity", False),
+        ("no treatment-related toxicity was seen", False),
     ],
 )
 def test_a_negation_only_cancels_the_failure_word_right_after_it(text, failure):
