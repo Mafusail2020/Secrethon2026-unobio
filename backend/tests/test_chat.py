@@ -384,3 +384,29 @@ def test_live_summary_logs_the_call_once_and_a_bad_draft_falls_back(
     monkeypatch.setattr(chat_api, "summarise_with_llm", broken)
     fallback = client.post(f"/api/runs/{other}/summary")
     assert fallback.status_code == 200 and fallback.json()["cited_claim_ids"]
+
+
+@pytest.mark.parametrize(("error", "asked_again"), [("parse", False), ("gateway", True)])
+def test_live_a_failed_briefing_is_kept_only_when_asking_again_would_pay_for_the_same_failure(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, error: str, asked_again: bool
+):
+    import asyncio
+
+    from app.api import chat as chat_api
+    from app.llm.types import LLMParseError
+
+    run_id = _finished_run(client)
+    services = client.app.state.services
+    services.settings.llm_mode = "live"
+    calls: list[str] = []
+
+    async def broken(llm, model, report, rid, passages=()):
+        calls.append(rid)
+        raise LLMParseError("bad json") if error == "parse" else RuntimeError("gateway down")
+
+    monkeypatch.setattr(chat_api, "summarise_with_llm", broken)
+    first = client.post(f"/api/runs/{run_id}/summary")
+    second = client.post(f"/api/runs/{run_id}/summary")
+    assert first.status_code == second.status_code == 200 and first.json()["content"]
+    assert len(calls) == (2 if asked_again else 1)
+    assert (asyncio.run(services.chat.get_summary(run_id)) is None) == asked_again
