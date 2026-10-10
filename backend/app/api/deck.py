@@ -50,8 +50,8 @@ async def write_deck(
                 passages,
                 fresh=rewrite,  # the same prompt would otherwise come back from the cache
             )
-        except Exception as exc:  # the deck still has its own wording to fall back on
-            log.warning("deck script failed on %s: %s", run_id, exc)
+        except Exception:  # the deck still has its own wording to fall back on
+            log.exception("deck script failed on %s", run_id)
             return stored or DeckScript()
         for result in results:
             await services.llm_repo.add_call(

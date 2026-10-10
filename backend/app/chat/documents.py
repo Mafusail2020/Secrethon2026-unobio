@@ -83,8 +83,8 @@ async def passages_for(
         hits = await services.store.vectors.search(
             question, k=3 * MAX_PASSAGES, evidence_ids=set(pool)
         )
-    except Exception as exc:  # unranked passages beat a failed answer
-        log.warning("passage search failed: %s", exc)
+    except Exception:  # unranked passages beat a failed answer
+        log.warning("passage search failed", exc_info=True)
         hits = []
     ranked = [pool[i] for i, score in hits if score > 0 and i in pool] or list(pool.values())
     picked: list[Passage] = []

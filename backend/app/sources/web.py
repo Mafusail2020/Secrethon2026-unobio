@@ -24,18 +24,15 @@ def html_to_text(raw: str) -> str:
 
 async def _public_host(url: str) -> bool:
     """User links are fetched server-side; refuse anything that resolves to a private address."""
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.hostname:
-        return False
     try:
-        infos = await asyncio.get_running_loop().getaddrinfo(parsed.hostname, None)
-    except OSError:
-        return False
-    for info in infos:
-        ip = ipaddress.ip_address(info[4][0])
-        if not ip.is_global:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
             return False
-    return True
+        infos = await asyncio.get_running_loop().getaddrinfo(parsed.hostname, None)
+        # a scoped IPv6 answer ("fe80::1%eth0") is not a valid ip_address and is not public anyway
+        return all(ipaddress.ip_address(info[4][0]).is_global for info in infos)
+    except (OSError, ValueError):
+        return False
 
 
 class WebClient(HttpSource):
@@ -61,7 +58,7 @@ class WebClient(HttpSource):
                         url = urljoin(url, resp.headers["location"])
                         continue
                     return await _read(resp)
-            except httpx.HTTPError as exc:
+            except (httpx.HTTPError, ValueError) as exc:  # ValueError: a malformed Location
                 raise SourceError(f"web: GET {url} failed: {exc}") from exc
         raise SourceError(f"web: too many redirects from {path}")
 

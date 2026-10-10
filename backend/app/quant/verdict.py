@@ -23,7 +23,7 @@ MAX_REASONS = 5
 # the failure word, at most two words apart, with no comma or "and" between. "Not effective,
 # terminated" and "no responders and development discontinued" still report a failure.
 NEGATED = re.compile(
-    r"\b(?:not|no|never|without|\w+n't)(?:\s+(?!(?:and|but|or|then|so)\b)\w+){0,2}\s+$", re.I
+    r"\b(?:not|no|never|without|\w+n't)(?:\s+(?!(?:and|but|or|then|so)\b)[\w-]+){0,2}\s+$", re.I
 )
 
 
