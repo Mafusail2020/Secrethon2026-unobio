@@ -88,6 +88,9 @@ export function ExportBar({ report }: { report: UnderwritingReport }) {
           <Link role="menuitem" to={`/underwriting/runs/${report.run_id}/deck`} className={item} onClick={() => setOpen(false)} autoFocus>
             <Entry title="Investment committee deck" note="Landscape slides to present, saved as a PDF" />
           </Link>
+          <Link role="menuitem" to={`/underwriting/runs/${report.run_id}/note`} className={item} onClick={() => setOpen(false)}>
+            <Entry title="Open as a note" note="Headings, bullets and quotes, like a note in Obsidian" />
+          </Link>
           {pdf ? (
             // a real file from the backend: nothing depends on the browser's print dialog
             <a role="menuitem" href={pdf} download className={item} onClick={() => setOpen(false)}>
