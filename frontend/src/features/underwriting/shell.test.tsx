@@ -59,7 +59,8 @@ describe("sidebar", () => {
       [run("r1", null, "2026-10-05T10:00:00Z"), run("r2", "r1", "2026-10-05T11:00:00Z"), run("r3", null, "2026-10-04T10:00:00Z", { program: { indication: "Hypercholesterolemia", mechanism: "PCSK9 inhibition", links: [] } } as never)],
       "r2",
     );
-    expect(markup.match(/Alzheimer&#x27;s disease/g)).toHaveLength(1);
+    expect(markup.match(/>Alzheimer&#x27;s disease</g)).toHaveLength(1); // one row, however many versions
+    expect(markup.match(/aria-label="Delete Alzheimer/g)).toHaveLength(1); // and one way to delete it
     expect(markup).toContain("Hypercholesterolemia");
     expect(markup).toContain('href="/underwriting/runs/r2"'); // the entry opens the newest version
     expect(markup).toContain(">v1<");

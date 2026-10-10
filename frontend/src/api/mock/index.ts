@@ -264,6 +264,22 @@ export const mockApi: Api = {
         .sort((a, b) => b.created_at.localeCompare(a.created_at)),
     ),
   createRun: (body) => wait({ ...create(body).summary }),
+  deleteRun: async (id) => {
+    need(id);
+    const doomed = new Set([id]);
+    for (let grew = true; grew; ) {
+      grew = false;
+      for (const run of runs.values()) {
+        const parent = run.summary.parent_run_id;
+        if (parent && doomed.has(parent) && !doomed.has(run.summary.id)) grew = !!doomed.add(run.summary.id);
+      }
+    }
+    if ([...doomed].some((d) => ["queued", "running"].includes(runs.get(d)!.summary.status))) {
+      throw new ApiError(409, "run_active", "a run that is still working cannot be deleted");
+    }
+    for (const d of doomed) runs.delete(d);
+    return wait(undefined);
+  },
   uploadDocument: async (file) => {
     const kind = /\.pdf$/i.test(file.name) ? "pdf" : /\.(txt|md)$/i.test(file.name) ? "text" : undefined;
     if (!kind) throw new ApiError(415, "unsupported_document", "only PDF, TXT and MD files are accepted");

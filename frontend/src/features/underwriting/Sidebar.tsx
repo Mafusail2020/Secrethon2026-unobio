@@ -1,11 +1,11 @@
-import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { useHealth, useRuns } from "../../api/hooks";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDeleteRun, useHealth, useRuns } from "../../api/hooks";
 import type { Decision, RunSummary } from "../../api/types";
-import { PlusIcon } from "../../components/ui/icons";
+import { PlusIcon, TrashIcon } from "../../components/ui/icons";
 import { DECISION_LABEL } from "../../lib/format";
 import { relativeTime } from "../../lib/relativeTime";
-import { groupRuns } from "./history";
+import { groupRuns, type RunGroup } from "./history";
 
 const DOT: Record<Decision, string> = {
   invest: "bg-emerald-500",
@@ -19,11 +19,60 @@ function StatusDot({ run }: { run: RunSummary }) {
   return <span title="Running" className="mt-1.5 h-2 w-2 shrink-0 animate-pulse rounded-full bg-brand motion-reduce:animate-none" />;
 }
 
+const working = (group: RunGroup) => group.runs.some((r) => r.status === "queued" || r.status === "running");
+
+/** Asks before an underwriting goes: the report, its chat and its deck go with it, and demo runs are easy to hit by mistake. */
+function ConfirmDelete({ group, pending, error, onConfirm, onCancel }: { group: RunGroup; pending: boolean; error: string | undefined; onConfirm: () => void; onCancel: () => void }) {
+  const versions = group.runs.length - 1;
+  return (
+    <div
+      role="group"
+      aria-label="Confirm deletion"
+      onKeyDown={(e) => e.key === "Escape" && !pending && onCancel()}
+      className="uw-rise mx-1 mb-1 mt-0.5 rounded-lg border border-red-200 bg-white/85 px-3 py-2 text-xs"
+    >
+      <p className="font-medium text-ink">Delete this underwriting{versions > 0 ? ` and its ${versions} corrected version${versions === 1 ? "" : "s"}` : ""}?</p>
+      <p className="mt-0.5 text-muted">The report, chat and deck go with it. This cannot be undone.</p>
+      {error && (
+        <p role="alert" className="mt-1 text-red-700">
+          {error}
+        </p>
+      )}
+      <div className="mt-2 flex gap-2">
+        <button type="button" autoFocus onClick={onCancel} disabled={pending} className="rounded-md border border-line bg-surface px-2.5 py-1 font-medium hover:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-50">
+          Cancel
+        </button>
+        <button type="button" onClick={onConfirm} disabled={pending} className="rounded-md bg-red-600 px-2.5 py-1 font-medium text-white hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-60">
+          {pending ? "Deleting…" : "Delete"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** Past underwritings, newest first; a run and its corrected versions are one entry with v1, v2 … links. */
 export function Sidebar({ currentId, onNavigate }: { currentId: string | undefined; onNavigate?: () => void }) {
   const runs = useRuns();
   const health = useHealth();
   const groups = useMemo(() => groupRuns(runs.data ?? []), [runs.data]);
+  const [asking, setAsking] = useState<string | undefined>();
+  const remove = useDeleteRun();
+  const navigate = useNavigate();
+  const ask = (rootId: string | undefined) => {
+    remove.reset();
+    setAsking(rootId);
+  };
+  const confirm = (group: RunGroup) =>
+    remove.mutate(group.rootId, {
+      onSuccess: () => {
+        setAsking(undefined);
+        // the page was showing what is gone
+        if (group.runs.some((r) => r.id === currentId)) {
+          navigate("/underwriting");
+          onNavigate?.();
+        }
+      },
+    });
 
   return (
     <nav aria-label="Underwritings" className="relative flex h-full min-h-0 flex-col">
@@ -57,20 +106,44 @@ export function Sidebar({ currentId, onNavigate }: { currentId: string | undefin
             const inGroup = group.runs.some((r) => r.id === currentId);
             return (
               <li key={group.rootId} className="uw-rise" style={{ animationDelay: `${Math.min(index, 8) * 35}ms` }}>
-                <Link
-                  to={`/underwriting/runs/${group.latest.id}`}
-                  onClick={onNavigate}
-                  aria-current={inGroup ? "page" : undefined}
-                  className="uw-history-row flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-                >
-                  <StatusDot run={group.latest} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{program.indication}</span>
-                    <span className="block truncate text-xs text-muted">
-                      {program.mechanism} · {relativeTime(group.latest.created_at)}
+                <div className="relative">
+                  <Link
+                    to={`/underwriting/runs/${group.latest.id}`}
+                    onClick={onNavigate}
+                    aria-current={inGroup ? "page" : undefined}
+                    className="uw-history-row flex items-start gap-2.5 rounded-lg py-2 pl-2.5 pr-11 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                  >
+                    <StatusDot run={group.latest} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{program.indication}</span>
+                      <span className="block truncate text-xs text-muted">
+                        {program.mechanism} · {relativeTime(group.latest.created_at)}
+                      </span>
                     </span>
-                  </span>
-                </Link>
+                  </Link>
+                  {asking !== group.rootId && !working(group) && (
+                    <div className="uw-delete-zone group/del absolute inset-y-0 right-0 flex w-11 items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => ask(group.rootId)}
+                        aria-label={`Delete ${program.indication}, ${program.mechanism}`}
+                        title="Delete"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted opacity-0 transition-opacity duration-200 hover:bg-white/80 hover:text-red-600 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 group-hover/del:opacity-100 motion-reduce:transition-none [@media(hover:none)]:opacity-70"
+                      >
+                        <TrashIcon width={16} height={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {asking === group.rootId && (
+                  <ConfirmDelete
+                    group={group}
+                    pending={remove.isPending}
+                    error={remove.error ? (remove.error.message || "Could not delete it.") : undefined}
+                    onConfirm={() => confirm(group)}
+                    onCancel={() => ask(undefined)}
+                  />
+                )}
                 {group.runs.length > 1 && (
                   <ul className="mb-1 flex flex-wrap gap-1 pl-7" aria-label="Versions">
                     {group.runs.map((r, i) => (

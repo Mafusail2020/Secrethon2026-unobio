@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getApi } from "./client";
 
 export const useHealth = () =>
@@ -18,6 +18,15 @@ export const useModels = () =>
 
 export const useRuns = () =>
   useQuery({ queryKey: ["runs"], queryFn: async () => (await getApi()).listRuns() });
+
+/** Deletes an underwriting: the run named, and the corrected versions made from it. */
+export const useDeleteRun = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (runId: string) => (await getApi()).deleteRun(runId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["runs"] }),
+  });
+};
 
 export const useRunDetail = (runId: string | undefined) =>
   useQuery({

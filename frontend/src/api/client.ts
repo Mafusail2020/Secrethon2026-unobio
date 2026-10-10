@@ -30,6 +30,8 @@ export interface Api {
   getDocument(documentId: string): Promise<DocumentInfo>;
   /** The words of the committee deck for a finished run, written once. Empty `slides`: use the report's own wording. */
   postDeck(runId: string, rewrite?: boolean): Promise<DeckScript>;
+  /** Removes a run and the corrected versions made from it. 409 while one of them is still working. */
+  deleteRun(runId: string): Promise<void>;
   getRun(runId: string): Promise<RunDetail>;
   getReport(runId: string): Promise<UnderwritingReport>;
   getNode(runId: string, nodeId: string): Promise<NodeExecution>;
@@ -61,26 +63,34 @@ export class ApiError extends Error {
   }
 }
 
+async function failure(response: Response): Promise<ApiError> {
+  let body: { error?: { code?: string; message?: string; details?: ApiError["details"] } } = {};
+  try {
+    body = await response.json();
+  } catch {
+    /* non-JSON error body */
+  }
+  return new ApiError(
+    response.status,
+    body.error?.code ?? "http_error",
+    body.error?.message ?? response.statusText,
+    body.error?.details ?? [],
+  );
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
     headers: { "Content-Type": "application/json" },
     ...init,
   });
-  if (!response.ok) {
-    let body: { error?: { code?: string; message?: string; details?: ApiError["details"] } } = {};
-    try {
-      body = await response.json();
-    } catch {
-      /* non-JSON error body */
-    }
-    throw new ApiError(
-      response.status,
-      body.error?.code ?? "http_error",
-      body.error?.message ?? response.statusText,
-      body.error?.details ?? [],
-    );
-  }
+  if (!response.ok) throw await failure(response);
   return response.json() as Promise<T>;
+}
+
+/** A call that answers 204: there is no body to read. */
+async function remove(path: string): Promise<void> {
+  const response = await fetch(`/api${path}`, { method: "DELETE" });
+  if (!response.ok) throw await failure(response);
 }
 
 const post = <T>(path: string, body: unknown) =>
@@ -101,6 +111,7 @@ export const liveApi: Api = {
       headers: { "Content-Type": file.type || "application/octet-stream", "X-File-Name": encodeURIComponent(file.name) },
       body: file,
     }),
+  deleteRun: (id) => remove(`/runs/${id}`),
   getRun: (id) => request(`/runs/${id}`),
   getReport: (id) => request(`/runs/${id}/report`),
   getNode: (id, nodeId) => request(`/runs/${id}/nodes/${nodeId}`),

@@ -39,6 +39,12 @@ export const CloseIcon = (p: IconProps) => (
   </svg>
 );
 
+export const TrashIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M4.5 7h15M9.5 7V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2M6.5 7l.8 11.2a1.5 1.5 0 0 0 1.5 1.3h6.4a1.5 1.5 0 0 0 1.5-1.3L17.5 7M10 11v5M14 11v5" />
+  </svg>
+);
+
 export const ReportIcon = (p: IconProps) => (
   <svg {...base} {...p}>
     <path d="M7 3.5h7.5L19 8v12.5H7z" />
