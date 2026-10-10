@@ -405,3 +405,50 @@ def test_live_a_rewrite_that_fails_keeps_the_deck_there_was(client, monkeypatch)
     first = client.post(f"/api/runs/{run_id}/deck").json()
     rewritten = client.post(f"/api/runs/{run_id}/deck?rewrite=true").json()
     assert first == rewritten and rewritten["slides"][0]["headline"].startswith("A clear")
+
+
+def test_live_a_rewrite_that_loses_a_group_keeps_the_whole_deck_there_was(client, monkeypatch):
+    from app.api import deck as deck_api
+
+    run_id = _finished(client)
+    services = client.app.state.services
+    services.settings.llm_mode = "live"
+    whole = DeckScript(
+        slides=[SlideScript(slide="works", headline="A clear point about the program", bullets=[])]
+    )
+    half = DeckScript(
+        slides=[
+            SlideScript(slide="uptake", headline="Only half of the deck was written", bullets=[])
+        ]
+    )
+
+    async def write(llm, model, report, passages, fresh=False):
+        if fresh:
+            return half, [LLMResult("gw", "", half, 1, 1, 0.0, False, 1)]
+        return whole, [LLMResult("gw", "", whole, 1, 1, 0.0, False, 1)] * len(GROUPS)
+
+    monkeypatch.setattr(deck_api, "write_script", write)
+    first = client.post(f"/api/runs/{run_id}/deck").json()
+    rewritten = client.post(f"/api/runs/{run_id}/deck?rewrite=true").json()
+    assert rewritten == first and rewritten["slides"][0]["slide"] == "works"
+    assert asyncio.run(services.chat.get_deck(run_id)) == whole
+
+
+def test_live_a_first_deck_missing_a_group_is_shown_but_not_kept(client, monkeypatch):
+    from app.api import deck as deck_api
+
+    run_id = _finished(client)
+    services = client.app.state.services
+    services.settings.llm_mode = "live"
+    half = DeckScript(
+        slides=[
+            SlideScript(slide="uptake", headline="Only half of the deck was written", bullets=[])
+        ]
+    )
+
+    async def write(llm, model, report, passages, fresh=False):
+        return half, [LLMResult("gw", "", half, 1, 1, 0.0, False, 1)]
+
+    monkeypatch.setattr(deck_api, "write_script", write)
+    assert client.post(f"/api/runs/{run_id}/deck").json()["slides"][0]["slide"] == "uptake"
+    assert asyncio.run(services.chat.get_deck(run_id)) is None

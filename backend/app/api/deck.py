@@ -69,9 +69,10 @@ async def write_deck(
             )
         if not script.slides:
             return stored or script  # a rewrite that came back empty keeps the deck there was
-        # a deck missing a failed group is shown but not kept, so the next visit asks again
-        if len(results) == len(GROUPS):
-            await services.chat.put_deck(run_id, script)
-        else:
+        if len(results) < len(GROUPS):
+            # a deck missing a failed group is shown but not kept, so the next visit asks again;
+            # a rewrite that lost a group must not swap a whole deck for a half one
             log.warning("deck for %s: %d of %d groups written", run_id, len(results), len(GROUPS))
+            return stored or script
+        await services.chat.put_deck(run_id, script)
         return script
