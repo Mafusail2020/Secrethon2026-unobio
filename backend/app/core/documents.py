@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +10,8 @@ from app.contracts import DocumentInfo
 
 MAX_BYTES = 10_000_000
 KINDS = {".pdf": "pdf", ".txt": "text", ".md": "text"}
+# ids come from URLs too; "..\..\x" would otherwise build a path outside the store on Windows
+DOCUMENT_ID = re.compile(r"doc_[0-9a-f]{16}")
 
 
 class DocumentError(ValueError):
@@ -84,6 +87,8 @@ class DocumentStore:
         return info
 
     def get(self, document_id: str) -> StoredDocument | None:
+        if not DOCUMENT_ID.fullmatch(document_id):
+            return None
         meta, blob = self.root / f"{document_id}.json", self.root / f"{document_id}.bin"
         if not (meta.is_file() and blob.is_file()):
             return None

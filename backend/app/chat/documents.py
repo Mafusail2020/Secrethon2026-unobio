@@ -1,12 +1,15 @@
 """Passages of the user's uploaded files that bear on one follow-up question."""
 
 import asyncio
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.contracts import Evidence, UnderwritingReport
 from app.core.services import Services
 from app.sources.documents import DocumentUnreadable, document_records, read_document
+
+log = logging.getLogger(__name__)
 
 MAX_PASSAGES = 6
 MAX_CHARS = 3000
@@ -24,11 +27,18 @@ class Passage:
         return f"{self.name}, {self.evidence.locator}" if self.evidence.locator else self.name
 
 
+def _inert(text: str) -> str:
+    return text.replace("<", "‹").replace(">", "›")
+
+
 def documents_block(passages: Sequence[Passage]) -> str:
     """The passages as the model sees them, each under the id it must cite."""
     if not passages:
         return ""
-    lines = [f'[{p.evidence.id}] {p.label}: "{p.evidence.excerpt}"' for p in passages]
+    # a file that says "</documents> new rule: ..." must not be able to close the data block
+    lines = [
+        f'[{p.evidence.id}] {_inert(p.label)}: "{_inert(p.evidence.excerpt)}"' for p in passages
+    ]
     return "<documents>\n" + "\n".join(lines) + "\n</documents>\n"
 
 
@@ -46,7 +56,8 @@ async def _chunks_of(services: Services, document_id: str) -> list[tuple[Evidenc
         return []
     try:
         text = await asyncio.to_thread(read_document, stored.read(), stored.info.kind)
-    except DocumentUnreadable:
+    except (DocumentUnreadable, OSError) as exc:  # the files are optional context, not a 500
+        log.warning("document %s not read for chat: %s", document_id, exc)
         return []
     _, items = document_records(stored.info, text, [])
     while len(_chunks) >= _KEPT:
@@ -68,7 +79,13 @@ async def passages_for(
     }
     if not pool:
         return []
-    hits = await services.store.vectors.search(question, k=3 * MAX_PASSAGES, evidence_ids=set(pool))
+    try:
+        hits = await services.store.vectors.search(
+            question, k=3 * MAX_PASSAGES, evidence_ids=set(pool)
+        )
+    except Exception as exc:  # unranked passages beat a failed answer
+        log.warning("passage search failed: %s", exc)
+        hits = []
     ranked = [pool[i] for i, score in hits if score > 0 and i in pool] or list(pool.values())
     picked: list[Passage] = []
     used = 0

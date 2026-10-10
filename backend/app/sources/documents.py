@@ -7,7 +7,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from pypdf import PdfReader
-from pypdf.errors import PyPdfError
 
 from app.contracts import DocumentInfo, Evidence, ProgramInput, SourceRef, utcnow
 from app.contracts.ids import evidence_id, source_id
@@ -93,7 +92,10 @@ def _tidy(text: str) -> str:
 
 
 def _read_pdf(data: bytes) -> DocumentText:
-    ocr = _ocr()
+    try:
+        ocr = _ocr()
+    except Exception:  # an OCR engine that fails to load leaves typed PDFs readable
+        ocr = None
     try:
         reader = PdfReader(io.BytesIO(data))
         if reader.is_encrypted and not reader.decrypt(""):
@@ -118,7 +120,9 @@ def _read_pdf(data: bytes) -> DocumentText:
                 break
     except DocumentUnreadable:
         raise
-    except (PyPdfError, ValueError, KeyError, TypeError, OSError, RecursionError) as exc:
+    # pypdf also raises IndexError, AttributeError, ZeroDivisionError... on broken files; one bad
+    # upload must not take the user's notes and other files down with it
+    except Exception as exc:
         raise DocumentUnreadable("the PDF could not be read") from exc
     if not pages:
         raise DocumentUnreadable(
