@@ -2955,6 +2955,32 @@
             "title": "Match Level",
             "type": "string"
           },
+          "n_approved": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Of n_decided, the ones that were approved.",
+            "title": "N Approved"
+          },
+          "n_decided": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Decided twins (approved or stopped) the prior was built from; 0 when it fell back to the area base rate. None on reports written before the field existed.",
+            "title": "N Decided"
+          },
           "n_programs": {
             "minimum": 0.0,
             "title": "N Programs",
@@ -3009,6 +3035,8 @@
         "required": [
           "failure_mix",
           "match_level",
+          "n_approved",
+          "n_decided",
           "n_programs",
           "notes",
           "prior_pos",

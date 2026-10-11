@@ -1352,6 +1352,16 @@ export interface components {
              * @enum {string}
              */
             match_level: "exact_target_indication" | "target_area" | "target_any" | "target_class" | "area_base_rate";
+            /**
+             * N Approved
+             * @description Of n_decided, the ones that were approved.
+             */
+            n_approved: number | null;
+            /**
+             * N Decided
+             * @description Decided twins (approved or stopped) the prior was built from; 0 when it fell back to the area base rate. None on reports written before the field existed.
+             */
+            n_decided: number | null;
             /** N Programs */
             n_programs: number;
             /** Notes */

@@ -63,6 +63,17 @@ class TwinStats(Contract):
     match_level: MatchLevel
     n_programs: int = Field(ge=0)
     twins: list[TwinProgram] = Field(default_factory=list)
+    n_decided: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Decided twins (approved or stopped) the prior was built from; 0 when it fell back "
+            "to the area base rate. None on reports written before the field existed."
+        ),
+    )
+    n_approved: int | None = Field(
+        default=None, ge=0, description="Of n_decided, the ones that were approved."
+    )
     stage_distribution: dict[str, int] = Field(default_factory=dict)
     stop_reasons: dict[str, int] = Field(default_factory=dict)
     stop_reason_categories: dict[str, StopCategory] = Field(
