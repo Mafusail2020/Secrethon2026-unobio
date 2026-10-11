@@ -237,6 +237,8 @@ text or the passages (small counts up to 12 are free), and drops a claim slide w
 frontend builds the deck from the report's own wording, which is also what any slide the model left out gets. The deck page waits for
 the script before showing slides so nothing jumps, and has a Rewrite button. Cost is logged under node id `deck`.
 
+**Graph wires.** Each step and folded group declares its own wire ends (`endpoints.ts`: `handles` and `measured` on the node). React Flow drops the measured handles of a node object that is rebuilt without them, which happens on every status or timer tick of a run, and a wire with no handle at one end is not drawn, so arrows vanished for some nodes until the next resize.
+
 **PDF files.** Neither export uses the browser's print dialog (Chrome's preview of the report page came out blank on some machines).
 The report PDF is built by the backend (above), straight from the stored `UnderwritingReport`: the verdict and figures, the four
 questions, a ledger chart and tables, every claim with quotes and rejection reasons, risks, and numbered sources. The deck PDF is
@@ -405,7 +407,7 @@ stance and section, the ledger's steps by cause, the checks), adds nothing, and 
 report" keeps every section, chart and claim. A link to a claim opens the branch it sits in. Also in the view: a "What
 changed" banner for corrected runs, SVG twin, ledger-waterfall, valuation and translation visuals, Markdown export, print;
 the graph (kind
-colours, follow mode, a tabbed step drawer, highlighting of what a correction would recompute), sources and logs. Pure
+colours, follow mode, a tabbed step drawer whose Output tab says in plain words what the step did (`plainOutput.ts`: sources found, claims drafted and kept, how the chance moved, the money, the verdict; worked out from the compact output, raw data folded under it), highlighting of what a correction would recompute), sources and logs. Pure
 logic lives in plain `.ts` modules with vitest tests (`phases`, `claimFilters`, `diffView`, `waterfall`, `twinView`, `reportTree`,
 `markdown`, `correctionTarget`, `logView`, `sourcesView`, `elapsed`). The mock API takes `?scenario=` for messy data.
 

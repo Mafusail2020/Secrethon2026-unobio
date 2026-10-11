@@ -33,7 +33,7 @@ the conversation; below 768 px the history is a drawer.
    openFDA, Europe PMC …") with steps done and elapsed time. Click **Show steps** for the full list of phases; the usage
    line (model calls, tokens, cost; "mock model, no spend" in mock) is inside it. A **stub data** chip is expected: the
    nodes are still fixtures.
-5. Click **Graph** in the top bar while it runs: the 32 steps are folded into nine boxes, each showing its progress and
+5. Click **Graph** in the top bar while it runs (click any step, then **Output**: it says in plain words what the step did, with the raw data folded under "Raw data"): the 32 steps are folded into nine boxes, each showing its progress and
    which steps are running. Click **Gather public evidence**: its seven steps glide out of the box. Click the title of the
    opened frame to fold them again; **Ungroup all** and **Group all** do every box at once (and the choice is
    remembered). Turn on **Follow running step**; the camera follows. Open **Legend**.

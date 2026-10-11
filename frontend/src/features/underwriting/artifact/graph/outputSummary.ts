@@ -17,7 +17,7 @@ const COUNT_KEYS: Record<string, string> = {
 
 const MORE = /^… (\d+) more$/;
 
-function splitMore(list: unknown[]): { items: unknown[]; more: number } {
+export function splitMore(list: unknown[]): { items: unknown[]; more: number } {
   const last = list.at(-1);
   const match = typeof last === "string" ? MORE.exec(last) : null;
   return match ? { items: list.slice(0, -1), more: Number(match[1]) } : { items: list, more: 0 };

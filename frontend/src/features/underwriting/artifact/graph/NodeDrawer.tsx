@@ -12,6 +12,7 @@ import type { RunStream } from "../../reduceEvents";
 import { STATUS_ICON, STATUS_TEXT } from "../../status";
 import { kindLabel, kindMeaning } from "./kindStyle";
 import { summarizeOutput } from "./outputSummary";
+import { plainOutput } from "./plainOutput";
 import { ValueTree } from "./ValueTree";
 
 export type DrawerTab = "overview" | "output" | "log" | "correct";
@@ -106,7 +107,33 @@ function LlmCalls({ calls }: { calls: NodeExecution["llm_calls"] }) {
   );
 }
 
-function OutputView({ output }: { output: NodeExecution["output"] }) {
+/** What the step did in plain words, when its output is one this knows how to tell, and the data itself under it. */
+export function OutputView({ nodeId, output }: { nodeId: string; output: NodeExecution["output"] }) {
+  const plain = plainOutput(nodeId, output);
+  if (!plain) return <RawOutput output={output} />;
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-sm font-medium leading-snug">{plain.headline}</p>
+        {plain.points.length > 0 && (
+          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm leading-snug marker:text-muted">
+            {plain.points.map((point, i) => (
+              <li key={`${i}-${point}`}>{point}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <details className="rounded-sm border border-line px-2 py-1.5">
+        <summary className="cursor-pointer text-xs font-medium text-muted">Raw data</summary>
+        <div className="mt-2">
+          <RawOutput output={output} />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function RawOutput({ output }: { output: NodeExecution["output"] }) {
   const entries = summarizeOutput(output);
   if (entries.length === 0) return <p className="text-xs text-muted">This step produced no output.</p>;
   return (
@@ -315,7 +342,7 @@ export function NodeDrawer({
               <>
                 <section>
                   <h4 className="mb-1 text-sm font-semibold">Output</h4>
-                  <OutputView output={execution.output} />
+                  <OutputView nodeId={node.id} output={execution.output} />
                 </section>
                 <details>
                   <summary className="cursor-pointer text-sm font-semibold">Input this step saw</summary>
