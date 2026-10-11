@@ -25,6 +25,7 @@ SPEC = NodeSpec(
 DISEASE_ID = re.compile(r"\b(?:MONDO|EFO|HP|Orphanet|DOID)_\d+\b")
 TARGET_ID = re.compile(r"\bENSG\d{11}\b")
 DRUG_ID = re.compile(r"\bCHEMBL\d+\b")
+SYMPTOM_SUFFIX = re.compile(r"\s+symptom measurement$", re.I)
 
 # "BACE1 inhibitor" finds nothing; "BACE1" does. Longest phrases first.
 ACTIONS = {
@@ -117,14 +118,22 @@ async def _disease(
         hits, confidence = [hit], "high"
         ctx.log(f"disease taken from correction: {override}")
     else:
+        found = await ot.search(text, "disease", 8, force_refresh=fr)
         hits = [
             h
-            for h in await ot.search(text, "disease", 8, force_refresh=fr)
+            for h in found
             if "measurement" not in h["name"].lower() and not h["id"].startswith("OBA_")
         ]
+        exact = [h for h in hits if _norm(h["name"]) == _norm(text)]
+        # Open Targets may file a plain disease only as "<disease> symptom measurement" (multiple
+        # sclerosis is EFO_0803536); take that top hit, which the filter above dropped, when
+        # nothing is named exactly
+        symptom = [h for h in found[:1] if _norm(h["name"]) == f"{_norm(text)} symptom measurement"]
+        if symptom and not exact:
+            hits, exact = symptom + hits, symptom
+            ctx.log(f"'{text}' is filed by Open Targets as a symptom-measurement term only")
         if not hits:
             return None
-        exact = [h for h in hits if _norm(h["name"]) == _norm(text)]
         preferred = [h for h in exact if h["id"].startswith(("MONDO_", "EFO_"))]
         hit = (preferred or exact or hits)[0]
         confidence = "high" if exact else _confidence(hits)
@@ -143,7 +152,8 @@ async def _disease(
     areas = [a["name"] for a in details.get("therapeuticAreas") or []]
     ref = EntityRef(
         id=details["id"],
-        label=details["name"],
+        # the label is searched for in CT.gov and Europe PMC, which know no "symptom measurement"
+        label=SYMPTOM_SUFFIX.sub("", details["name"]),
         kind="disease",
         external_ids={"opentargets": details["id"]},
     )

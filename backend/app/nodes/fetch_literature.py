@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any
 
 from app.contracts import NodeSpec
@@ -5,8 +6,10 @@ from app.graph.state import GraphState
 from app.nodes._data import client, entity_ids, force_refresh, register
 from app.nodes._fixture import nap, register_fixture_sources
 from app.nodes.base import NodeContext
+from app.quant.twin_stats import STAGE_RANK
 from app.sources.base import SourceError
 from app.sources.europepmc import EuropePMCClient
+from app.sources.opentargets import OpenTargetsClient
 from app.sources.records import paper_records
 
 SPEC = NodeSpec(
@@ -27,12 +30,21 @@ def _q(text: str) -> str:
 
 
 def build_queries(
-    target: str | None, drug: str | None, disease_names: list[str]
+    target: str | None,
+    drug: str | None,
+    disease_names: list[str],
+    class_drugs: Sequence[str] = (),
 ) -> list[tuple[str, str]]:
     """(purpose, query) in priority order; effort decides how many run."""
     disease = "(" + " OR ".join(_q(d) for d in dict.fromkeys(disease_names)) + ")"
     subject = " OR ".join(_q(x) for x in (target, drug) if x)
     subject = f"({subject})" if subject else None
+    # trial reports name the drug, not always the target ("tolebrutinib versus teriflunomide"),
+    # so the target's other drugs in this disease are searched too
+    named = " OR ".join(
+        _q(x) for x in dict.fromkeys([*(t for t in (target, drug) if t), *class_drugs])
+    )
+    named = f"({named})" if named else None
     if subject is None:
         return [
             ("standard of care", f'{disease} AND ("standard of care" OR guideline)'),
@@ -42,7 +54,9 @@ def build_queries(
         ("target and disease", f"{subject} AND {disease}"),
         (
             "clinical results",
-            f'{subject} AND {disease} AND ("phase 3" OR "phase 2" OR "clinical trial")',
+            # by publication type: the words "phase 3" rank reviews above the trial reports
+            f"{named} AND {disease} AND "
+            '(PUB_TYPE:"Randomized Controlled Trial" OR PUB_TYPE:"Clinical Trial")',
         ),
         (
             "failures and safety",
@@ -60,6 +74,31 @@ def build_queries(
     ]
 
 
+async def _class_drugs(ctx: NodeContext, entities: Any, fr: bool, limit: int = 6) -> list[str]:
+    """Up to `limit` drugs on the target filed under this exact disease id, most advanced first."""
+    ot = client(ctx, "opentargets", OpenTargetsClient)
+    if ot is None or entities.target is None:
+        return []
+    try:
+        rows = await ot.target_drugs(entities.target.id, force_refresh=fr)
+    except SourceError as exc:
+        ctx.log(f"could not list drugs on the target: {exc}", "warn")
+        return []
+    # an optional enrichment: a malformed row is skipped, never allowed to fail the node
+    here = [
+        (STAGE_RANK.get(r.get("maxClinicalStage") or "", 0), name.lower())
+        for r in rows
+        if isinstance(r, dict)
+        and isinstance(name := (r.get("drug") or {}).get("name"), str)
+        and any(
+            isinstance(d, dict) and (d.get("disease") or {}).get("id") == entities.disease.id
+            for d in r.get("diseases") or []
+        )
+    ]
+    here.sort(key=lambda x: -x[0])
+    return list(dict.fromkeys(name for _, name in here))[:limit]
+
+
 async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
     epmc = client(ctx, "europepmc", EuropePMCClient)
     if epmc is None:
@@ -73,6 +112,7 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         entities.target.label if entities.target else None,
         entities.drug.label if entities.drug else program.drug_name,
         [entities.disease.label, program.indication],
+        await _class_drugs(ctx, entities, fr),
     )[: max(2, ctx.effort.n_queries)]
 
     papers: dict[str, dict[str, Any]] = {}

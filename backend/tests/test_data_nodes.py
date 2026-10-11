@@ -292,3 +292,139 @@ async def test_a_redirect_loop_or_a_broken_location_is_an_error_not_a_crash(monk
     with pytest.raises(SourceError):
         await web.fetch_text("https://public.example/bad")
     await web.aclose()
+
+
+class _FakeDiseaseSearch:
+    def __init__(self, hits):
+        self.hits = hits
+
+    async def search(self, text, entity, size=5, *, force_refresh=False):
+        return self.hits
+
+    async def disease(self, efo_id, *, force_refresh=False):
+        name = next(h["name"] for h in self.hits if h["id"] == efo_id)
+        return {"id": efo_id, "name": name, "therapeuticAreas": []}
+
+
+async def test_plain_multiple_sclerosis_is_the_term_open_targets_files_it_under():
+    from app.nodes.input_resolver import _disease
+
+    ms = [
+        {"id": "EFO_0803536", "name": "multiple sclerosis symptom measurement", "score": 4110.0},
+        {"id": "MONDO_0005284", "name": "chronic progressive multiple sclerosis", "score": 783.0},
+        {"id": "MONDO_0005314", "name": "relapsing-remitting multiple sclerosis", "score": 708.0},
+    ]
+    ref, _, confidence = await _disease(
+        _FakeDiseaseSearch(ms),
+        "multiple sclerosis",
+        None,
+        FakeCtx("input_resolver", _registry()),
+        False,
+    )
+    assert (ref.id, ref.label, confidence) == ("EFO_0803536", "multiple sclerosis", "high")
+    # a measurement that is not the disease itself stays out
+    pd = [
+        {"id": "MONDO_0005180", "name": "Parkinson disease", "score": 3833.0},
+        {"id": "EFO_0600011", "name": "Parkinson's disease symptom measurement", "score": 644.0},
+    ]
+    ref, _, _ = await _disease(
+        _FakeDiseaseSearch(pd),
+        "Parkinson's disease",
+        None,
+        FakeCtx("input_resolver", _registry()),
+        False,
+    )
+    assert ref.id == "MONDO_0005180"
+    ad = [
+        {"id": "EFO_0006514", "name": "Alzheimer's disease biomarker measurement", "score": 900.0},
+        {"id": "MONDO_0004975", "name": "Alzheimer disease", "score": 800.0},
+    ]
+    ref, _, _ = await _disease(
+        _FakeDiseaseSearch(ad),
+        "Alzheimer's disease",
+        None,
+        FakeCtx("input_resolver", _registry()),
+        False,
+    )
+    assert ref.id == "MONDO_0004975"
+
+
+def test_trial_reports_are_searched_by_the_drug_names_on_the_target_too():
+    from app.nodes.fetch_literature import build_queries
+
+    queries = dict(
+        build_queries("BTK", None, ["multiple sclerosis"], ["tolebrutinib", "evobrutinib"])
+    )
+    assert queries["clinical results"].startswith('("BTK" OR "tolebrutinib" OR "evobrutinib") AND')
+    assert queries["clinical results"].endswith('PUB_TYPE:"Clinical Trial")')
+    assert queries["target and disease"] == '("BTK") AND ("multiple sclerosis")'
+
+
+def test_queries_build_without_class_drugs():
+    from app.nodes.fetch_literature import build_queries
+
+    queries = dict(build_queries("BTK", None, ["multiple sclerosis"]))
+    assert queries["clinical results"].startswith('("BTK") AND')
+
+
+async def test_class_drugs_are_the_targets_drugs_in_this_disease_most_advanced_first():
+    from types import SimpleNamespace
+
+    from app.nodes.fetch_literature import _class_drugs
+    from app.sources.base import SourceError
+
+    def row(name, stage, *diseases):
+        return {
+            "maxClinicalStage": stage,
+            "drug": {"id": name, "name": name.upper()} if name else None,
+            "diseases": [{"disease": {"id": d} if d else None} for d in diseases],
+        }
+
+    class FakeOt(OpenTargetsClient):
+        rows: list = []
+
+        async def target_drugs(self, ensembl_id, *, force_refresh=False):
+            if self.rows is None:
+                raise SourceError("down")
+            return self.rows
+
+    ot = FakeOt(OT_URL, InMemorySourceCache(), min_interval_s=0)
+    ot.rows = [
+        row("evobrutinib", "PHASE_3", "EFO_MS"),
+        row("ibrutinib", "APPROVAL", "EFO_CLL"),  # another disease
+        row("tolebrutinib", None, "EFO_MS", None),
+        row(None, "PHASE_2", "EFO_MS"),
+        row("fenebrutinib", "PHASE_3", "EFO_MS"),
+        row("remibrutinib", "PHASE_1", "EFO_MS"),
+    ]
+    entities = SimpleNamespace(target=SimpleNamespace(id="T"), disease=SimpleNamespace(id="EFO_MS"))
+    ctx = FakeCtx("fetch_literature", _registry(ot))
+    assert await _class_drugs(ctx, entities, False, limit=3) == [
+        "evobrutinib",
+        "fenebrutinib",
+        "remibrutinib",
+    ]
+    ot.rows = None
+    assert await _class_drugs(ctx, entities, False) == []
+    assert ctx.logs[-1][0] == "warn"
+    no_target = SimpleNamespace(target=None, disease=entities.disease)
+    assert await _class_drugs(ctx, no_target, False) == []
+    await ot.aclose()
+
+
+async def test_the_symptom_rule_never_beats_a_real_term():
+    from app.nodes.input_resolver import _disease
+
+    ctx = FakeCtx("input_resolver", _registry())
+    real_too = [
+        {"id": "EFO_0803536", "name": "multiple sclerosis symptom measurement", "score": 4110.0},
+        {"id": "MONDO_0005301", "name": "multiple sclerosis", "score": 900.0},
+    ]
+    ref, _, _ = await _disease(_FakeDiseaseSearch(real_too), "multiple sclerosis", None, ctx, False)
+    assert ref.id == "MONDO_0005301"
+    not_top = [
+        {"id": "MONDO_0005314", "name": "relapsing-remitting multiple sclerosis", "score": 900.0},
+        {"id": "EFO_0803536", "name": "multiple sclerosis symptom measurement", "score": 800.0},
+    ]
+    ref, _, _ = await _disease(_FakeDiseaseSearch(not_top), "multiple sclerosis", None, ctx, False)
+    assert ref.id == "MONDO_0005314"
