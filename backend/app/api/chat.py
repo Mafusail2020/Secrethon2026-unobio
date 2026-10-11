@@ -8,7 +8,7 @@ from app.api.deps import get_services
 from app.chat.answer import answer_with_llm, mock_answer
 from app.chat.documents import passages_for
 from app.chat.summary import summarise_with_llm, template_summary
-from app.contracts import ChatMessage, ErrorResponse, LLMCallRecord
+from app.contracts import ChatMessage, ErrorResponse, LLMCallRecord, RunSummary
 from app.core.errors import ApiError
 from app.core.services import Services
 from app.llm.types import LLMParseError
@@ -21,9 +21,11 @@ MAX_QUESTION_CHARS = 2000
 _summary_locks: dict[str, asyncio.Lock] = {}
 
 
-async def _require_run(services: Services, run_id: str) -> None:
-    if await services.runs.get(run_id) is None:
+async def _require_run(services: Services, run_id: str) -> RunSummary:
+    summary = await services.runs.get(run_id)
+    if summary is None:
         raise ApiError(404, "run_not_found", f"no run {run_id}")
+    return summary
 
 
 @router.get("/runs/{run_id}/messages", response_model=list[ChatMessage])
@@ -43,7 +45,7 @@ async def list_messages(run_id: str, services: Svc) -> list[ChatMessage]:
 )
 async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMessage:
     """Follow-up on a finished run; the reply cites its claims or says it cannot answer."""
-    await _require_run(services, run_id)
+    run = await _require_run(services, run_id)
     question = body.content.strip()
     if body.role != "user" or not question or len(question) > MAX_QUESTION_CHARS:
         raise ApiError(
@@ -66,7 +68,7 @@ async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMes
         try:
             reply, result = await answer_with_llm(
                 services.llm.service,
-                registry.default_id(),
+                registry.for_run(run.options.model),  # follow-ups use the run's model
                 report,
                 history,
                 question,
@@ -105,7 +107,7 @@ async def post_message(run_id: str, body: ChatMessage, services: Svc) -> ChatMes
 )
 async def run_summary(run_id: str, services: Svc) -> ChatMessage:
     """The plain-language read-out of a finished run. Written once, then returned as stored."""
-    await _require_run(services, run_id)
+    run = await _require_run(services, run_id)
     report = await services.runs.get_report(run_id)
     if report is None:
         raise ApiError(
@@ -124,7 +126,7 @@ async def run_summary(run_id: str, services: Svc) -> ChatMessage:
             try:
                 message, result = await summarise_with_llm(
                     services.llm.service,
-                    services.llm.registry.default_id(),
+                    services.llm.registry.for_run(run.options.model),
                     report,
                     run_id,
                     passages,

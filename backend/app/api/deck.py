@@ -28,7 +28,8 @@ async def write_deck(
     """The words of the committee deck for a finished run. Written once and kept; `rewrite`
     writes it again. Empty `slides` means the deck should use the report's own wording (mock
     mode, or the model could not write it, or nothing it wrote held up)."""
-    if await services.runs.get(run_id) is None:
+    run = await services.runs.get(run_id)
+    if run is None:
         raise ApiError(404, "run_not_found", f"no run {run_id}")
     report = await services.runs.get_report(run_id)
     if report is None:
@@ -45,7 +46,7 @@ async def write_deck(
         try:
             script, results = await write_script(
                 services.llm.service,
-                services.llm.registry.default_id(),
+                services.llm.registry.for_run(run.options.model),
                 report,
                 passages,
                 fresh=rewrite,  # the same prompt would otherwise come back from the cache

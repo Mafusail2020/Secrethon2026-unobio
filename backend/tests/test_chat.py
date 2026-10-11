@@ -384,3 +384,53 @@ def test_live_summary_logs_the_call_once_and_a_bad_draft_falls_back(
     monkeypatch.setattr(chat_api, "summarise_with_llm", broken)
     fallback = client.post(f"/api/runs/{other}/summary")
     assert fallback.status_code == 200 and fallback.json()["cited_claim_ids"]
+
+
+@pytest.mark.parametrize("model", [None, "gpt-6.1-sol"])
+def test_follow_ups_briefing_and_deck_use_the_runs_model(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, model
+):
+    import time
+
+    from app.api import chat as chat_api
+    from app.api import deck as deck_api
+    from app.contracts import DeckScript
+    from app.llm.types import LLMResult
+
+    run_id = client.post("/api/runs", json={**BODY, "options": {"model": model}}).json()["id"]
+    for _ in range(300):
+        if client.get(f"/api/runs/{run_id}").json()["summary"]["status"] == "completed":
+            break
+        time.sleep(0.02)
+    services = client.app.state.services
+    services.settings.llm_mode = "live"
+    used: list[str] = []
+    result = LLMResult(
+        model="m", text="", parsed=None, tokens_in=1, tokens_out=1, cost_usd=0.0, cached=True,
+        latency_ms=1,
+    )  # fmt: skip
+    message = ChatMessage(role="assistant", content="ok", run_id=run_id)
+
+    async def answer(llm, m, *args, **kwargs):
+        used.append(m)
+        return message, result
+
+    async def script(llm, m, *args, **kwargs):
+        used.append(m)
+        return DeckScript(), [result]
+
+    monkeypatch.setattr(chat_api, "answer_with_llm", answer)
+    monkeypatch.setattr(chat_api, "summarise_with_llm", answer)
+    monkeypatch.setattr(deck_api, "write_script", script)
+    _ask(client, run_id)
+    client.post(f"/api/runs/{run_id}/summary")
+    client.post(f"/api/runs/{run_id}/deck")
+    expected = model or services.llm.registry.default_id()
+    assert used == [expected] * 3
+
+
+def test_a_run_cannot_ask_for_a_model_the_gateway_does_not_offer(client: TestClient):
+    response = client.post("/api/runs", json={**BODY, "options": {"model": "gpt-9-imaginary"}})
+    assert response.status_code == 422 and response.json()["error"]["code"] == "unknown_model"
+    panel = {"effort": "panel", "panel_models": ["gpt-6-luna", "nope"]}
+    assert client.post("/api/runs", json={**BODY, "options": panel}).status_code == 422
