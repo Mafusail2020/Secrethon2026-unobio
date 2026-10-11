@@ -1,4 +1,7 @@
-# Only gpt-6-luna is known from the gateway example. Prices stay null until the real list arrives.
+# The gateway's model list (it also reports them at /models). Prices stay null until the real list
+# arrives, so the cheapest-model rule falls back to the default below.
+# temperature: false on every model: the gateway answers 502 and still charges when gpt-6-luna gets a
+# temperature, and the others were only checked without one.
 models:
   - id: gpt-6-luna
     label: GPT-6 Luna
@@ -6,4 +9,22 @@ models:
     price_in_per_mtok: null
     price_out_per_mtok: null
     default: true
-    temperature: false  # the gateway answers 502 and still charges when a temperature is sent
+    temperature: false
+  - id: gpt-6.1-sol
+    label: GPT-6.1 Sol
+    tier: unknown
+    price_in_per_mtok: null
+    price_out_per_mtok: null
+    temperature: false
+  - id: gpt-6-astra
+    label: GPT-6 Astra
+    tier: unknown
+    price_in_per_mtok: null
+    price_out_per_mtok: null
+    temperature: false
+  - id: gpt-5-mini
+    label: GPT-5 mini
+    tier: unknown
+    price_in_per_mtok: null
+    price_out_per_mtok: null
+    temperature: false

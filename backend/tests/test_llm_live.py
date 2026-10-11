@@ -169,3 +169,27 @@ async def test_a_model_that_rejects_temperature_never_gets_one(tmp_path):
     await service.complete(LLMTask(purpose="p", system="", user="hi", temperature=0.2), "m")
     assert "temperature" not in gateway.bodies[0]
     await db.dispose()
+
+
+def test_a_run_keeps_its_model_for_follow_ups_while_the_gateway_offers_it():
+    registry = ModelRegistry(
+        [
+            ModelInfo(id="luna", label="luna", tier="unknown", available=True, default=True),
+            ModelInfo(id="sol", label="sol", tier="unknown", available=True),
+        ]
+    )
+    assert registry.for_run("sol") == "sol"
+    assert registry.for_run(None) == registry.for_run("gone") == "luna"
+    registry.apply_gateway_models({"luna"})
+    assert registry.for_run("sol") == "luna"
+
+
+def test_every_configured_model_is_sent_without_a_temperature():
+    from pathlib import Path
+
+    import yaml
+
+    raw = yaml.safe_load((Path(__file__).parents[1] / "config" / "models.yaml").read_text())
+    ids = {m["id"] for m in raw["models"]}
+    assert "gpt-6-luna" in ids
+    assert all(m.get("temperature") is False for m in raw["models"])

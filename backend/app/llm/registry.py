@@ -65,6 +65,11 @@ class ModelRegistry:
             return available[0].id
         raise RuntimeError("no available models; check config/models.yaml and the gateway")
 
+    def for_run(self, requested: str | None) -> str:
+        """The model a run asked for while it is still available, else the default."""
+        model = self._models.get(requested or "")
+        return model.id if model and model.available else self.default_id()
+
     def pick(self, tier: str) -> str:
         """Cheapest available model of the tier, else the registry default."""
         if self._override:
