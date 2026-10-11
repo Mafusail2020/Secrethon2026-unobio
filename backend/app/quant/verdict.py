@@ -16,6 +16,7 @@ from app.contracts import (
     Verdict,
 )
 from app.contracts.common import Confidence, Decision
+from app.quant.track_record import track_record
 
 LATE = {"PHASE_2_3", "PHASE_3", "PREAPPROVAL", "APPROVAL", "PHASE_4"}
 MAX_REASONS = 5
@@ -97,15 +98,14 @@ def decide(inputs: Inputs, conf: dict[str, Any]) -> Verdict:
         )
 
     if inputs.twin is not None:
-        decided = [t for t in inputs.twin.twins if t.status in ("approved", "stopped")]
-        approved = sum(t.status == "approved" for t in decided)
+        approved, decided = track_record(inputs.twin)
         if decided:
-            rate = approved / len(decided)
+            rate = approved / decided
             reasons.append(
                 ReasonCode(
                     code="TWIN_TRACK_RECORD",
                     text=(
-                        f"{approved} of {len(decided)} comparable programs "
+                        f"{approved} of {decided} comparable programs "
                         f"({inputs.twin.match_level.replace('_', ' ')}) reached approval"
                     ),
                     direction="positive" if rate >= 0.5 else "negative",
@@ -216,7 +216,7 @@ def _confidence(
         return "high" if failures > th["kill_min_efficacy_failures"] else "medium"
     if kill:
         return "medium"
-    decided = sum(t.status in ("approved", "stopped") for t in twin.twins) if twin else 0
+    _, decided = track_record(twin)
     if pos is None or decided < th["min_decided_twins_for_confidence"]:
         return "low"
     ratio = pos.high / max(pos.low, 1e-4)

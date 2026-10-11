@@ -169,4 +169,5 @@ def test_trace_is_a_complete_download(client: TestClient):
 
 def test_models_are_listed_with_one_default(client: TestClient):
     models = [ModelInfo.model_validate(m) for m in client.get("/api/models").json()]
-    assert [m.default for m in models] == [True] and models[0].available
+    assert [m.id for m in models if m.default] == ["gpt-6-luna"]
+    assert all(m.available for m in models)

@@ -106,6 +106,12 @@ def describe_program(state: GraphState) -> str:
     ):
         if value:
             lines.append(f"{label}: {value}")
+    if not program.drug_name:
+        # without a drug name the model adopts the best-known drug in the evidence as the program
+        lines.append(
+            "Drug: not named; the program is a new asset with this mechanism. Drugs named in the "
+            "evidence are precedents or competitors, not this program."
+        )
     if entities is not None:
         lines.append(f"Resolved disease: {entities.disease.label} ({entities.disease.id})")
         if entities.target:
@@ -117,6 +123,21 @@ def describe_program(state: GraphState) -> str:
         if entities.mechanism_class:
             lines.append(f"Mechanism class: {entities.mechanism_class}")
     return "\n".join(lines)
+
+
+RESULTS = re.compile(r"\b(?:Results|Findings)\s*:", re.I)
+
+
+def clip_excerpt(text: str, chars: int) -> str:
+    """Cut to `chars`. When a structured abstract's Results start past the halfway mark, keep a
+    short opening plus the results: a plain cut would keep only the background."""
+    if len(text) <= chars:
+        return text
+    found = RESULTS.search(text)
+    if found and found.start() > chars // 2:
+        head = text[: chars // 4].rsplit(" ", 1)[0]
+        text = f"{head} … {text[found.start() :]}"
+    return text[:chars] + " …" if len(text) > chars else text
 
 
 async def digest(
@@ -137,9 +158,7 @@ async def digest(
     shown: list[str] = []
     used = 0
     for e in items:
-        text = " ".join(e.excerpt.split())
-        if len(text) > chars:
-            text = text[:chars] + " …"
+        text = clip_excerpt(" ".join(e.excerpt.split()), chars)
         where = f", {e.locator}" if e.locator else ""
         block = f"[{e.id}] {titles.get(e.source_id, 'unknown source')}{where}\n{text}"
         if shown and used + len(block) > budget:

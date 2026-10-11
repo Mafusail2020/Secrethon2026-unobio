@@ -171,6 +171,8 @@ async def run(state: GraphState, ctx: NodeContext) -> dict[str, Any]:
         match_level=result.match_level,  # type: ignore[arg-type]
         n_programs=len(comparable),
         twins=twins,
+        n_decided=len(result.decided),
+        n_approved=sum(p.status == "approved" for p in result.decided),
         stage_distribution=dict(Counter(p.max_stage for p in comparable)),
         stop_reasons=dict(stop_classes),
         stop_reason_categories={c: OT_CATEGORY.get(c, "other") for c in stop_classes},

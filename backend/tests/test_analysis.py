@@ -922,3 +922,29 @@ def test_a_quote_of_scattered_short_words_is_not_verbatim():
     excerpt = "overall survival was longer with placebo in patients"
     assert not quote_found("overall survival; placebo; patients", [excerpt])
     assert not quote_found("survival … placebo", [excerpt])
+
+
+def test_an_unnamed_drug_is_described_as_a_new_asset_not_a_known_drug():
+    from app.contracts import ProgramInput
+    from app.nodes._analysis import describe_program
+
+    unnamed = ProgramInput(indication="multiple sclerosis", mechanism="BTK inhibitor")
+    assert "Drug: not named; the program is a new asset" in describe_program({"program": unnamed})
+    named = unnamed.model_copy(update={"drug_name": "tolebrutinib"})
+    text = describe_program({"program": named})
+    assert "Drug: tolebrutinib" in text and "not named" not in text
+
+
+def test_a_long_structured_abstract_keeps_its_results_when_clipped():
+    from app.nodes._analysis import clip_excerpt
+
+    abstract = (
+        "Background: " + "context " * 60 + "Methods: " + "design " * 40
+        + "Results: Tolebrutinib was not superior to teriflunomide in annualized relapse rate."
+    )  # fmt: skip
+    clipped = clip_excerpt(abstract, 500)
+    assert clipped.startswith("Background: context") and " … Results: Tolebrutinib" in clipped
+    assert len(clipped) <= 502
+    assert clip_excerpt("short text", 500) == "short text"
+    no_sections = "word " * 200
+    assert clip_excerpt(no_sections, 100) == no_sections[:100] + " …"

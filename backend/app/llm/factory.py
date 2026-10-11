@@ -43,11 +43,18 @@ async def build_llm_stack(settings: Settings, repo: LLMRepo) -> LLMStack:
         backend: Backend = MockBackend()
         panel: PanelRunner = MockPanelRunner()
     else:
+        from app.llm.live import LiveBackend
+
         backend, client = build_live_backend(settings)
         panel = LivePanelRunner()
         try:
             page = await client.models.list()
-            registry.apply_gateway_models({m.id for m in page.data})
+            listed = {m.id for m in page.data}
+            configured = {m.id for m in registry.infos()}
+            registry.apply_gateway_models(listed)
+            # a model only the gateway knows was never checked with a temperature: send none
+            if isinstance(backend, LiveBackend):
+                backend.no_temperature |= listed - configured
         except Exception as exc:
             log.warning("could not list gateway models (%s); trusting config/models.yaml", exc)
     service = LLMService(backend, registry, repo, settings.llm_cache)

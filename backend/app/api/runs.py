@@ -39,6 +39,11 @@ async def post_run(body: CreateRunRequest, services: Svc) -> RunSummary:
     options, cap = body.options, services.settings.max_panel_size
     if options.panel_size > cap or len(options.panel_models or []) > cap:
         raise ApiError(422, "validation_error", f"panel size is capped at {cap}")
+    # an unknown id would reach the gateway from every node and fail, still charged
+    registry = services.llm.registry
+    asked = [m for m in [options.model, *(options.panel_models or [])] if m]
+    if missing := [m for m in asked if not (info := registry.get(m)) or not info.available]:
+        raise ApiError(422, "unknown_model", f"model not available: {', '.join(missing)}")
     unknown = [d for d in body.program.document_ids if services.documents.get(d) is None]
     if unknown:
         raise ApiError(422, "unknown_document", f"no uploaded document {', '.join(unknown)}")
