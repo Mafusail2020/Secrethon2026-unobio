@@ -1,3 +1,4 @@
+import asyncio
 import time
 from typing import Any
 
@@ -76,11 +77,18 @@ async def execute_node(rc: RunContext, entry: NodeEntry, state: GraphState) -> d
         rc.failed_nodes.append(spec.id)
         bus.emit(rc.run_id, "node.failed", spec.id, error=str(exc)[:500], critical=spec.critical)
 
+    # the step's own time ends here; a hold after it is for the viewer and is not counted as work
+    worked = time.monotonic() - clock
+    finished_at = utcnow()
+    if status == "done" and rc.hold_s > worked:
+        ctx.log(f"held for {rc.hold_s - worked:.1f} s so the run can be followed (demo pace)")
+        await asyncio.sleep(rc.hold_s - worked)
+
     costs = [c.cost_usd for c in ctx.calls if not c.cached]
     execution = NodeExecution(
         status=status,  # type: ignore[arg-type]
         started_at=started_at,
-        finished_at=utcnow(),
+        finished_at=finished_at,
         output=compact(delta),
         log=ctx.log_lines,
         source_ids=ctx.source_ids,
@@ -97,7 +105,7 @@ async def execute_node(rc: RunContext, entry: NodeEntry, state: GraphState) -> d
             rc.run_id,
             "node.completed",
             spec.id,
-            duration_ms=int((time.monotonic() - clock) * 1000),
+            duration_ms=int(worked * 1000),
             output=execution.output,
         )
     return delta

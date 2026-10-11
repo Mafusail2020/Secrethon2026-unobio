@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     max_chat_questions: int = 20
     # an uploaded file that no run names is deleted this many days after it was last written
     document_ttl_days: int = 7
+    # above 0: a step that finishes early is held on screen as running, so a run of fast steps
+    # (a replay from the cache) takes about this many seconds and can be followed. Slow steps wait
+    # for nothing.
+    demo_run_seconds: float = 0.0
     # scales the sleeps in stub nodes; tests set 0
     stub_delay_scale: float = 1.0
 

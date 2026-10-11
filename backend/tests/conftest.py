@@ -10,6 +10,7 @@ def _isolated_settings(monkeypatch: pytest.MonkeyPatch, tmp_path):
     monkeypatch.setenv("TEAM_API_KEY", "")
     monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("STUB_DELAY_SCALE", "0")
+    monkeypatch.setenv("DEMO_RUN_SECONDS", "0")
     monkeypatch.setenv("SOURCES_MODE", "fixture")
     get_settings.cache_clear()
     yield

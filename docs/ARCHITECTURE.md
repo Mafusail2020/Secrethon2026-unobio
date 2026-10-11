@@ -237,6 +237,8 @@ text or the passages (small counts up to 12 are free), and drops a claim slide w
 frontend builds the deck from the report's own wording, which is also what any slide the model left out gets. The deck page waits for
 the script before showing slides so nothing jumps, and has a Rewrite button. Cost is logged under node id `deck`.
 
+**Demo pace.** `DEMO_RUN_SECONDS` (default 0) holds each executed step on screen until it has had `total / 14` seconds (14 is the longest chain of steps, `graph/pace.py`), so a run of cache-fast steps takes about that long and the graph can be followed. The hold comes after the step's own work: `duration_ms` and the recorded `finished_at` stay what the step really took, the hold is a log line ("demo pace"), `node.completed` is emitted after it (so the step shows as running meanwhile), failed or skipped steps and steps a correction reuses are not held, and a step slower than its share is not delayed at all.
+
 **Graph wires.** Each step and folded group declares its own wire ends (`endpoints.ts`: `handles` and `measured` on the node). React Flow drops the measured handles of a node object that is rebuilt without them, which happens on every status or timer tick of a run, and a wire with no handle at one end is not drawn, so arrows vanished for some nodes until the next resize.
 
 **PDF files.** Neither export uses the browser's print dialog (Chrome's preview of the report page came out blank on some machines).

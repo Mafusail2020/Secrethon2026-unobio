@@ -55,6 +55,7 @@ make dev                 # backend :8000, frontend :5173 (Vite proxies /api)
 | `SEC_USER_AGENT` | Descriptive User-Agent with contact email for SEC requests |
 | `DATA_DIR` | SQLite and vector files (git-ignored) |
 | `MAX_CONCURRENT_RUNS` | Runs executing at once (default 2) |
+| `DEMO_RUN_SECONDS` | `0` (default) is full speed. Above 0, each step that finishes its work early is held on screen as running, so that a run of fast steps (a replay from the cache) takes about this many seconds and can be followed: `20` for the demo. A step's recorded time is still what it really took, a hold is written in its log ("demo pace"), slow steps and the steps a correction reuses are not delayed, tests ignore it |
 | `STUB_DELAY_SCALE` | Scales the sleeps in stub nodes; `0` for instant runs (tests set it) |
 | `VITE_API_MODE` | `live` or `mock` (frontend serves fixtures with no backend) |
 | `API_PROXY_TARGET` | Where the Vite dev server proxies `/api` (default `http://localhost:8000`); lets a second dev setup run beside the first |

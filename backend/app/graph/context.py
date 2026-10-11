@@ -33,6 +33,8 @@ class RunContext:
     knobs: EffortKnobs
     corrections: list[Correction]  # whole lineage, oldest first
     parent_run_id: str | None = None
+    # seconds each executed step is held on screen (settings.demo_run_seconds); 0 is full speed
+    hold_s: float = 0.0
     reuse: dict[str, dict[str, Any]] = field(default_factory=dict)  # node id -> parent delta
     parent_outputs: dict[str, Any] = field(default_factory=dict)  # node id -> parent NodeExecution
     calls: list[LLMCallRecord] = field(default_factory=list)

@@ -164,6 +164,9 @@ degraded, panel and 200-claim reports) and the generated-types check.
 
 ## 8. Before you present
 
+For the demo, set `DEMO_RUN_SECONDS=20` in `.env` (and restart the backend): a run that would finish in a few seconds from the cache then takes about
+20 so the graph can be followed, step by step. A correction still takes about 3 seconds (only two steps run). Put it back to `0` to work at full speed.
+
 Five minutes, on the machine and browser that will be on screen. Everything here is free except the first deck on a run
 (two model calls).
 

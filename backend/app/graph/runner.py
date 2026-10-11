@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from app.contracts import LLMCallRecord, RunSummary, UnderwritingReport
 from app.graph.builder import get_graph
 from app.graph.context import RunContext
+from app.graph.pace import hold_per_step
 from app.graph.replay import affected_set
 from app.graph.topology import runnable_ids
 from app.llm.budget import RunBudget
@@ -99,6 +100,7 @@ async def _build_context(services: "Services", summary: RunSummary) -> RunContex
         knobs=knobs,
         corrections=corrections,
         parent_run_id=summary.parent_run_id,
+        hold_s=hold_per_step(settings.demo_run_seconds),
     )
     if summary.parent_run_id:
         affected = affected_set(corrections[-1].node_id)
