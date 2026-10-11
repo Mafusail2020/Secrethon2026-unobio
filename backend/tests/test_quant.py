@@ -390,6 +390,41 @@ def test_verdict_kill_flag_from_same_indication_efficacy_failures():
     assert len(verdict.reason_codes) <= 5
 
 
+def test_the_twin_track_record_counts_every_decided_twin_not_the_shown_sample():
+    shown = [
+        TwinProgram(drug=d, drug_id=d, disease="x", max_stage="PHASE_2", status="stopped")
+        for d in "ABC"
+    ]  # the list shows stopped twins first
+    twin = TwinStats(
+        match_level="target_area", n_programs=80, twins=shown, n_decided=73, n_approved=10,
+        prior_pos=GOOD_POS,
+    )  # fmt: skip
+    codes = {
+        r.code: r.text
+        for r in decide(_inputs(GOOD_POS, GOOD_RNPV, twin), _conf("verdict")).reason_codes
+    }
+    assert codes["TWIN_TRACK_RECORD"].startswith("10 of 73 comparable programs")
+
+
+def test_a_report_stored_without_twin_counts_still_reads_its_shown_twins():
+    shown = [
+        TwinProgram(drug=d, drug_id=d, disease="x", max_stage="PHASE_3", status=s)
+        for d, s in (("A", "approved"), ("B", "approved"), ("C", "stopped"))
+    ]
+    twin = TwinStats(match_level="target_area", n_programs=3, twins=shown, prior_pos=GOOD_POS)
+    reasons = decide(_inputs(GOOD_POS, GOOD_RNPV, twin), _conf("verdict")).reason_codes
+    record = next(r for r in reasons if r.code == "TWIN_TRACK_RECORD")
+    assert record.text.startswith("2 of 3") and record.direction == "positive"
+    base_rate = twin.model_copy(
+        update={"match_level": "area_base_rate", "n_decided": 0, "n_approved": 0}
+    )
+    codes = [
+        r.code
+        for r in decide(_inputs(GOOD_POS, GOOD_RNPV, base_rate), _conf("verdict")).reason_codes
+    ]
+    assert "TWIN_TRACK_RECORD" not in codes
+
+
 def test_verdict_reads_a_reported_failure_in_a_correction_and_ignores_other_text():
     conf = _conf("verdict")
     failure = Correction(

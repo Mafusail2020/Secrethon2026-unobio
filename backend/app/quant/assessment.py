@@ -14,6 +14,7 @@ from app.contracts import (
     TranslationLink,
     TwinStats,
 )
+from app.quant.track_record import track_record
 from app.sources.records import OT_RELEASE
 
 HUMAN_STEPS = ("target_engagement", "biological_response", "patient_benefit")
@@ -117,11 +118,10 @@ def rating(
 
 def _class_record(twins: TwinStats | None) -> float:
     """Rating-only nudge from how same-target programs in this disease ended (assumption)."""
-    decided = [t for t in (twins.twins if twins else []) if t.status in ("approved", "stopped")]
+    approved, decided = track_record(twins)
     if not decided:
         return 1.0
-    approved = sum(t.status == "approved" for t in decided)
-    if approved * 2 >= len(decided):
+    if approved * 2 >= decided:
         return 0.85
     return 1.15 if approved == 0 else 1.0
 
