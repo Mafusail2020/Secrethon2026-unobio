@@ -20,6 +20,7 @@ import {
   type PhaseFlowNode,
   type SpecFlowNode,
 } from "./SpecNodes";
+import { endpoints } from "./endpoints";
 import { WireEdge } from "./WireEdge";
 import { WIRE_COLOR, wireState, type WireFlowEdge } from "./wires";
 
@@ -310,6 +311,7 @@ export function GraphView({
         position: { x: at.x, y: at.y },
         width: panelist ? PANELIST_W : NODE_W,
         height: panelist ? PANELIST_H : NODE_H,
+        ...endpoints(panelist ? PANELIST_W : NODE_W, panelist ? PANELIST_H : NODE_H),
         zIndex: hovered === id ? 1000 : 0,
         draggable: false,
         data: {
@@ -339,6 +341,7 @@ export function GraphView({
         position: { x: at.x, y: at.y },
         width: GROUP_W,
         height: GROUP_H,
+        ...endpoints(GROUP_W, GROUP_H),
         zIndex: hovered === group.id ? 1000 : 0,
         draggable: false,
         data: {
